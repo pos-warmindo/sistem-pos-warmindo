@@ -1,0 +1,27 @@
+/**
+ * Centralized icon exports for Warmindo WP 2 POS.
+ * ⛔ RULE: No other icon package may be installed.
+ * All icon imports MUST come from this file.
+ */
+export {
+  ShoppingCart,
+  Trash2,
+  Plus,
+  Minus,
+  X,
+  CheckCircle,
+  AlertTriangle,
+  Clock,
+  Printer,
+  LogOut,
+  User,
+  Package,
+  TrendingUp,
+  DollarSign,
+  Wifi,
+  WifiOff,
+  ChevronDown,
+  Menu,
+  CreditCard,
+  Banknote,
+} from "lucide-react";
