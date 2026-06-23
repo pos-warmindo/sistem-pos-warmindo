@@ -2,19 +2,30 @@ import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
 /**
- * Refreshes the user's Supabase auth session on every request and
- * enforces role-based route protection.
+ * Helper — queries user role using the SECURITY DEFINER function
+ * get_my_role() which bypasses RLS and returns the role name directly.
+ *
+ * Returns 'cashier' | 'owner' | null
+ */
+async function getUserRole(
+  supabase: ReturnType<typeof createServerClient>
+): Promise<string | null> {
+  const { data, error } = await supabase.rpc("get_my_role");
+  if (error || !data) return null;
+  return data as string;
+}
+
+/**
+ * Refreshes the Supabase auth session and enforces role-based route protection.
  *
  * Route Protection Rules:
- * - /cashier/pos/*  → require authenticated (cashier or owner)
- * - /owner/dashboard/* → require owner role only
- * - /api/*          → require authenticated (except /api/pakasir/webhook)
- * - /auth/login     → redirect to respective panel if already authenticated
+ * - /cashier/pos/*      → require authenticated (cashier OR owner)
+ * - /owner/dashboard/*  → require owner role ONLY
+ * - /api/*              → require authenticated (except /api/pakasir/webhook)
+ * - /auth/login         → redirect away if already authenticated
  */
 export async function updateSession(request: NextRequest) {
-  let supabaseResponse = NextResponse.next({
-    request,
-  });
+  let supabaseResponse = NextResponse.next({ request });
 
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -28,9 +39,7 @@ export async function updateSession(request: NextRequest) {
           cookiesToSet.forEach(({ name, value }) =>
             request.cookies.set(name, value)
           );
-          supabaseResponse = NextResponse.next({
-            request,
-          });
+          supabaseResponse = NextResponse.next({ request });
           cookiesToSet.forEach(({ name, value, options }) =>
             supabaseResponse.cookies.set(name, value, options)
           );
@@ -39,79 +48,50 @@ export async function updateSession(request: NextRequest) {
     }
   );
 
-  // IMPORTANT: getUser() sends a request to Supabase Auth server every time
-  // to revalidate the Auth token. This is critical for security.
-  const { data: { user } } = await supabase.auth.getUser();
+  // Always call getUser() to refresh the session token
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
 
-  const url = new URL(request.url);
-  const path = url.pathname;
+  const { pathname } = new URL(request.url);
 
-  const isPosRoute = path.startsWith("/cashier/pos");
-  const isDashboardRoute = path.startsWith("/owner/dashboard");
-  const isApiRoute = path.startsWith("/api");
-  const isPakasirWebhook = path === "/api/pakasir/webhook";
-  const isLoginRoute = path.startsWith("/auth/login");
+  const isPosRoute       = pathname.startsWith("/cashier/pos");
+  const isDashboardRoute = pathname.startsWith("/owner/dashboard");
+  const isApiRoute       = pathname.startsWith("/api");
+  const isWebhook        = pathname === "/api/pakasir/webhook";
+  const isLoginRoute     = pathname.startsWith("/auth/login");
 
-  // Route protection logic
-  if (isPosRoute || isDashboardRoute || (isApiRoute && !isPakasirWebhook)) {
+  // ── Protected routes ───────────────────────────────────────────
+  if (isPosRoute || isDashboardRoute || (isApiRoute && !isWebhook)) {
+    // Not logged in → redirect to login
     if (!user) {
       if (isApiRoute) {
-        return NextResponse.json(
-          { error: "Unauthorized" },
-          { status: 401 }
-        );
+        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
       }
-      const redirectUrl = new URL("/auth/login", request.url);
-      return NextResponse.redirect(redirectUrl);
+      return NextResponse.redirect(new URL("/auth/login", request.url));
     }
 
-    // Query user role
-    const { data: roleData } = await supabase
-      .from("user_roles")
-      .select(`
-        roles (
-          name
-        )
-      `)
-      .eq("user_id", user.id)
-      .single();
-
-    const role = (roleData?.roles as any)?.name;
-
-    // Owner checks
-    if (isDashboardRoute && role !== "owner") {
-      const redirectUrl = new URL("/cashier/pos", request.url);
-      return NextResponse.redirect(redirectUrl);
+    // Logged in → check role for dashboard
+    if (isDashboardRoute) {
+      const role = await getUserRole(supabase);
+      if (role !== "owner") {
+        // Cashier (or unknown role) cannot access dashboard → redirect to POS
+        return NextResponse.redirect(new URL("/cashier/pos", request.url));
+      }
     }
 
-    // General cashier/owner checks for POS
-    if (isPosRoute && role !== "cashier" && role !== "owner") {
-      const redirectUrl = new URL("/auth/login", request.url);
-      return NextResponse.redirect(redirectUrl);
-    }
+    // POS route: cashier and owner are both allowed — no extra check needed
   }
 
-  // Redirect authenticated users away from the login page
+  // ── Redirect already-authenticated users away from login ───────
   if (isLoginRoute && user) {
-    const { data: roleData } = await supabase
-      .from("user_roles")
-      .select(`
-        roles (
-          name
-        )
-      `)
-      .eq("user_id", user.id)
-      .single();
-
-    const role = (roleData?.roles as any)?.name;
-
+    const role = await getUserRole(supabase);
     if (role === "owner") {
       return NextResponse.redirect(new URL("/owner/dashboard", request.url));
-    } else if (role === "cashier") {
-      return NextResponse.redirect(new URL("/cashier/pos", request.url));
     }
+    // cashier or unknown → go to POS
+    return NextResponse.redirect(new URL("/cashier/pos", request.url));
   }
 
   return supabaseResponse;
 }
-

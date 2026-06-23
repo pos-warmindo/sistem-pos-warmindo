@@ -56,14 +56,17 @@ export default function LoginPage() {
         .eq("user_id", userId)
         .maybeSingle()
 
-      if (roleError || !roleData) {
-        toast.error("Gagal membaca role pengguna.", {
+      if (roleError) {
+        // Log detail error untuk debugging
+        console.error("[Login] role query error:", roleError)
+        toast.error(`Gagal membaca role: ${roleError.message}`, {
           icon: <AlertTriangle className="size-4" />,
         })
         return
       }
 
-      const roleRelation = roleData.roles as unknown as
+      // Ekstrak nama role
+      const roleRelation = roleData?.roles as unknown as
         | { name?: UserRole }
         | { name?: UserRole }[]
         | null
@@ -76,6 +79,14 @@ export default function LoginPage() {
         router.push("/owner/dashboard")
         router.refresh()
         return
+      }
+
+      // Default fallback: cashier (jika role tidak ada, arahkan ke POS)
+      if (!roleName) {
+        console.warn("[Login] role tidak ditemukan untuk user:", userId)
+        toast.warning("Role tidak ditemukan, diarahkan ke POS sebagai kasir.", {
+          icon: <AlertTriangle className="size-4" />,
+        })
       }
 
       router.push("/cashier/pos")
