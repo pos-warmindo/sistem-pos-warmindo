@@ -2,15 +2,14 @@ import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
 /**
- * Refreshes the user's Supabase auth session on every request.
+ * Refreshes the user's Supabase auth session on every request and
+ * enforces role-based route protection.
  *
- * This function is called by the Next.js middleware to ensure
- * that expired sessions are automatically refreshed, keeping
- * users logged in without interruption.
- *
- * It reads auth cookies, calls supabase.auth.getUser() to
- * trigger a token refresh if needed, and writes updated
- * cookies back to the response.
+ * Route Protection Rules:
+ * - /pos/*          → require authenticated (cashier or owner)
+ * - /dashboard/*    → require owner role only
+ * - /api/*          → require authenticated (except /api/pakasir/webhook)
+ * - /auth/login     → redirect to respective panel if already authenticated
  */
 export async function updateSession(request: NextRequest) {
   let supabaseResponse = NextResponse.next({
@@ -40,11 +39,79 @@ export async function updateSession(request: NextRequest) {
     }
   );
 
-  // IMPORTANT: Do NOT use supabase.auth.getSession() here.
-  // getUser() sends a request to Supabase Auth server every time
-  // to revalidate the Auth token, while getSession() does not.
-  // This is critical for security in server-side contexts.
-  await supabase.auth.getUser();
+  // IMPORTANT: getUser() sends a request to Supabase Auth server every time
+  // to revalidate the Auth token. This is critical for security.
+  const { data: { user } } = await supabase.auth.getUser();
+
+  const url = new URL(request.url);
+  const path = url.pathname;
+
+  const isPosRoute = path.startsWith("/pos");
+  const isDashboardRoute = path.startsWith("/dashboard");
+  const isApiRoute = path.startsWith("/api");
+  const isPakasirWebhook = path === "/api/pakasir/webhook";
+  const isLoginRoute = path.startsWith("/auth/login");
+
+  // Route protection logic
+  if (isPosRoute || isDashboardRoute || (isApiRoute && !isPakasirWebhook)) {
+    if (!user) {
+      if (isApiRoute) {
+        return NextResponse.json(
+          { error: "Unauthorized" },
+          { status: 401 }
+        );
+      }
+      const redirectUrl = new URL("/auth/login", request.url);
+      return NextResponse.redirect(redirectUrl);
+    }
+
+    // Query user role
+    const { data: roleData } = await supabase
+      .from("user_roles")
+      .select(`
+        roles (
+          name
+        )
+      `)
+      .eq("user_id", user.id)
+      .single();
+
+    const role = (roleData?.roles as any)?.name;
+
+    // Owner checks
+    if (isDashboardRoute && role !== "owner") {
+      const redirectUrl = new URL("/pos", request.url);
+      return NextResponse.redirect(redirectUrl);
+    }
+
+    // General cashier/owner checks for POS
+    if (isPosRoute && role !== "cashier" && role !== "owner") {
+      const redirectUrl = new URL("/auth/login", request.url);
+      return NextResponse.redirect(redirectUrl);
+    }
+  }
+
+  // Redirect authenticated users away from the login page
+  if (isLoginRoute && user) {
+    const { data: roleData } = await supabase
+      .from("user_roles")
+      .select(`
+        roles (
+          name
+        )
+      `)
+      .eq("user_id", user.id)
+      .single();
+
+    const role = (roleData?.roles as any)?.name;
+
+    if (role === "owner") {
+      return NextResponse.redirect(new URL("/dashboard", request.url));
+    } else if (role === "cashier") {
+      return NextResponse.redirect(new URL("/pos", request.url));
+    }
+  }
 
   return supabaseResponse;
 }
+
