@@ -84,14 +84,10 @@ export async function updateSession(request: NextRequest) {
   }
 
   // ── Redirect already-authenticated users away from login ───────
-  if (isLoginRoute && user) {
-    const role = await getUserRole(supabase);
-    if (role === "owner") {
-      return NextResponse.redirect(new URL("/owner/dashboard", request.url));
-    }
-    // cashier or unknown → go to POS
-    return NextResponse.redirect(new URL("/cashier/pos", request.url));
-  }
+  // NOTE: We do NOT redirect here anymore — the login page itself
+  // shows a "you are already logged in" banner with a logout button.
+  // This prevents the loop where user can't switch accounts.
+  // The redirect-after-login is handled client-side in the login form.
 
   return supabaseResponse;
 }

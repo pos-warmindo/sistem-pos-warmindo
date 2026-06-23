@@ -167,6 +167,7 @@ export function AppNavbar({
             size="icon"
             aria-label="Keluar dari aplikasi"
             className="text-muted-foreground hover:text-foreground"
+            onClick={() => { window.location.href = "/auth/logout" }}
           >
             <LogOut aria-hidden="true" />
           </Button>
