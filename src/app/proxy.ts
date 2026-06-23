@@ -2,7 +2,7 @@ import { type NextRequest } from "next/server";
 import { updateSession } from "@/lib/supabase/middleware";
 
 /**
- * Next.js Middleware — runs on every matched request.
+ * Next.js Proxy — runs on every matched request (replaces middleware.ts in Next.js 16+).
  *
  * Responsibilities:
  * 1. Refresh Supabase auth session tokens (prevents session expiry)
@@ -11,7 +11,7 @@ import { updateSession } from "@/lib/supabase/middleware";
  * 2. Protected route enforcement (/pos → cashier+owner, /dashboard → owner)
  * 3. Redirect unauthenticated users to /auth/login
  */
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   return await updateSession(request);
 }
 

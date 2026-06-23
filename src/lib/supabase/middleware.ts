@@ -6,8 +6,8 @@ import { NextResponse, type NextRequest } from "next/server";
  * enforces role-based route protection.
  *
  * Route Protection Rules:
- * - /pos/*          → require authenticated (cashier or owner)
- * - /dashboard/*    → require owner role only
+ * - /cashier/pos/*  → require authenticated (cashier or owner)
+ * - /owner/dashboard/* → require owner role only
  * - /api/*          → require authenticated (except /api/pakasir/webhook)
  * - /auth/login     → redirect to respective panel if already authenticated
  */
@@ -46,8 +46,8 @@ export async function updateSession(request: NextRequest) {
   const url = new URL(request.url);
   const path = url.pathname;
 
-  const isPosRoute = path.startsWith("/pos");
-  const isDashboardRoute = path.startsWith("/dashboard");
+  const isPosRoute = path.startsWith("/cashier/pos");
+  const isDashboardRoute = path.startsWith("/owner/dashboard");
   const isApiRoute = path.startsWith("/api");
   const isPakasirWebhook = path === "/api/pakasir/webhook";
   const isLoginRoute = path.startsWith("/auth/login");
@@ -80,7 +80,7 @@ export async function updateSession(request: NextRequest) {
 
     // Owner checks
     if (isDashboardRoute && role !== "owner") {
-      const redirectUrl = new URL("/pos", request.url);
+      const redirectUrl = new URL("/cashier/pos", request.url);
       return NextResponse.redirect(redirectUrl);
     }
 
@@ -106,9 +106,9 @@ export async function updateSession(request: NextRequest) {
     const role = (roleData?.roles as any)?.name;
 
     if (role === "owner") {
-      return NextResponse.redirect(new URL("/dashboard", request.url));
+      return NextResponse.redirect(new URL("/owner/dashboard", request.url));
     } else if (role === "cashier") {
-      return NextResponse.redirect(new URL("/pos", request.url));
+      return NextResponse.redirect(new URL("/cashier/pos", request.url));
     }
   }
 
