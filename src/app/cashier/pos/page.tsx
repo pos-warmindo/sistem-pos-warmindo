@@ -12,6 +12,7 @@ import {
   Product,
   ProductModifier,
 } from "@/lib/mocks/catalog";
+import { useShift } from "@/lib/hooks/useShift";
 import { formatRupiah } from "@/lib/utils/format";
 import { toast } from "sonner";
 import { Trash2, Plus, Minus, ShoppingCart } from "@/lib/icons";
@@ -26,6 +27,7 @@ interface LocalCartItem {
 }
 
 export default function CashierPosPage() {
+  const { activeShift } = useShift();
   const [activeCategoryId, setActiveCategoryId] = useState<string | null>(null);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [productModifiers, setProductModifiers] = useState<ProductModifier[]>([]);
@@ -256,11 +258,15 @@ export default function CashierPosPage() {
                 <Button
                   type="button"
                   className="bg-primary hover:bg-primary-hover text-white font-semibold text-xs py-5"
-                  onClick={() =>
+                  onClick={() => {
+                    if (!activeShift) {
+                      toast.error("Transaksi tidak diizinkan. Silakan buka shift terlebih dahulu.");
+                      return;
+                    }
                     toast.info(
                       "Fitur pembayaran & pembuatan pesanan akan diaktifkan di Section 6."
-                    )
-                  }
+                    );
+                  }}
                 >
                   Bayar Sekarang
                 </Button>

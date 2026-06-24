@@ -74,40 +74,36 @@ export default function LoginPage() {
 
       // Use get_my_role() RPC — SECURITY DEFINER bypasses RLS
       const { data: roleData, error: roleError } = await supabase
-        .rpc("get_my_role")
+        .rpc("get_my_role");
 
       if (roleError) {
-        console.error("[Login] get_my_role error:", roleError)
+        console.error("[Login] get_my_role error:", roleError);
         // Fallback: try direct query
         const { data: fallbackRole } = await supabase
           .from("user_roles")
           .select("roles ( name )")
           .eq("user_id", userId)
-          .maybeSingle()
+          .maybeSingle();
 
-        const rel = fallbackRole?.roles as unknown as { name?: UserRole } | null
-        const name = rel?.name
+        const rel = fallbackRole?.roles as unknown as { name?: UserRole } | null;
+        const name = rel?.name;
 
         if (name === "owner") {
-          router.push("/owner/dashboard")
-          router.refresh()
-          return
+          window.location.href = "/owner/dashboard";
+          return;
         }
-        router.push("/cashier/pos")
-        router.refresh()
-        return
+        window.location.href = "/cashier/pos";
+        return;
       }
 
-      const roleName = roleData as UserRole | null
+      const roleName = roleData as UserRole | null;
 
       if (roleName === "owner") {
-        router.push("/owner/dashboard")
-        router.refresh()
-        return
+        window.location.href = "/owner/dashboard";
+        return;
       }
 
-      router.push("/cashier/pos")
-      router.refresh()
+      window.location.href = "/cashier/pos";
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Login gagal.", {
         icon: <AlertTriangle className="size-4" />,

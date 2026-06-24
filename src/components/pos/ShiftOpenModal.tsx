@@ -15,11 +15,13 @@ import { Banknote } from "@/lib/icons";
 interface ShiftOpenModalProps {
   isOpen: boolean;
   onOpenShift: (modalAwal: number) => Promise<any>;
+  onOpenChange?: (open: boolean) => void;
 }
 
 export default function ShiftOpenModal({
   isOpen,
   onOpenShift,
+  onOpenChange,
 }: ShiftOpenModalProps) {
   const [modalAwal, setModalAwal] = useState<string>("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -45,8 +47,8 @@ export default function ShiftOpenModal({
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={() => {}}>
-      <DialogContent className="sm:max-w-md [&>button]:hidden">
+    <Dialog open={isOpen} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-heading">
             <Banknote className="size-5 text-primary" />

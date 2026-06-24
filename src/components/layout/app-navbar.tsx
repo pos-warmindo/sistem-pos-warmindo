@@ -44,17 +44,17 @@ export function AppNavbar({
   userName: defaultUserName = "Kasir",
 }: AppNavbarProps) {
   const pathname = usePathname()
-  const { activeShift, closeShift } = useShift()
   const supabase = createClient()
 
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const [isCloseModalOpen, setIsCloseModalOpen] = useState(false)
   const [displayName, setDisplayName] = useState(defaultUserName)
-
+  const [role, setRole] = useState<string>("")
   useEffect(() => {
     async function getUserProfile() {
       const { data: { user } } = await supabase.auth.getUser()
       if (user) {
+        // Fetch display name
         const { data: profile } = await supabase
           .from("users")
           .select("display_name")
@@ -66,10 +66,32 @@ export function AppNavbar({
         } else if (user.email) {
           setDisplayName(user.email.split("@")[0])
         }
+
+        // Fetch role
+        const { data: roleData } = await supabase
+          .from("user_roles")
+          .select("roles ( name )")
+          .eq("user_id", user.id)
+          .maybeSingle()
+
+        const rel = roleData?.roles as any
+        if (rel?.name) {
+          setRole(rel.name)
+        }
+      } else {
+        setDisplayName(defaultUserName)
+        setRole("")
       }
     }
     getUserProfile()
-  }, [supabase])
+  }, [supabase, pathname, defaultUserName])
+
+  const { activeShift, closeShift, refreshShift } = useShift()
+
+  // Refresh shift state on navigation/route changes
+  useEffect(() => {
+    refreshShift()
+  }, [pathname, refreshShift])
 
   // Hide navbar on auth pages
   if (pathname?.startsWith("/auth")) {
@@ -223,16 +245,20 @@ export function AppNavbar({
           )}
 
           {/* User menu button */}
-          <button
-            type="button"
-            className="flex items-center gap-2 rounded-lg border border-border bg-background px-3 py-1.5 text-sm font-medium text-foreground transition-colors hover:bg-muted"
+          <div
+            className="flex items-center gap-2 rounded-lg border border-border bg-background px-3 py-1 text-sm font-medium text-foreground select-none"
             aria-label={`Menu pengguna: ${displayName}`}
-            aria-haspopup="true"
           >
             <User className="size-4 text-muted-foreground" aria-hidden="true" />
-            <span className="max-w-28 truncate">{displayName}</span>
-            <ChevronDown className="size-3.5 text-muted-foreground" aria-hidden="true" />
-          </button>
+            <div className="flex flex-col items-start leading-none pr-1">
+              <span className="max-w-28 truncate text-xs font-bold text-heading">
+                {displayName}
+              </span>
+              <span className="text-[9px] text-muted-foreground capitalize font-semibold mt-0.5">
+                {role === "owner" ? "Owner" : role === "cashier" ? "Kasir" : "Staff"}
+              </span>
+            </div>
+          </div>
 
           {/* Logout button */}
           <Button
@@ -240,7 +266,10 @@ export function AppNavbar({
             size="icon"
             aria-label="Keluar dari aplikasi"
             className="text-muted-foreground hover:text-foreground"
-            onClick={() => { window.location.href = "/auth/logout" }}
+            onClick={() => {
+              sessionStorage.clear();
+              window.location.href = "/auth/logout"
+            }}
           >
             <LogOut aria-hidden="true" />
           </Button>
@@ -253,6 +282,7 @@ export function AppNavbar({
           activeShift={activeShift}
           onCloseShift={async (cashCounted, notes) => {
             const data = await closeShift(cashCounted, notes)
+            sessionStorage.setItem("shiftClosedThisSession", "true")
             toast.success("Shift berhasil ditutup.")
             return data;
           }}

@@ -24,4 +24,5 @@ export {
   Menu,
   CreditCard,
   Banknote,
+  Lock,
 } from "lucide-react";

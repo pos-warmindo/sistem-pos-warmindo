@@ -1,12 +1,22 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { createContext, useContext, useEffect, useState, useCallback } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { Database } from "@/types/database";
 
 export type Shift = Database["public"]["Tables"]["shifts"]["Row"];
 
-export function useShift() {
+interface ShiftContextType {
+  activeShift: Shift | null;
+  isLoading: boolean;
+  openShift: (modalAwal: number) => Promise<Shift>;
+  closeShift: (cashCounted: number, notes?: string | null) => Promise<Shift>;
+  refreshShift: () => Promise<void>;
+}
+
+const ShiftContext = createContext<ShiftContextType | undefined>(undefined);
+
+export function ShiftProvider({ children }: { children: React.ReactNode }) {
   const supabase = createClient();
   const [activeShift, setActiveShift] = useState<Shift | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -120,11 +130,25 @@ export function useShift() {
     fetchActiveShift();
   }, [fetchActiveShift]);
 
-  return {
-    activeShift,
-    isLoading,
-    openShift,
-    closeShift,
-    refreshShift: fetchActiveShift,
-  };
+  return (
+    <ShiftContext.Provider
+      value={{
+        activeShift,
+        isLoading,
+        openShift,
+        closeShift,
+        refreshShift: fetchActiveShift,
+      }}
+    >
+      {children}
+    </ShiftContext.Provider>
+  );
+}
+
+export function useShift() {
+  const context = useContext(ShiftContext);
+  if (context === undefined) {
+    throw new Error("useShift must be used within a ShiftProvider");
+  }
+  return context;
 }

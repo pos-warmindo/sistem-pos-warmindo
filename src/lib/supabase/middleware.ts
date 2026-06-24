@@ -71,7 +71,7 @@ export async function updateSession(request: NextRequest) {
       return NextResponse.redirect(new URL("/auth/login", request.url));
     }
 
-    // Logged in → check role for dashboard
+    // Logged in → check role for routes
     if (isDashboardRoute) {
       const role = await getUserRole(supabase);
       if (role !== "owner") {
@@ -80,7 +80,13 @@ export async function updateSession(request: NextRequest) {
       }
     }
 
-    // POS route: cashier and owner are both allowed — no extra check needed
+    if (isPosRoute) {
+      const role = await getUserRole(supabase);
+      if (role !== "cashier") {
+        // Owner (or unknown role) cannot access POS → redirect to dashboard
+        return NextResponse.redirect(new URL("/owner/dashboard", request.url));
+      }
+    }
   }
 
   // ── Redirect already-authenticated users away from login ───────
