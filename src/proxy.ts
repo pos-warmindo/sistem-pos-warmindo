@@ -12,7 +12,7 @@ import { updateSession } from "@/lib/supabase/middleware";
  *    - /api/*        → require authenticated (except /api/pakasir/webhook)
  *    - /auth/login   → redirect away if already authenticated
  */
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   return await updateSession(request);
 }
 

@@ -2,6 +2,11 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
+import { useState, useEffect } from "react"
+import { useShift } from "@/lib/hooks/useShift"
+import { createClient } from "@/lib/supabase/client"
+import { toast } from "sonner"
+import ShiftCloseModal from "@/components/pos/ShiftCloseModal"
 
 import {
   ChevronDown,
@@ -35,15 +40,44 @@ type AppNavbarProps = {
 }
 
 export function AppNavbar({
-  shiftStatus = "closed",
-  userName = "Kasir",
+  shiftStatus: defaultShiftStatus,
+  userName: defaultUserName = "Kasir",
 }: AppNavbarProps) {
   const pathname = usePathname()
+  const { activeShift, closeShift } = useShift()
+  const supabase = createClient()
+
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+  const [isCloseModalOpen, setIsCloseModalOpen] = useState(false)
+  const [displayName, setDisplayName] = useState(defaultUserName)
+
+  useEffect(() => {
+    async function getUserProfile() {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (user) {
+        const { data: profile } = await supabase
+          .from("users")
+          .select("display_name")
+          .eq("id", user.id)
+          .maybeSingle()
+
+        if (profile?.display_name) {
+          setDisplayName(profile.display_name)
+        } else if (user.email) {
+          setDisplayName(user.email.split("@")[0])
+        }
+      }
+    }
+    getUserProfile()
+  }, [supabase])
 
   // Hide navbar on auth pages
   if (pathname?.startsWith("/auth")) {
     return null
   }
+
+  const shiftActive = activeShift !== null
+  const displayShiftStatus = defaultShiftStatus || (shiftActive ? "active" : "closed")
 
   return (
     <header className="sticky top-0 z-40 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80">
@@ -51,7 +85,7 @@ export function AppNavbar({
 
         {/* Mobile hamburger + Logo */}
         <div className="flex items-center gap-3">
-          <Sheet>
+          <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
             {/* SheetTrigger renders its children as the trigger element */}
             <SheetTrigger
               render={
@@ -66,7 +100,7 @@ export function AppNavbar({
               <Menu />
             </SheetTrigger>
 
-            <SheetContent side="left" className="w-80">
+            <SheetContent side="left" className="w-80 flex flex-col h-full">
               <SheetHeader className="space-y-2 border-b border-border pb-4">
                 <SheetTitle className="flex items-center gap-2 text-left text-lg">
                   <Package className="size-5 text-primary" />
@@ -77,7 +111,7 @@ export function AppNavbar({
                 </SheetDescription>
               </SheetHeader>
 
-              <nav className="flex flex-col gap-2 p-4" aria-label="Navigasi mobile">
+              <nav className="flex flex-col gap-2 py-4 flex-1 overflow-y-auto" aria-label="Navigasi mobile">
                 {navigationItems.map((item) => {
                   const isActive = pathname === item.href
                   const Icon = item.icon
@@ -86,6 +120,7 @@ export function AppNavbar({
                     <Link
                       key={item.href}
                       href={item.href}
+                      onClick={() => setIsMobileMenuOpen(false)}
                       className={cn(
                         "flex items-center gap-3 rounded-lg border px-3 py-2.5 text-sm font-medium transition-colors",
                         isActive
@@ -99,6 +134,32 @@ export function AppNavbar({
                   )
                 })}
               </nav>
+
+              <div className="mt-auto border-t border-border pt-4 space-y-4">
+                <div className="flex items-center gap-3">
+                  <User className="size-5 text-muted-foreground" />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-semibold truncate text-heading">
+                      {displayName}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      {shiftActive ? "Shift Aktif" : "Shift Tutup"}
+                    </p>
+                  </div>
+                </div>
+                {shiftActive && (
+                  <Button
+                    variant="destructive"
+                    className="w-full bg-red-600 hover:bg-red-700 text-white font-medium"
+                    onClick={() => {
+                      setIsMobileMenuOpen(false)
+                      setIsCloseModalOpen(true)
+                    }}
+                  >
+                    Tutup Shift
+                  </Button>
+                )}
+              </div>
             </SheetContent>
           </Sheet>
 
@@ -141,23 +202,35 @@ export function AppNavbar({
         <div className="ml-auto flex items-center gap-2">
           {/* Shift status badge */}
           <Badge
-            variant={shiftStatus === "active" ? "default" : "destructive"}
+            variant={displayShiftStatus === "active" ? "default" : "destructive"}
             className="hidden items-center gap-1.5 sm:inline-flex"
-            aria-label={`Status shift: ${shiftStatus === "active" ? "aktif" : "tutup"}`}
+            aria-label={`Status shift: ${displayShiftStatus === "active" ? "aktif" : "tutup"}`}
           >
             <span className="size-1.5 rounded-full bg-current" aria-hidden="true" />
-            {shiftStatus === "active" ? "Shift Aktif" : "Shift Tutup"}
+            {displayShiftStatus === "active" ? "Shift Aktif" : "Shift Tutup"}
           </Badge>
+
+          {/* Tutup Shift desktop button */}
+          {shiftActive && (
+            <Button
+              variant="outline"
+              size="sm"
+              className="hidden sm:inline-flex border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700 h-9 font-medium"
+              onClick={() => setIsCloseModalOpen(true)}
+            >
+              Tutup Shift
+            </Button>
+          )}
 
           {/* User menu button */}
           <button
             type="button"
             className="flex items-center gap-2 rounded-lg border border-border bg-background px-3 py-1.5 text-sm font-medium text-foreground transition-colors hover:bg-muted"
-            aria-label={`Menu pengguna: ${userName}`}
+            aria-label={`Menu pengguna: ${displayName}`}
             aria-haspopup="true"
           >
             <User className="size-4 text-muted-foreground" aria-hidden="true" />
-            <span className="max-w-28 truncate">{userName}</span>
+            <span className="max-w-28 truncate">{displayName}</span>
             <ChevronDown className="size-3.5 text-muted-foreground" aria-hidden="true" />
           </button>
 
@@ -173,6 +246,18 @@ export function AppNavbar({
           </Button>
         </div>
       </div>
+      {activeShift && (
+        <ShiftCloseModal
+          isOpen={isCloseModalOpen}
+          onOpenChange={setIsCloseModalOpen}
+          activeShift={activeShift}
+          onCloseShift={async (cashCounted, notes) => {
+            const data = await closeShift(cashCounted, notes)
+            toast.success("Shift berhasil ditutup.")
+            return data;
+          }}
+        />
+      )}
     </header>
   )
 }
