@@ -37,6 +37,10 @@ export default function CashierPosPage() {
   const [cartItems, setCartItems] = useState<LocalCartItem[]>([]);
 
   const handleSelectProduct = (product: Product) => {
+    if (!activeShift) {
+      toast.error("Transaksi tidak diizinkan. Silakan buka shift terlebih dahulu.");
+      return;
+    }
     const productMods = MOCK_MODIFIERS.filter(
       (m) => m.product_id === product.id
     );
@@ -72,6 +76,10 @@ export default function CashierPosPage() {
   };
 
   const handleIncrementQty = (id: string) => {
+    if (!activeShift) {
+      toast.error("Transaksi tidak diizinkan. Silakan buka shift terlebih dahulu.");
+      return;
+    }
     setCartItems((prev) =>
       prev.map((item) =>
         item.id === id ? { ...item, quantity: item.quantity + 1 } : item
