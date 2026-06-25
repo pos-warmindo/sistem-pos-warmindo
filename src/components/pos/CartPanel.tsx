@@ -28,7 +28,7 @@ export default function CartPanel() {
   };
 
   return (
-    <div className="w-full lg:w-[400px] shrink-0 flex flex-col h-full bg-white shadow-xl shadow-slate-100 z-10">
+    <div className="hidden lg:flex w-full lg:w-[400px] shrink-0 flex-col h-full bg-white shadow-xl shadow-slate-100 z-10">
       {/* Cart Header */}
       <div className="p-5 border-b border-border flex items-center justify-between">
         <div className="flex items-center gap-2">

@@ -6,6 +6,7 @@ import CategoryTabBar from "@/components/pos/CategoryTabBar";
 import ProductGrid from "@/components/pos/ProductGrid";
 import ModifierSelectionModal from "@/components/pos/ModifierSelectionModal";
 import CartPanel from "@/components/pos/CartPanel";
+import CartSheet from "@/components/pos/CartSheet";
 import {
   Product,
   ProductModifier,
@@ -132,6 +133,9 @@ export default function CashierPosPage() {
             {/* Right Column - Cart Panel */}
             <CartPanel />
           </main>
+
+          {/* Mobile Bottom Sheet Cart */}
+          <CartSheet />
 
           {/* Modifier Selection Modal */}
           {selectedProduct && (
