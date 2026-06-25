@@ -17,7 +17,7 @@ import {
 import CartLineItem from "./CartLineItem";
 
 export default function CartSheet() {
-  const { cartItems, itemCount, subtotal, clearCart } = useCart();
+  const { cartItems, itemCount, subtotal, clearCart, setCheckoutOpen } = useCart();
   const { activeShift } = useShift();
 
   const handleClear = () => {
@@ -30,8 +30,7 @@ export default function CartSheet() {
       toast.error("Transaksi tidak diizinkan. Silakan buka shift terlebih dahulu.");
       return;
     }
-    // Will be wired up to PaymentModal in Section 6
-    toast.info("Fitur pembayaran & pembuatan pesanan akan diaktifkan di Section 6.");
+    setCheckoutOpen(true);
   };
 
   if (itemCount === 0) return null;

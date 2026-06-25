@@ -23,6 +23,8 @@ interface CartContextType {
   subtotal: number;
   total: number;
   itemCount: number;
+  isCheckoutOpen: boolean;
+  setCheckoutOpen: (open: boolean) => void;
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
@@ -44,6 +46,7 @@ const calculateItemPrice = (product: Product, modifiers: Modifier[]): number => 
 
 export function CartProvider({ children }: { children: React.ReactNode }) {
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
+  const [isCheckoutOpen, setCheckoutOpen] = useState(false);
 
   const addItem = useCallback((product: Product, selectedModifiers: Modifier[]) => {
     const itemKey = generateItemKey(product.id, selectedModifiers);
@@ -120,6 +123,8 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         subtotal,
         total,
         itemCount,
+        isCheckoutOpen,
+        setCheckoutOpen,
       }}
     >
       {children}

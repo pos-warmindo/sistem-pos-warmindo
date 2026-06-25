@@ -7,6 +7,7 @@ import ProductGrid from "@/components/pos/ProductGrid";
 import ModifierSelectionModal from "@/components/pos/ModifierSelectionModal";
 import CartPanel from "@/components/pos/CartPanel";
 import CartSheet from "@/components/pos/CartSheet";
+import PaymentModal from "@/components/pos/PaymentModal";
 import {
   Product,
   ProductModifier,
@@ -23,7 +24,7 @@ export default function CashierPosPage() {
   const { activeShift } = useShift();
   const { isProductAvailable, isLoading: isStockLoading } = useStockRealtime();
 
-  const { addItem } = useCart();
+  const { addItem, isCheckoutOpen, setCheckoutOpen } = useCart();
 
   const [categories, setCategories] = useState<Category[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
@@ -150,6 +151,12 @@ export default function CashierPosPage() {
               }}
             />
           )}
+
+          {/* Checkout & Payment Modal */}
+          <PaymentModal
+            isOpen={isCheckoutOpen}
+            onOpenChange={setCheckoutOpen}
+          />
         </>
       )}
     </ShiftGate>
