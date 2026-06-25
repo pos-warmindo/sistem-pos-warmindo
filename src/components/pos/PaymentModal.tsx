@@ -210,19 +210,19 @@ export default function PaymentModal({ isOpen, onOpenChange }: PaymentModalProps
           className="flex-1 flex flex-col overflow-hidden"
         >
           <div className="px-6 pt-4 shrink-0">
-            <TabsList className="grid grid-cols-2 w-full bg-slate-100/80 p-1 rounded-xl">
+            <TabsList className="flex w-full bg-slate-100/80 p-1.5 rounded-2xl group-data-horizontal/tabs:h-auto">
               <TabsTrigger
                 value="tunai"
-                className="rounded-lg py-2.5 font-semibold text-xs flex items-center justify-center gap-2"
+                className="rounded-xl py-4 font-bold text-sm flex items-center justify-center gap-2"
               >
-                <Banknote className="size-4" />
+                <Banknote className="size-5" />
                 Tunai
               </TabsTrigger>
               <TabsTrigger
                 value="qris"
-                className="rounded-lg py-2.5 font-semibold text-xs flex items-center justify-center gap-2"
+                className="rounded-xl py-4 font-bold text-sm flex items-center justify-center gap-2"
               >
-                <CreditCard className="size-4" />
+                <CreditCard className="size-5" />
                 QRIS
               </TabsTrigger>
             </TabsList>
