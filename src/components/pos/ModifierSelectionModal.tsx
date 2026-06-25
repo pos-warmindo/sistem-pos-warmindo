@@ -136,7 +136,15 @@ export default function ModifierSelectionModal({
 
         {/* Scrollable modifiers list */}
         <div className="flex-1 overflow-y-auto p-6 space-y-6">
-          {Object.keys(groupedModifiers).map((groupName) => {
+          {Object.keys(groupedModifiers)
+            .sort((a, b) => {
+              const aIsSingle = isSingleSelectGroup(a);
+              const bIsSingle = isSingleSelectGroup(b);
+              if (aIsSingle && !bIsSingle) return -1;
+              if (!aIsSingle && bIsSingle) return 1;
+              return a.localeCompare(b);
+            })
+            .map((groupName) => {
             const isSingle = isSingleSelectGroup(groupName);
             const groupItems = groupedModifiers[groupName];
 
