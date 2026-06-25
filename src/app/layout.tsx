@@ -4,6 +4,7 @@ import "./globals.css";
 import { AppNavbar } from "@/components/layout/app-navbar";
 import { Toaster } from "@/components/ui/sonner";
 import { ShiftProvider } from "@/lib/hooks/useShift";
+import { CartProvider } from "@/lib/hooks/useCart";
 
 const geistSans = Geist({
   subsets: ["latin"],
@@ -29,9 +30,11 @@ export default function RootLayout({
     <html lang="id" className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}>
       <body className="min-h-full flex flex-col bg-background text-foreground">
         <ShiftProvider>
-          <AppNavbar />
-          {children}
-          <Toaster richColors position="top-right" />
+          <CartProvider>
+            <AppNavbar />
+            {children}
+            <Toaster richColors position="top-right" />
+          </CartProvider>
         </ShiftProvider>
       </body>
     </html>
