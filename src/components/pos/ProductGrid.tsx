@@ -1,6 +1,6 @@
 "use client";
 
-import { Product } from "@/lib/mocks/catalog";
+import { Product } from "@/types/database";
 import ProductCard from "./ProductCard";
 
 interface ProductGridProps {

@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { Product, ProductModifier } from "@/lib/mocks/catalog";
+import { Product, ProductModifier } from "@/types/database";
 import { formatRupiah } from "@/lib/utils/format";
 import { CheckCircle, Plus } from "@/lib/icons";
 import { cn } from "@/lib/utils";

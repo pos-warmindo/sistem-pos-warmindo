@@ -1,6 +1,6 @@
 "use client";
 
-import { Product } from "@/lib/mocks/catalog";
+import { Product } from "@/types/database";
 import { formatRupiah } from "@/lib/utils/format";
 import { Badge } from "@/components/ui/badge";
 import { Package } from "@/lib/icons";

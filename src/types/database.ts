@@ -469,3 +469,10 @@ export interface Database {
     }
   }
 }
+
+export type Product = Database["public"]["Tables"]["products"]["Row"];
+export type ProductModifier = Database["public"]["Tables"]["product_modifiers"]["Row"];
+export type Category = Database["public"]["Tables"]["categories"]["Row"];
+export type Order = Database["public"]["Tables"]["orders"]["Row"];
+export type OrderItem = Database["public"]["Tables"]["order_items"]["Row"];
+export type OrderItemModifier = Database["public"]["Tables"]["order_item_modifiers"]["Row"];

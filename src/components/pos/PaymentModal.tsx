@@ -22,8 +22,9 @@ import { useShift } from "@/lib/hooks/useShift";
 import { formatRupiah } from "@/lib/utils/format";
 import { createClient } from "@/lib/supabase/client";
 import { toast } from "sonner";
-import { Banknote, CreditCard, Clock, X } from "@/lib/icons";
+import { Banknote, CreditCard, Clock, X, CheckCircle } from "@/lib/icons";
 import { QRCodeSVG } from "qrcode.react";
+import ReceiptView, { ReceiptOrder, ReceiptItem } from "@/components/receipt/ReceiptView";
 
 interface PaymentModalProps {
   isOpen: boolean;
@@ -41,6 +42,13 @@ export default function PaymentModal({ isOpen, onOpenChange }: PaymentModalProps
   const { cartItems, total, subtotal, clearCart } = useCart();
   const { activeShift } = useShift();
   const supabase = createClient();
+
+  const [completedOrder, setCompletedOrder] = useState<ReceiptOrder | null>(null);
+
+  const cartItemsRef = useRef(cartItems);
+  const subtotalRef = useRef(subtotal);
+  useEffect(() => { cartItemsRef.current = cartItems; }, [cartItems]);
+  useEffect(() => { subtotalRef.current = subtotal; }, [subtotal]);
 
   // ── Tunai state ──────────────────────────────────────────────
   const [activeTab, setActiveTab] = useState<string>("tunai");
@@ -92,6 +100,7 @@ export default function PaymentModal({ isOpen, onOpenChange }: PaymentModalProps
       setQrData(null);
       setQrisTimeLeft(300);
       qrDataRef.current = null;
+      setCompletedOrder(null);
     } else {
       stopAllTimers();
     }
@@ -149,8 +158,40 @@ export default function PaymentModal({ isOpen, onOpenChange }: PaymentModalProps
         if (data.status === "PAID") {
           stopAllTimers();
           toast.success("Pembayaran QRIS Berhasil!");
+
+          // Retrieve the order details from DB for the receipt
+          const { data: orderDb } = await supabase
+            .from("orders")
+            .select("order_number, created_at")
+            .eq("id", current.order_id)
+            .single();
+
+          const { data: authData } = await supabase.auth.getUser();
+          const cashierName = authData.user?.user_metadata?.full_name || authData.user?.email || "Kasir";
+
+          const receiptItems: ReceiptItem[] = cartItemsRef.current.map((item) => ({
+            product_name: item.product.name,
+            quantity: item.quantity,
+            unit_price: item.product.base_price,
+            line_total: item.lineTotal,
+            modifiers: item.modifiers.map((mod) => ({
+              modifier_name: mod.modifier_name,
+              price_delta: Number(mod.price_delta) || 0,
+            })),
+          }));
+
+          setCompletedOrder({
+            order_number: orderDb?.order_number || "QRIS",
+            payment_method: "QRIS",
+            subtotal: subtotalRef.current,
+            total_amount: totalRef.current,
+            cashier_name: cashierName,
+            shift_id: activeShift?.id || "",
+            created_at: orderDb?.created_at || new Date().toISOString(),
+            items: receiptItems,
+          });
+
           clearCart();
-          onOpenChange(false);
         }
       } catch (err) {
         console.error("[QRIS] Poll error:", err);
@@ -251,9 +292,37 @@ export default function PaymentModal({ isOpen, onOpenChange }: PaymentModalProps
         .insert({ order_id: orderData.id, amount: total, method: "TUNAI" });
       if (paymentError) throw paymentError;
 
+      // 1. Build receipt items list BEFORE clearing the cart
+      const receiptItems: ReceiptItem[] = cartItems.map((item) => ({
+        product_name: item.product.name,
+        quantity: item.quantity,
+        unit_price: item.product.base_price,
+        line_total: item.lineTotal,
+        modifiers: item.modifiers.map((mod) => ({
+          modifier_name: mod.modifier_name,
+          price_delta: Number(mod.price_delta) || 0,
+        })),
+      }));
+
+      // 2. Fetch the cashier details
+      const cashierName = user.user_metadata?.full_name || user.email || "Kasir";
+
+      // 3. Set the completed order state
+      setCompletedOrder({
+        order_number: orderData.order_number,
+        payment_method: "TUNAI",
+        amount_paid: numericPaid,
+        change_amount: changeAmount,
+        subtotal,
+        total_amount: total,
+        cashier_name: cashierName,
+        shift_id: activeShift.id,
+        created_at: new Date().toISOString(),
+        items: receiptItems,
+      });
+
       toast.success("Transaksi Tunai Berhasil!");
       clearCart();
-      onOpenChange(false);
     } catch (error: any) {
       console.error("[Tunai] Transaction failed:", error);
       const msg: string = error?.message ?? "";
@@ -343,193 +412,237 @@ export default function PaymentModal({ isOpen, onOpenChange }: PaymentModalProps
     return `${m}:${s}`;
   };
 
+  const handleOpenChange = (open: boolean) => {
+    if (completedOrder) return;
+    onOpenChange(open);
+  };
+
+  const handleNewTransaction = () => {
+    setCompletedOrder(null);
+    onOpenChange(false);
+  };
+
   // ── Render ────────────────────────────────────────────────────
   return (
-    <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md max-h-[90vh] flex flex-col p-0 overflow-hidden">
-        <DialogHeader className="p-6 pb-4 border-b border-border">
-          <DialogTitle className="text-xl font-bold text-heading">
-            Pembayaran
-          </DialogTitle>
-        </DialogHeader>
-
-        {/* Total summary */}
-        <div className="bg-slate-50/50 p-6 flex flex-col items-center justify-center text-center border-b border-border">
-          <span className="text-xs text-muted-foreground font-semibold uppercase tracking-wider block mb-1">
-            Total Tagihan
-          </span>
-          <span className="text-3xl font-extrabold text-heading">
-            {formatRupiah(total)}
-          </span>
-        </div>
-
-        <Tabs
-          value={activeTab}
-          onValueChange={setActiveTab}
-          className="flex-1 flex flex-col overflow-hidden"
-        >
-          <div className="px-6 pt-4 shrink-0">
-            <TabsList className="flex w-full bg-slate-100/80 p-1.5 rounded-2xl">
-              <TabsTrigger
-                value="tunai"
-                className="rounded-xl py-4 font-bold text-sm flex items-center justify-center gap-2"
-              >
-                <Banknote className="size-5" />
-                Tunai
-              </TabsTrigger>
-              <TabsTrigger
-                value="qris"
-                className="rounded-xl py-4 font-bold text-sm flex items-center justify-center gap-2"
-              >
-                <CreditCard className="size-5" />
-                QRIS
-              </TabsTrigger>
-            </TabsList>
-          </div>
-
-          <div className="flex-1 overflow-y-auto p-6">
-            {/* ── TUNAI TAB ── */}
-            <TabsContent value="tunai" className="m-0 space-y-5 focus:outline-none">
-              <div className="space-y-2">
-                <Label htmlFor="amount-paid" className="text-xs font-bold text-heading uppercase tracking-wider">
-                  Jumlah Dibayar (Rp)
-                </Label>
-                <Input
-                  id="amount-paid"
-                  type="number"
-                  value={amountPaidInput}
-                  onChange={(e) => setAmountPaidInput(e.target.value)}
-                  autoFocus
-                  placeholder="Masukkan nominal uang"
-                  className="py-6 px-4 text-base font-bold rounded-xl border-slate-200 focus-visible:ring-primary"
-                />
+    <Dialog open={isOpen} onOpenChange={handleOpenChange}>
+      <DialogContent 
+        className="sm:max-w-md max-h-[90vh] flex flex-col p-0 overflow-hidden"
+        showCloseButton={!completedOrder}
+      >
+        {completedOrder ? (
+          <div className="flex flex-col flex-1 overflow-hidden">
+            <DialogHeader className="p-6 pb-4 border-b border-border flex flex-col items-center justify-center text-center">
+              <div className="size-12 rounded-full bg-green-50 flex items-center justify-center mb-2 border border-green-200">
+                <CheckCircle className="size-6 text-green-600 animate-bounce" />
               </div>
+              <DialogTitle className="text-lg font-bold text-heading">
+                Transaksi Berhasil
+              </DialogTitle>
+              <p className="text-xs text-muted-foreground">
+                Struk pembayaran telah dicetak otomatis
+              </p>
+            </DialogHeader>
 
-              <div className="space-y-2">
-                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
-                  Uang Cepat
-                </span>
-                <div className="grid grid-cols-2 gap-2">
-                  {getPresetAmounts().map((preset) => (
-                    <Button
-                      key={preset}
-                      type="button"
-                      variant="outline"
-                      onClick={() => setAmountPaidInput(preset.toString())}
-                      className="py-5 font-bold text-xs rounded-xl border-slate-200 hover:bg-slate-50 text-slate-700"
-                    >
-                      {preset === total ? "Uang Pas" : formatRupiah(preset)}
-                    </Button>
-                  ))}
-                </div>
-              </div>
+            <div className="flex-1 overflow-y-auto p-6 bg-slate-50/50">
+              <ReceiptView order={completedOrder} />
+            </div>
 
-              <Separator />
-
-              <div className="flex items-center justify-between p-4 bg-slate-50 rounded-xl border border-slate-100">
-                <span className="text-sm font-semibold text-slate-500">Uang Kembalian</span>
-                <span className="text-lg font-bold text-primary">{formatRupiah(changeAmount)}</span>
-              </div>
-
+            <div className="p-6 border-t border-border bg-white print:hidden">
               <Button
-                onClick={handleConfirmTunai}
-                disabled={!isValidAmount || isSubmitting}
-                className="w-full bg-primary hover:bg-primary-hover text-white font-bold py-6 rounded-xl shadow-lg shadow-primary/10 mt-2"
+                onClick={handleNewTransaction}
+                className="w-full bg-primary hover:bg-primary-hover text-white font-bold py-6 rounded-xl shadow-lg shadow-primary/10"
               >
-                {isSubmitting
-                  ? <div className="size-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                  : "Konfirmasi Pembayaran"
-                }
+                Transaksi Baru
               </Button>
-            </TabsContent>
+            </div>
+          </div>
+        ) : (
+          <>
+            <DialogHeader className="p-6 pb-4 border-b border-border">
+              <DialogTitle className="text-xl font-bold text-heading">
+                Pembayaran
+              </DialogTitle>
+            </DialogHeader>
 
-            {/* ── QRIS TAB ── */}
-            <TabsContent value="qris" className="m-0 space-y-4 focus:outline-none">
-              {!qrData ? (
-                /* ── Generate button state ── */
-                <div className="flex flex-col items-center justify-center py-8 text-center space-y-4">
-                  <div className="size-16 rounded-full bg-slate-50 flex items-center justify-center border border-dashed border-slate-200">
-                    <CreditCard className="size-8 text-slate-400" />
-                  </div>
-                  <div className="space-y-1">
-                    <h3 className="font-bold text-heading text-base">Pembayaran QRIS</h3>
-                    <p className="text-xs text-muted-foreground max-w-[280px] leading-relaxed mx-auto">
-                      Klik tombol di bawah untuk membuat QR Code. Berlaku 5 menit.
-                    </p>
-                  </div>
-                  <Button
-                    onClick={handleGenerateQRIS}
-                    disabled={isSubmitting}
-                    className="bg-primary hover:bg-primary-hover text-white font-bold py-6 px-8 rounded-xl shadow-lg shadow-primary/10"
+            {/* Total summary */}
+            <div className="bg-slate-50/50 p-6 flex flex-col items-center justify-center text-center border-b border-border">
+              <span className="text-xs text-muted-foreground font-semibold uppercase tracking-wider block mb-1">
+                Total Tagihan
+              </span>
+              <span className="text-3xl font-extrabold text-heading">
+                {formatRupiah(total)}
+              </span>
+            </div>
+
+            <Tabs
+              value={activeTab}
+              onValueChange={setActiveTab}
+              className="flex-1 flex flex-col overflow-hidden"
+            >
+              <div className="px-6 pt-4 shrink-0">
+                <TabsList className="flex w-full bg-slate-100/80 p-1.5 rounded-2xl">
+                  <TabsTrigger
+                    value="tunai"
+                    className="rounded-xl py-4 font-bold text-sm flex items-center justify-center gap-2"
                   >
-                    {isSubmitting
-                      ? <div className="size-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                      : "Generate QR Code"
-                    }
-                  </Button>
-                </div>
-              ) : (
-                /* ── QR active state ── */
-                <div className="space-y-4">
-                  {/* QR Code */}
-                  <div className="flex flex-col items-center justify-center py-2">
-                    <div className="bg-white p-4 rounded-2xl border-2 border-slate-200 shadow-md">
-                      <QRCodeSVG
-                        value={qrData.qr_string}
-                        size={200}
-                        level="M"
-                        includeMargin
-                      />
-                    </div>
-                    <p className="text-xs text-muted-foreground mt-3 max-w-[260px] text-center leading-relaxed">
-                      Scan QR Code di atas dengan aplikasi pembayaran Anda
-                    </p>
-                    {/* Dev helper: show trx_id for sandbox simulation */}
-                    {process.env.NODE_ENV === "development" && (
-                      <p className="text-[10px] text-slate-400 mt-2 font-mono break-all max-w-[260px] text-center">
-                        ID: {qrData.trx_id}
-                      </p>
-                    )}
+                    <Banknote className="size-5" />
+                    Tunai
+                  </TabsTrigger>
+                  <TabsTrigger
+                    value="qris"
+                    className="rounded-xl py-4 font-bold text-sm flex items-center justify-center gap-2"
+                  >
+                    <CreditCard className="size-5" />
+                    QRIS
+                  </TabsTrigger>
+                </TabsList>
+              </div>
+
+              <div className="flex-1 overflow-y-auto p-6">
+                {/* ── TUNAI TAB ── */}
+                <TabsContent value="tunai" className="m-0 space-y-5 focus:outline-none">
+                  <div className="space-y-2">
+                    <Label htmlFor="amount-paid" className="text-xs font-bold text-heading uppercase tracking-wider">
+                      Jumlah Dibayar (Rp)
+                    </Label>
+                    <Input
+                      id="amount-paid"
+                      type="number"
+                      value={amountPaidInput}
+                      onChange={(e) => setAmountPaidInput(e.target.value)}
+                      autoFocus
+                      placeholder="Masukkan nominal uang"
+                      className="py-6 px-4 text-base font-bold rounded-xl border-slate-200 focus-visible:ring-primary"
+                    />
                   </div>
 
-                  {/* Countdown */}
-                  <div className={`flex items-center justify-center gap-2 p-4 rounded-xl border ${
-                    qrisTimeLeft <= 60
-                      ? "bg-red-50 border-red-200"
-                      : "bg-amber-50 border-amber-200"
-                  }`}>
-                    <Clock className={`size-5 ${qrisTimeLeft <= 60 ? "text-red-600" : "text-amber-600"}`} />
-                    <span className={`text-sm font-bold ${qrisTimeLeft <= 60 ? "text-red-900" : "text-amber-900"}`}>
-                      Berlaku: {formatTime(qrisTimeLeft)}
+                  <div className="space-y-2">
+                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
+                      Uang Cepat
                     </span>
-                  </div>
-
-                  {/* Polling indicator */}
-                  <div className="text-center">
-                    <div className="inline-flex items-center gap-2 px-4 py-2 bg-blue-50 rounded-full border border-blue-200">
-                      <div className="size-2 rounded-full bg-blue-500 animate-pulse" />
-                      <span className="text-xs font-semibold text-blue-900">
-                        Menunggu pembayaran...
-                      </span>
+                    <div className="grid grid-cols-2 gap-2">
+                      {getPresetAmounts().map((preset) => (
+                        <Button
+                          key={preset}
+                          type="button"
+                          variant="outline"
+                          onClick={() => setAmountPaidInput(preset.toString())}
+                          className="py-5 font-bold text-xs rounded-xl border-slate-200 hover:bg-slate-50 text-slate-700"
+                        >
+                          {preset === total ? "Uang Pas" : formatRupiah(preset)}
+                        </Button>
+                      ))}
                     </div>
                   </div>
 
                   <Separator />
 
-                  {/* Cancel */}
+                  <div className="flex items-center justify-between p-4 bg-slate-50 rounded-xl border border-slate-100">
+                    <span className="text-sm font-semibold text-slate-500">Uang Kembalian</span>
+                    <span className="text-lg font-bold text-primary">{formatRupiah(changeAmount)}</span>
+                  </div>
+
                   <Button
-                    onClick={handleCancelQris}
-                    variant="outline"
-                    className="w-full py-6 rounded-xl border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700 font-bold"
+                    onClick={handleConfirmTunai}
+                    disabled={!isValidAmount || isSubmitting}
+                    className="w-full bg-primary hover:bg-primary-hover text-white font-bold py-6 rounded-xl shadow-lg shadow-primary/10 mt-2"
                   >
-                    <X className="size-5 mr-2" />
-                    Batalkan QRIS
+                    {isSubmitting
+                      ? <div className="size-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                      : "Konfirmasi Pembayaran"
+                    }
                   </Button>
-                </div>
-              )}
-            </TabsContent>
-          </div>
-        </Tabs>
+                </TabsContent>
+
+                {/* ── QRIS TAB ── */}
+                <TabsContent value="qris" className="m-0 space-y-4 focus:outline-none">
+                  {!qrData ? (
+                    /* ── Generate button state ── */
+                    <div className="flex flex-col items-center justify-center py-8 text-center space-y-4">
+                      <div className="size-16 rounded-full bg-slate-50 flex items-center justify-center border border-dashed border-slate-200">
+                        <CreditCard className="size-8 text-slate-400" />
+                      </div>
+                      <div className="space-y-1">
+                        <h3 className="font-bold text-heading text-base">Pembayaran QRIS</h3>
+                        <p className="text-xs text-muted-foreground max-w-[280px] leading-relaxed mx-auto">
+                          Klik tombol di bawah untuk membuat QR Code. Berlaku 5 menit.
+                        </p>
+                      </div>
+                      <Button
+                        onClick={handleGenerateQRIS}
+                        disabled={isSubmitting}
+                        className="bg-primary hover:bg-primary-hover text-white font-bold py-6 px-8 rounded-xl shadow-lg shadow-primary/10"
+                      >
+                        {isSubmitting
+                          ? <div className="size-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                          : "Generate QR Code"
+                        }
+                      </Button>
+                    </div>
+                  ) : (
+                    /* ── QR active state ── */
+                    <div className="space-y-4">
+                      {/* QR Code */}
+                      <div className="flex flex-col items-center justify-center py-2">
+                        <div className="bg-white p-4 rounded-2xl border-2 border-slate-200 shadow-md">
+                          <QRCodeSVG
+                            value={qrData.qr_string}
+                            size={200}
+                            level="M"
+                            includeMargin
+                          />
+                        </div>
+                        <p className="text-xs text-muted-foreground mt-3 max-w-[260px] text-center leading-relaxed">
+                          Scan QR Code di atas dengan aplikasi pembayaran Anda
+                        </p>
+                        {/* Dev helper: show trx_id for sandbox simulation */}
+                        {process.env.NODE_ENV === "development" && (
+                          <p className="text-[10px] text-slate-400 mt-2 font-mono break-all max-w-[260px] text-center">
+                            ID: {qrData.trx_id}
+                          </p>
+                        )}
+                      </div>
+
+                      {/* Countdown */}
+                      <div className={`flex items-center justify-center gap-2 p-4 rounded-xl border ${
+                        qrisTimeLeft <= 60
+                          ? "bg-red-50 border-red-200"
+                          : "bg-amber-50 border-amber-200"
+                      }`}>
+                        <Clock className={`size-5 ${qrisTimeLeft <= 60 ? "text-red-600" : "text-amber-600"}`} />
+                        <span className={`text-sm font-bold ${qrisTimeLeft <= 60 ? "text-red-900" : "text-amber-900"}`}>
+                          Berlaku: {formatTime(qrisTimeLeft)}
+                        </span>
+                      </div>
+
+                      {/* Polling indicator */}
+                      <div className="text-center">
+                        <div className="inline-flex items-center gap-2 px-4 py-2 bg-blue-50 rounded-full border border-blue-200">
+                          <div className="size-2 rounded-full bg-blue-500 animate-pulse" />
+                          <span className="text-xs font-semibold text-blue-900">
+                            Menunggu pembayaran...
+                          </span>
+                        </div>
+                      </div>
+
+                      <Separator />
+
+                      {/* Cancel */}
+                      <Button
+                        onClick={handleCancelQris}
+                        variant="outline"
+                        className="w-full py-6 rounded-xl border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700 font-bold"
+                      >
+                        <X className="size-5 mr-2" />
+                        Batalkan QRIS
+                      </Button>
+                    </div>
+                  )}
+                </TabsContent>
+              </div>
+            </Tabs>
+          </>
+        )}
       </DialogContent>
     </Dialog>
   );

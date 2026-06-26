@@ -1,6 +1,6 @@
 "use client";
 
-import { Category } from "@/lib/mocks/catalog";
+import { Category } from "@/types/database";
 import { cn } from "@/lib/utils";
 
 interface CategoryTabBarProps {

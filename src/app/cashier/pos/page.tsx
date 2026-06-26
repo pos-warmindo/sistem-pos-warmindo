@@ -12,7 +12,7 @@ import {
   Product,
   ProductModifier,
   Category,
-} from "@/lib/mocks/catalog";
+} from "@/types/database";
 import { useShift } from "@/lib/hooks/useShift";
 import { useStockRealtime } from "@/lib/hooks/useStockRealtime";
 import { useCart } from "@/lib/hooks/useCart";
