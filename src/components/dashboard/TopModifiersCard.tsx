@@ -9,7 +9,7 @@ export default async function TopModifiersCard() {
   const { data: modifierItems, error } = await supabase
     .from("order_item_modifiers")
     .select(`
-      modifier_name_snapshot,
+      modifier_name,
       order_items!inner(
         orders!inner(status)
       )
@@ -25,7 +25,7 @@ export default async function TopModifiersCard() {
 
   if (modifierItems) {
     modifierItems.forEach((item: any) => {
-      const name = item.modifier_name_snapshot;
+      const name = item.modifier_name;
       modifierCounts[name] = (modifierCounts[name] || 0) + 1;
     });
   }

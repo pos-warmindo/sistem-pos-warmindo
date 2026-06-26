@@ -9,7 +9,7 @@ export default async function TopProductsCard() {
   const { data: orderItems, error } = await supabase
     .from("order_items")
     .select(`
-      product_name_snapshot,
+      product_name,
       quantity,
       orders!inner(status)
     `)
@@ -24,7 +24,7 @@ export default async function TopProductsCard() {
 
   if (orderItems) {
     orderItems.forEach((item: any) => {
-      const name = item.product_name_snapshot;
+      const name = item.product_name;
       const qty = item.quantity || 0;
       productSales[name] = (productSales[name] || 0) + qty;
     });
