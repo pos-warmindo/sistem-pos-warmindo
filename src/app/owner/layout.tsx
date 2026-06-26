@@ -5,23 +5,26 @@ import OwnerLayoutClient from "./layout-client";
 /**
  * Server Component wrapper — role guard for the entire /owner/* subtree.
  *
- * Middleware (src/lib/supabase/middleware.ts) is the FIRST layer:
- *   → redirects unauthenticated users to /auth/login
- *   → redirects non-owner roles to /cashier/pos
+ * Layer 1: proxy.ts middleware (runs first, redirects unauthenticated users)
+ * Layer 2: This layout (re-verifies role server-side as defense in depth)
  *
- * This Server Component is the SECOND layer (defense in depth):
- *   → re-verifies the role server-side before rendering any owner UI
- *   → protects against middleware bypass (e.g., direct fetch, misconfigured matcher)
+ * Uses try/catch so a getRole() failure never cascades to crash other routes.
  */
 export default async function OwnerLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const role = await getRole();
+  let role: string | null = null;
+
+  try {
+    role = await getRole();
+  } catch {
+    // getRole() failed (e.g. no session, DB error) — treat as unauthenticated
+    redirect("/auth/login");
+  }
 
   if (role !== "owner") {
-    // Not owner: middleware should have caught this, but guard here too
     redirect(role === "cashier" ? "/cashier/pos" : "/auth/login");
   }
 

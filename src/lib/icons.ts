@@ -27,4 +27,9 @@ export {
   Lock,
   Home,
   FileText,
+  UtensilsCrossed,
+  Pencil,
+  Trash,
+  ToggleLeft,
+  ToggleRight,
 } from "lucide-react";

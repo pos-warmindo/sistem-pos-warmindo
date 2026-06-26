@@ -8,7 +8,7 @@ import { toast } from "sonner";
 import {
   Home,
   Package,
-  FileText,
+  UtensilsCrossed,
   LogOut,
   User,
 } from "@/lib/icons";
@@ -67,8 +67,8 @@ export default function OwnerLayoutClient({
 
   const navItems: NavigationItem[] = [
     { name: "Beranda", href: "/owner/dashboard", icon: Home },
-    { name: "Stok",    href: "/owner/dashboard#stok",    icon: Package },
-    { name: "Laporan", href: "/owner/dashboard#laporan", icon: FileText },
+    { name: "Menu",    href: "/owner/menu",       icon: UtensilsCrossed },
+    { name: "Stok",    href: "/owner/stok",        icon: Package },
   ];
 
   return (
