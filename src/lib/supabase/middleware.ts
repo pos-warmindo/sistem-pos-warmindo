@@ -48,10 +48,12 @@ export async function updateSession(request: NextRequest) {
     }
   );
 
-  // Always call getUser() to refresh the session token
+  // Always call getUser() to refresh the session token.
+  // Errors here (e.g. refresh_token_not_found) are expected when the session
+  // has expired — simply treat as unauthenticated (user = null).
   const {
     data: { user },
-  } = await supabase.auth.getUser();
+  } = await supabase.auth.getUser().catch(() => ({ data: { user: null } }));
 
   const { pathname } = new URL(request.url);
 
