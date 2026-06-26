@@ -25,4 +25,6 @@ export {
   CreditCard,
   Banknote,
   Lock,
+  Home,
+  FileText,
 } from "lucide-react";

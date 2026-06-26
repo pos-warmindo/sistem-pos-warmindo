@@ -93,8 +93,8 @@ export function AppNavbar({
     refreshShift()
   }, [pathname, refreshShift])
 
-  // Hide navbar on auth pages
-  if (pathname?.startsWith("/auth")) {
+  // Hide navbar on auth pages and owner dashboard
+  if (pathname?.startsWith("/auth") || pathname?.startsWith("/owner")) {
     return null
   }
 
