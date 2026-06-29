@@ -272,7 +272,7 @@ export default function CategoryManagement() {
                 id="cat-name"
                 value={form.name}
                 onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
-                placeholder="contoh: Indomie Goreng"
+                placeholder="contoh: Makanan, Minuman, Topping"
                 className="rounded-xl"
                 autoFocus
               />
