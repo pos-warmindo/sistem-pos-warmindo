@@ -444,7 +444,7 @@ export default function PaymentModal({ isOpen, onOpenChange }: PaymentModalProps
             </DialogHeader>
 
             <div className="flex-1 overflow-y-auto p-6 bg-slate-50/50">
-              <ReceiptView order={completedOrder} />
+              <ReceiptView order={completedOrder} onClose={handleNewTransaction} />
             </div>
 
             <div className="p-6 border-t border-border bg-white print:hidden">

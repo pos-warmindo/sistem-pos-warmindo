@@ -1,9 +1,17 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { formatRupiah, formatDate } from "@/lib/utils/format";
-import { Printer } from "@/lib/icons";
+import { Printer, X } from "@/lib/icons";
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/components/ui/dialog";
 
 export interface ReceiptItem {
   product_name: string;
@@ -31,9 +39,12 @@ export interface ReceiptOrder {
 
 interface ReceiptViewProps {
   order: ReceiptOrder;
+  onClose?: () => void;
 }
 
-export default function ReceiptView({ order }: ReceiptViewProps) {
+export default function ReceiptView({ order, onClose }: ReceiptViewProps) {
+  const [isConfirmOpen, setIsConfirmOpen] = useState(false);
+
   useEffect(() => {
     const timer = setTimeout(() => {
       window.print();
@@ -161,16 +172,61 @@ export default function ReceiptView({ order }: ReceiptViewProps) {
         </div>
       </div>
 
-      {/* Reprint Action Button - hidden during printing */}
-      <Button
-        type="button"
-        variant="ghost"
-        onClick={handlePrint}
-        className="print:hidden text-xs font-bold text-slate-500 hover:text-slate-900 border border-slate-200 rounded-xl px-4 py-2 hover:bg-slate-50 flex items-center gap-2"
-      >
-        <Printer className="size-4" />
-        Cetak Ulang Struk
-      </Button>
+      <div className="flex flex-col gap-2 w-full max-w-[220px] print:hidden">
+        {/* Reprint Action Button */}
+        <Button
+          type="button"
+          variant="ghost"
+          onClick={handlePrint}
+          className="text-xs font-bold text-slate-500 hover:text-slate-900 border border-slate-200 rounded-xl px-4 py-2 hover:bg-slate-50 flex items-center justify-center gap-2 w-full"
+        >
+          <Printer className="size-4" />
+          Cetak Ulang Struk
+        </Button>
+
+        {/* Cancel Print Action Button */}
+        <Button
+          type="button"
+          variant="ghost"
+          onClick={() => setIsConfirmOpen(true)}
+          className="text-xs font-bold text-red-500 hover:text-red-900 border border-red-200 rounded-xl px-4 py-2 hover:bg-red-50 flex items-center justify-center gap-2 w-full"
+        >
+          <X className="size-4" />
+          Tidak Cetak Struk
+        </Button>
+      </div>
+
+      {/* Confirmation Dialog */}
+      <Dialog open={isConfirmOpen} onOpenChange={setIsConfirmOpen}>
+        <DialogContent className="sm:max-w-md p-6">
+          <DialogHeader>
+            <DialogTitle className="text-base font-bold text-heading">Konfirmasi</DialogTitle>
+            <DialogDescription className="text-xs text-muted-foreground mt-2">
+              Apakah Anda yakin tidak ingin mencetak struk transaksi ini?
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="mt-4 flex gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setIsConfirmOpen(false)}
+              className="flex-1 py-2 text-xs font-bold rounded-xl border-slate-200 hover:bg-slate-50 text-slate-700"
+            >
+              Batal
+            </Button>
+            <Button
+              type="button"
+              onClick={() => {
+                setIsConfirmOpen(false);
+                onClose?.();
+              }}
+              className="flex-1 py-2 text-xs font-bold bg-primary hover:bg-primary-hover text-white rounded-xl"
+            >
+              Ya, Selesai
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
