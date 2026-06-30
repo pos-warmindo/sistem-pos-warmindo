@@ -9,6 +9,7 @@ import {
   Home,
   Package,
   UtensilsCrossed,
+  FileText,
   LogOut,
   User,
 } from "@/lib/icons";
@@ -69,6 +70,7 @@ export default function OwnerLayoutClient({
     { name: "Beranda", href: "/owner/dashboard", icon: Home },
     { name: "Menu",    href: "/owner/menu",       icon: UtensilsCrossed },
     { name: "Stok",    href: "/owner/stok",        icon: Package },
+    { name: "Laporan", href: "/owner/laporan",     icon: FileText },
   ];
 
   return (

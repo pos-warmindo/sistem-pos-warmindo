@@ -32,4 +32,7 @@ export {
   Trash,
   ToggleLeft,
   ToggleRight,
+  Download,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
