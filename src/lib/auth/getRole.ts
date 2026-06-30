@@ -1,35 +1,32 @@
 import { createClient } from "@/lib/supabase/server";
-import { Database } from "@/types/database";
 
-export async function getRole(): Promise<'cashier' | 'owner' | null> {
-  const supabase = await createClient();
-  const { data: { user }, error: userError } = await supabase.auth.getUser();
+/**
+ * Server-side role detection.
+ * Uses get_my_role() RPC which is SECURITY DEFINER — bypasses RLS entirely.
+ * Safe to call from Server Components and API routes.
+ */
+export async function getRole(): Promise<"cashier" | "owner" | null> {
+  try {
+    const supabase = await createClient();
 
-  if (userError || !user) {
+    // First verify user is authenticated
+    const {
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser();
+
+    if (userError || !user) return null;
+
+    // Use SECURITY DEFINER RPC — bypasses RLS, no circular dependency
+    const { data, error } = await supabase.rpc("get_my_role");
+
+    if (error || !data) return null;
+
+    const role = data as string;
+    if (role === "cashier" || role === "owner") return role;
+
+    return null;
+  } catch {
     return null;
   }
-
-  // Query user_roles and join with roles to find the name of the role
-  const { data, error } = await supabase
-    .from("user_roles")
-    .select(`
-      roles (
-        name
-      )
-    `)
-    .eq("user_id", user.id)
-    .single();
-
-  if (error || !data) {
-    return null;
-  }
-
-  // Type assertion since relations can be represented as objects or arrays in supabase-js
-  const roleRelation = data.roles as any;
-  
-  if (roleRelation && typeof roleRelation.name === "string") {
-    return roleRelation.name as 'cashier' | 'owner';
-  }
-
-  return null;
 }

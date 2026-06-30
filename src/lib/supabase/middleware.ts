@@ -77,7 +77,6 @@ export async function updateSession(request: NextRequest) {
     if (isDashboardRoute) {
       const role = await getUserRole(supabase);
       if (role !== "owner") {
-        // Cashier (or unknown role) cannot access dashboard → redirect to POS
         return NextResponse.redirect(new URL("/cashier/pos", request.url));
       }
     }
@@ -85,7 +84,6 @@ export async function updateSession(request: NextRequest) {
     if (isPosRoute) {
       const role = await getUserRole(supabase);
       if (role !== "cashier") {
-        // Owner (or unknown role) cannot access POS → redirect to dashboard
         return NextResponse.redirect(new URL("/owner/dashboard", request.url));
       }
     }

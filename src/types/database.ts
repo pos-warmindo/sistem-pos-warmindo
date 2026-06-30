@@ -43,16 +43,22 @@ export interface Database {
       users: {
         Row: {
           id: string
+          display_name: string
+          phone: string | null
           created_at: string
           updated_at: string
         }
         Insert: {
           id: string
+          display_name: string
+          phone?: string | null
           created_at?: string
           updated_at?: string
         }
         Update: {
           id?: string
+          display_name?: string
+          phone?: string | null
           created_at?: string
           updated_at?: string
         }
@@ -458,7 +464,19 @@ export interface Database {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      get_my_role: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
+      restock_raw_material: {
+        Args: {
+          p_material_id: string
+          p_quantity: number
+          p_cost_per_unit?: number | null
+          p_owner_id?: string | null
+        }
+        Returns: Json
+      }
     }
     Enums: {
       user_role_enum: 'cashier' | 'owner'
