@@ -1,5 +1,6 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import CategoryManagement from "@/components/dashboard/CategoryManagement";
+import ProductManagement from "@/components/dashboard/ProductManagement";
 
 export default function MenuPage() {
   return (
@@ -13,19 +14,22 @@ export default function MenuPage() {
 
       <Tabs defaultValue="produk">
         <TabsList className="bg-slate-100/80 p-1 rounded-xl mb-6">
-          <TabsTrigger value="produk" className="rounded-lg font-semibold text-sm px-5 py-2">
+          <TabsTrigger
+            value="produk"
+            className="rounded-lg font-semibold text-sm px-5 py-2"
+          >
             Produk
           </TabsTrigger>
-          <TabsTrigger value="kategori" className="rounded-lg font-semibold text-sm px-5 py-2">
+          <TabsTrigger
+            value="kategori"
+            className="rounded-lg font-semibold text-sm px-5 py-2"
+          >
             Kategori
           </TabsTrigger>
         </TabsList>
 
         <TabsContent value="produk">
-          {/* 8B.3 — dikerjakan pada task berikutnya */}
-          <div className="flex items-center justify-center h-48 rounded-xl border border-dashed border-slate-200 text-slate-400 text-sm">
-            Manajemen Produk (coming soon — Section 8B.3)
-          </div>
+          <ProductManagement />
         </TabsContent>
 
         <TabsContent value="kategori">
