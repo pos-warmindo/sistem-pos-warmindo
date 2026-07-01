@@ -33,7 +33,7 @@ export default function CategoryTabBar({
 
         {/* Categories Tab */}
         {categories
-          .filter((cat) => cat.is_active)
+          .filter((cat) => cat.is_active && cat.name.toLowerCase() !== "topping")
           .map((category) => {
             const isActive = activeCategoryId === category.id;
             return (
