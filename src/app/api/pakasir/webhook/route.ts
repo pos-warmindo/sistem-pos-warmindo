@@ -11,28 +11,28 @@ import { NextRequest, NextResponse } from "next/server";
  *   "amount": 22000,
  *   "order_id": "240910HDE7C9",
  *   "project": "depodomain",
- *   "status": "completed",
+ *   "status": "completed" | "expired" | "failed",
  *   "payment_method": "qris",
  *   "completed_at": "2024-09-10T08:07:02.819+07:00"
  * }
  *
  * NOTE: Pakasir does NOT send an HMAC signature.
- * We verify by checking project + order_id + amount match our DB record.
+ * We verify by checking project + order_id match our DB record.
  *
- * IMPORTANT: Must respond 200 OK as fast as possible.
+ * IMPORTANT: Must respond 200 OK as fast as possible (< 500ms).
  */
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
     const { order_id, status, amount, project } = body;
 
-    // Basic payload validation
-    if (!order_id || !status || !amount) {
-      console.error("[Webhook] Invalid payload — missing fields:", body);
+    // Basic payload validation — order_id and status are always required
+    if (!order_id || !status) {
+      console.error("[Webhook] Invalid payload — missing order_id or status:", body);
       return NextResponse.json({ received: true });
     }
 
-    // Verify the project matches ours
+    // Verify the project matches ours (if env var set)
     const expectedProject = process.env.PAKASIR_PROJECT;
     if (expectedProject && project !== expectedProject) {
       console.warn(
@@ -41,15 +41,25 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ received: true });
     }
 
-    // Only process "completed" status
-    if (status !== "completed") {
-      console.log(`[Webhook] Ignoring non-completed status: ${status} for order ${order_id}`);
+    // Map Pakasir status → our order status
+    // Pakasir sends: "completed" | "expired" | "failed"
+    type OurStatus = "PAID" | "EXPIRED" | "VOIDED";
+
+    const statusMap: Record<string, OurStatus> = {
+      completed: "PAID",
+      expired:   "EXPIRED",
+      failed:    "VOIDED",
+    };
+
+    const targetStatus = statusMap[status];
+    if (!targetStatus) {
+      console.log(`[Webhook] Unknown status "${status}" — ignoring`);
       return NextResponse.json({ received: true });
     }
 
     const supabase = await createClient();
 
-    // Find our order by pakasir_trx_id (which equals the order_id we sent to Pakasir)
+    // Find our order by pakasir_trx_id
     const { data: order, error: orderError } = await supabase
       .from("orders")
       .select("id, status, total_amount")
@@ -57,67 +67,102 @@ export async function POST(request: NextRequest) {
       .single();
 
     if (orderError || !order) {
-      // Could be a test webhook or already cleaned up — log and return 200
-      console.error(
-        `[Webhook] Order not found for pakasir order_id: ${order_id}`
+      console.error(`[Webhook] Order not found for pakasir order_id: ${order_id}`);
+      return NextResponse.json({ received: true });
+    }
+
+    // Idempotency: skip if order already in a terminal status
+    const terminalStatuses = ["PAID", "EXPIRED", "VOIDED"];
+    if (terminalStatuses.includes(order.status)) {
+      console.log(
+        `[Webhook] Order ${order.id} already in terminal status ${order.status} — skipping`
       );
       return NextResponse.json({ received: true });
     }
 
-    // Verify the amount matches (as recommended by Pakasir docs)
-    if (Math.round(order.total_amount) !== Math.round(amount)) {
-      console.warn(
-        `[Webhook] Amount mismatch for order ${order.id} — DB: ${order.total_amount}, webhook: ${amount}`
+    // ── Handle PAID (completed) ─────────────────────────────
+    if (targetStatus === "PAID") {
+      if (amount && Math.round(order.total_amount) !== Math.round(amount)) {
+        console.warn(
+          `[Webhook] Amount mismatch for order ${order.id} — DB: ${order.total_amount}, webhook: ${amount}`
+        );
+      }
+
+      const { error: updateError } = await supabase
+        .from("orders")
+        .update({
+          status:     "PAID",
+          amount_paid: amount ?? order.total_amount,
+          paid_at:    new Date().toISOString(),
+        })
+        .eq("id", order.id);
+
+      if (updateError) {
+        console.error("[Webhook] Failed to update order to PAID:", updateError);
+        return NextResponse.json({ received: true });
+      }
+
+      // Insert payment record — idempotent via UNIQUE(order_id)
+      const { error: paymentError } = await supabase
+        .from("payments")
+        .insert({
+          order_id:    order.id,
+          amount:      amount ?? order.total_amount,
+          method:      "QRIS",
+          reference_no: order_id,
+        });
+
+      if (paymentError && paymentError.code !== "23505") {
+        console.error("[Webhook] Failed to insert payment:", paymentError);
+      }
+
+      console.log(
+        `[Webhook] ✅ PAID — order ${order.id} (pakasir: ${order_id})`
       );
-      // Still process it but log the discrepancy
     }
 
-    // Idempotency: skip if already PAID
-    if (order.status === "PAID") {
-      console.log(`[Webhook] Order ${order.id} already PAID — skipping`);
-      return NextResponse.json({ received: true });
+    // ── Handle EXPIRED ──────────────────────────────────────
+    if (targetStatus === "EXPIRED") {
+      const { error: updateError } = await supabase
+        .from("orders")
+        .update({
+          status:     "EXPIRED",
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", order.id);
+
+      if (updateError) {
+        console.error("[Webhook] Failed to update order to EXPIRED:", updateError);
+      } else {
+        console.log(
+          `[Webhook] ⏰ EXPIRED — order ${order.id} (pakasir: ${order_id})`
+        );
+      }
     }
 
-    // Update order to PAID — this fires fn_deduct_stock_on_payment trigger
-    const { error: updateError } = await supabase
-      .from("orders")
-      .update({
-        status: "PAID",
-        amount_paid: amount,
-        paid_at: new Date().toISOString(),
-      })
-      .eq("id", order.id);
+    // ── Handle FAILED / VOIDED ──────────────────────────────
+    if (targetStatus === "VOIDED") {
+      const { error: updateError } = await supabase
+        .from("orders")
+        .update({
+          status:     "VOIDED",
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", order.id);
 
-    if (updateError) {
-      console.error("[Webhook] Failed to update order to PAID:", updateError);
-      // Return 200 anyway — Pakasir docs say to respond fast
-      return NextResponse.json({ received: true });
+      if (updateError) {
+        console.error("[Webhook] Failed to update order to VOIDED:", updateError);
+      } else {
+        console.log(
+          `[Webhook] ❌ FAILED/VOIDED — order ${order.id} (pakasir: ${order_id})`
+        );
+      }
     }
 
-    // Insert payment record — ON CONFLICT DO NOTHING via UNIQUE(order_id)
-    const { error: paymentError } = await supabase
-      .from("payments")
-      .insert({
-        order_id: order.id,
-        amount,
-        method: "QRIS",
-        reference_no: order_id,
-      });
-
-    if (paymentError && paymentError.code !== "23505") {
-      // 23505 = unique_violation (duplicate webhook) — safe to ignore
-      console.error("[Webhook] Failed to insert payment:", paymentError);
-    }
-
-    console.log(
-      `[Webhook] ✅ Successfully processed PAID for order ${order.id} (pakasir: ${order_id})`
-    );
-
-    // Must return 200 quickly (< 500ms per blueprint spec)
     return NextResponse.json({ received: true });
   } catch (error: any) {
     console.error("[Webhook] Unexpected error:", error);
-    // Always return 200 to prevent Pakasir from retrying indefinitely
+    // Always return 200 — prevent Pakasir from retrying indefinitely
     return NextResponse.json({ received: true });
   }
 }

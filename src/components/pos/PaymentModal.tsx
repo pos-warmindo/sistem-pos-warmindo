@@ -64,6 +64,7 @@ export default function PaymentModal({ isOpen, onOpenChange }: PaymentModalProps
   const totalRef = useRef<number>(total);
   const pollIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const countdownIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const realtimeChannelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
 
   // Keep refs in sync with state
   useEffect(() => { qrDataRef.current = qrData; }, [qrData]);
@@ -84,7 +85,11 @@ export default function PaymentModal({ isOpen, onOpenChange }: PaymentModalProps
       clearInterval(countdownIntervalRef.current);
       countdownIntervalRef.current = null;
     }
-  }, []);
+    if (realtimeChannelRef.current) {
+      supabase.removeChannel(realtimeChannelRef.current);
+      realtimeChannelRef.current = null;
+    }
+  }, [supabase]);
 
   // Cleanup on unmount
   useEffect(() => {
@@ -106,19 +111,76 @@ export default function PaymentModal({ isOpen, onOpenChange }: PaymentModalProps
     }
   }, [isOpen, stopAllTimers]);
 
-  // ── QRIS expired handler (reads from ref — always fresh) ─────
-  const handleQrisExpired = useCallback(async () => {
+  // ── Shared QRIS payment success handler ─────────────────────
+  // Called by BOTH Realtime subscription AND polling fallback
+  const handlePaymentSuccess = useCallback(async (orderIdOverride?: string) => {
+    stopAllTimers();
+    const current = qrDataRef.current;
+    const orderId = orderIdOverride ?? current?.order_id;
+    if (!orderId) return;
+
+    try {
+      const { data: orderDb } = await supabase
+        .from("orders")
+        .select("order_number, created_at")
+        .eq("id", orderId)
+        .single();
+
+      const { data: authData } = await supabase.auth.getUser();
+      const cashierName =
+        authData.user?.user_metadata?.full_name ||
+        authData.user?.email ||
+        "Kasir";
+
+      const receiptItems: ReceiptItem[] = cartItemsRef.current.map((item) => ({
+        product_name: item.product.name,
+        quantity: item.quantity,
+        unit_price: item.product.base_price,
+        line_total: item.lineTotal,
+        modifiers: item.modifiers.map((mod) => ({
+          modifier_name: mod.modifier_name,
+          price_delta: Number(mod.price_delta) || 0,
+        })),
+      }));
+
+      setCompletedOrder({
+        order_number: orderDb?.order_number || "QRIS",
+        payment_method: "QRIS",
+        subtotal: subtotalRef.current,
+        total_amount: totalRef.current,
+        cashier_name: cashierName,
+        shift_id: activeShift?.id || "",
+        created_at: orderDb?.created_at || new Date().toISOString(),
+        items: receiptItems,
+      });
+
+      toast.success("Pembayaran QRIS Berhasil!");
+      clearCart();
+    } catch (err) {
+      console.error("[QRIS] handlePaymentSuccess error:", err);
+      toast.success("Pembayaran QRIS Berhasil!");
+      clearCart();
+      onOpenChange(false);
+    }
+  }, [stopAllTimers, supabase, activeShift, clearCart, onOpenChange]);
+
+  // ── QRIS expired handler ──────────────────────────────────────
+  // When status comes from Realtime (webhook already updated DB), skip DB update
+  const handleQrisExpired = useCallback(async (fromRealtime = false) => {
     stopAllTimers();
     const current = qrDataRef.current;
     if (!current) return;
 
-    try {
-      await supabase
-        .from("orders")
-        .update({ status: "EXPIRED" })
-        .eq("id", current.order_id);
-    } catch (err) {
-      console.error("[QRIS] Expire DB update failed:", err);
+    // Only update DB if NOT triggered by Realtime (webhook already updated it)
+    if (!fromRealtime) {
+      try {
+        await supabase
+          .from("orders")
+          .update({ status: "EXPIRED" })
+          .eq("id", current.order_id);
+      } catch (err) {
+        console.error("[QRIS] Expire DB update failed:", err);
+      }
     }
 
     toast.error("QRIS kadaluarsa. Buat pesanan baru.");
@@ -126,26 +188,73 @@ export default function PaymentModal({ isOpen, onOpenChange }: PaymentModalProps
     onOpenChange(false);
   }, [stopAllTimers, supabase, clearCart, onOpenChange]);
 
-  // ── Start timers when qrData is set ─────────────────────────
+  // ── Start timers + Realtime when qrData is set ──────────────
   useEffect(() => {
     if (!qrData) return;
 
-    // Guard: don't spawn a second pair of intervals
+    // Guard: don't spawn a second set of subscriptions
     if (countdownIntervalRef.current || pollIntervalRef.current) return;
 
-    // Countdown timer (1 second tick)
+    // ── 1. Supabase Realtime subscription (primary — instant update) ──
+    // Subscribe to status changes on this specific order
+    realtimeChannelRef.current = supabase
+      .channel(`order-${qrData.order_id}`)
+      .on(
+        "postgres_changes",
+        {
+          event:  "UPDATE",
+          schema: "public",
+          table:  "orders",
+          filter: `id=eq.${qrData.order_id}`,
+        },
+        (payload) => {
+          const newStatus: string = (payload.new as any)?.status ?? "";
+          console.log(`[QRIS Realtime] Order status: ${newStatus}`);
+
+          if (newStatus === "PAID") {
+            // Webhook already updated DB — just update UI
+            handlePaymentSuccess(qrData.order_id);
+          } else if (newStatus === "EXPIRED" || newStatus === "VOIDED") {
+            // Webhook already updated DB — skip client-side DB update
+            handleQrisExpired(true);
+          }
+        }
+      )
+      .subscribe((status) => {
+        if (status === "SUBSCRIBED") {
+          console.log(`[QRIS Realtime] Subscribed to order ${qrData.order_id}`);
+        }
+      });
+
+    // ── 2. Countdown timer (visual only — does NOT trigger DB update) ──
     countdownIntervalRef.current = setInterval(() => {
       setQrisTimeLeft((prev) => {
         if (prev <= 1) {
-          // Call via ref so we always have the latest qrData
-          handleQrisExpired();
+          // Timer hit 0 — only update DB if Realtime hasn't already handled it
+          // Check current order status before updating
+          const current = qrDataRef.current;
+          if (current) {
+            supabase
+              .from("orders")
+              .select("status")
+              .eq("id", current.order_id)
+              .single()
+              .then(({ data }) => {
+                if (data?.status === "QRIS_PENDING") {
+                  // Realtime missed it — do client-side expire as fallback
+                  handleQrisExpired(false);
+                }
+                // If already PAID/EXPIRED via Realtime, do nothing
+              })
+              .catch(() => handleQrisExpired(false));
+          }
           return 0;
         }
         return prev - 1;
       });
     }, 1000);
 
-    // Polling (every 10 seconds)
+    // ── 3. Polling fallback (every 10s — catches Realtime disconnects) ──
     pollIntervalRef.current = setInterval(async () => {
       const current = qrDataRef.current;
       if (!current) return;
@@ -156,42 +265,10 @@ export default function PaymentModal({ isOpen, onOpenChange }: PaymentModalProps
 
         const data = await res.json();
         if (data.status === "PAID") {
-          stopAllTimers();
-          toast.success("Pembayaran QRIS Berhasil!");
-
-          // Retrieve the order details from DB for the receipt
-          const { data: orderDb } = await supabase
-            .from("orders")
-            .select("order_number, created_at")
-            .eq("id", current.order_id)
-            .single();
-
-          const { data: authData } = await supabase.auth.getUser();
-          const cashierName = authData.user?.user_metadata?.full_name || authData.user?.email || "Kasir";
-
-          const receiptItems: ReceiptItem[] = cartItemsRef.current.map((item) => ({
-            product_name: item.product.name,
-            quantity: item.quantity,
-            unit_price: item.product.base_price,
-            line_total: item.lineTotal,
-            modifiers: item.modifiers.map((mod) => ({
-              modifier_name: mod.modifier_name,
-              price_delta: Number(mod.price_delta) || 0,
-            })),
-          }));
-
-          setCompletedOrder({
-            order_number: orderDb?.order_number || "QRIS",
-            payment_method: "QRIS",
-            subtotal: subtotalRef.current,
-            total_amount: totalRef.current,
-            cashier_name: cashierName,
-            shift_id: activeShift?.id || "",
-            created_at: orderDb?.created_at || new Date().toISOString(),
-            items: receiptItems,
-          });
-
-          clearCart();
+          // Realtime may have already handled this — idempotent
+          handlePaymentSuccess(current.order_id);
+        } else if (data.status === "EXPIRED") {
+          handleQrisExpired(true); // Pakasir API already expired it
         }
       } catch (err) {
         console.error("[QRIS] Poll error:", err);
@@ -200,7 +277,7 @@ export default function PaymentModal({ isOpen, onOpenChange }: PaymentModalProps
 
     return () => stopAllTimers();
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [qrData]); // Only re-run when qrData changes (i.e., new QR generated)
+  }, [qrData]); // Only re-run when a new QR is generated
 
   // ── Tunai helpers ─────────────────────────────────────────────
   const getPresetAmounts = () => {
