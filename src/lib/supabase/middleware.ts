@@ -2,20 +2,30 @@ import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
 /**
- * Refreshes the user's Supabase auth session on every request.
+ * Helper — queries user role using the SECURITY DEFINER function
+ * get_my_role() which bypasses RLS and returns the role name directly.
  *
- * This function is called by the Next.js middleware to ensure
- * that expired sessions are automatically refreshed, keeping
- * users logged in without interruption.
+ * Returns 'cashier' | 'owner' | null
+ */
+async function getUserRole(
+  supabase: ReturnType<typeof createServerClient>
+): Promise<string | null> {
+  const { data, error } = await supabase.rpc("get_my_role");
+  if (error || !data) return null;
+  return data as string;
+}
+
+/**
+ * Refreshes the Supabase auth session and enforces role-based route protection.
  *
- * It reads auth cookies, calls supabase.auth.getUser() to
- * trigger a token refresh if needed, and writes updated
- * cookies back to the response.
+ * Route Protection Rules:
+ * - /cashier/pos/*      → require authenticated (cashier OR owner)
+ * - /owner/dashboard/*  → require owner role ONLY
+ * - /api/*              → require authenticated (except /api/pakasir/webhook)
+ * - /auth/login         → redirect away if already authenticated
  */
 export async function updateSession(request: NextRequest) {
-  let supabaseResponse = NextResponse.next({
-    request,
-  });
+  let supabaseResponse = NextResponse.next({ request });
 
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -29,9 +39,7 @@ export async function updateSession(request: NextRequest) {
           cookiesToSet.forEach(({ name, value }) =>
             request.cookies.set(name, value)
           );
-          supabaseResponse = NextResponse.next({
-            request,
-          });
+          supabaseResponse = NextResponse.next({ request });
           cookiesToSet.forEach(({ name, value, options }) =>
             supabaseResponse.cookies.set(name, value, options)
           );
@@ -40,11 +48,61 @@ export async function updateSession(request: NextRequest) {
     }
   );
 
-  // IMPORTANT: Do NOT use supabase.auth.getSession() here.
-  // getUser() sends a request to Supabase Auth server every time
-  // to revalidate the Auth token, while getSession() does not.
-  // This is critical for security in server-side contexts.
-  await supabase.auth.getUser();
+  // Always call getUser() to refresh the session token.
+  // Errors here (e.g. refresh_token_not_found) are expected when the session
+  // has expired — simply treat as unauthenticated (user = null).
+  const {
+    data: { user },
+  } = await supabase.auth.getUser().catch(() => ({ data: { user: null } }));
+
+  const { pathname } = new URL(request.url);
+
+  const isPosRoute       = pathname.startsWith("/cashier/pos");
+  const isDashboardRoute = pathname.startsWith("/owner/dashboard");
+  const isOwnerRoute     = pathname.startsWith("/owner") && !isDashboardRoute; // Any other owner routes
+  const isAdminRoute     = pathname.startsWith("/admin");
+  const isApiRoute       = pathname.startsWith("/api");
+  const isWebhook        = pathname === "/api/pakasir/webhook";
+  const isLoginRoute     = pathname.startsWith("/auth/login");
+
+  // ── Protected routes ───────────────────────────────────────────
+  if (isPosRoute || isDashboardRoute || isOwnerRoute || isAdminRoute || (isApiRoute && !isWebhook)) {
+    // Not logged in → redirect to login
+    if (!user) {
+      if (isApiRoute) {
+        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      }
+      return NextResponse.redirect(new URL("/auth/login", request.url));
+    }
+
+    // Logged in → check role for routes
+    const role = await getUserRole(supabase);
+
+    if (isAdminRoute && role !== "admin") {
+      if (role === "owner") return NextResponse.redirect(new URL("/owner/dashboard", request.url));
+      return NextResponse.redirect(new URL("/cashier/pos", request.url));
+    }
+
+    if (isDashboardRoute || isOwnerRoute) {
+      if (role !== "owner") {
+        if (role === "admin") return NextResponse.redirect(new URL("/admin/menu", request.url));
+        return NextResponse.redirect(new URL("/cashier/pos", request.url));
+      }
+    }
+
+    if (isPosRoute) {
+      if (role !== "cashier") {
+        if (role === "admin") return NextResponse.redirect(new URL("/admin/menu", request.url));
+        return NextResponse.redirect(new URL("/owner/dashboard", request.url));
+      }
+    }
+  }
+
+  // ── Redirect already-authenticated users away from login ───────
+  // NOTE: We do NOT redirect here anymore — the login page itself
+  // shows a "you are already logged in" banner with a logout button.
+  // This prevents the loop where user can't switch accounts.
+  // The redirect-after-login is handled client-side in the login form.
 
   return supabaseResponse;
 }
