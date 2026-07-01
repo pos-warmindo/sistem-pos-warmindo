@@ -10,7 +10,7 @@ import { Label } from "@/components/ui/label"
 import { createClient } from "@/lib/supabase/client"
 import { toast } from "sonner"
 
-type UserRole = "cashier" | "owner"
+type UserRole = "cashier" | "owner" | "admin"
 
 export default function LoginPage() {
   const router = useRouter()
@@ -37,10 +37,16 @@ export default function LoginPage() {
 
   const handleLogoutFirst = async () => {
     setIsLoading(true)
-    await supabase.auth.signOut()
-    setExistingEmail(null)
-    setIsLoading(false)
-    toast.success("Berhasil logout. Silakan login dengan akun lain.")
+    try {
+      await supabase.auth.signOut()
+      setExistingEmail(null)
+      toast.success("Berhasil logout. Silakan login dengan akun lain.")
+      window.location.reload()
+    } catch (err) {
+      toast.error("Gagal melakukan logout.")
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
@@ -91,6 +97,9 @@ export default function LoginPage() {
         if (name === "owner") {
           window.location.href = "/owner/dashboard";
           return;
+        } else if (name === "admin") {
+          window.location.href = "/admin/menu";
+          return;
         }
         window.location.href = "/cashier/pos";
         return;
@@ -100,6 +109,9 @@ export default function LoginPage() {
 
       if (roleName === "owner") {
         window.location.href = "/owner/dashboard";
+        return;
+      } else if (roleName === "admin") {
+        window.location.href = "/admin/menu";
         return;
       }
 

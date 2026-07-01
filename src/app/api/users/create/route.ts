@@ -20,8 +20,8 @@ export async function POST(request: NextRequest) {
     }
 
     const { data: roleData } = await supabase.rpc("get_my_role");
-    if (roleData !== "owner") {
-      return NextResponse.json({ error: "Forbidden: owner only" }, { status: 403 });
+    if (roleData !== "owner" && roleData !== "admin") {
+      return NextResponse.json({ error: "Forbidden: owner or admin only" }, { status: 403 });
     }
 
     // 2. Parse + validate body
@@ -31,14 +31,14 @@ export async function POST(request: NextRequest) {
       password: string;
       display_name: string;
       phone?: string;
-      role: "cashier" | "owner";
+      role: "cashier" | "owner" | "admin";
     };
 
     if (!email?.trim())         return NextResponse.json({ error: "Email wajib diisi." },           { status: 400 });
     if (!password || password.length < 6)
                                 return NextResponse.json({ error: "Password minimal 6 karakter." }, { status: 400 });
     if (!display_name?.trim())  return NextResponse.json({ error: "Nama wajib diisi." },            { status: 400 });
-    if (!role || !["cashier","owner"].includes(role))
+    if (!role || !["cashier","owner","admin"].includes(role))
                                 return NextResponse.json({ error: "Role tidak valid." },             { status: 400 });
 
     // 3. Create auth user via admin client (SERVICE_ROLE)

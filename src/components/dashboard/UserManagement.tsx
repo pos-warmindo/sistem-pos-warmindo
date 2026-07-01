@@ -21,7 +21,7 @@ interface ManagedUser {
   display_name: string;
   email: string | null;
   phone: string | null;
-  role: "cashier" | "owner" | null;
+  role: "cashier" | "owner" | "admin" | null;
   created_at: string;
 }
 
@@ -30,7 +30,7 @@ const EMPTY_FORM = {
   email: "",
   password: "",
   phone: "",
-  role: "cashier" as "cashier" | "owner",
+  role: "cashier" as "cashier" | "owner" | "admin",
 };
 
 export default function UserManagement() {
@@ -95,7 +95,7 @@ export default function UserManagement() {
       email: user.email || "",
       password: "", // password is not editable
       phone: user.phone || "",
-      role: (user.role as "cashier" | "owner") || "cashier",
+      role: (user.role as "cashier" | "owner" | "admin") || "cashier",
     });
     setDialogOpen(true);
   };
@@ -282,6 +282,10 @@ export default function UserManagement() {
                       <Badge className="bg-orange-100 text-orange-700 hover:bg-orange-100 border-orange-200 font-semibold gap-1">
                         Owner
                       </Badge>
+                    ) : user.role === "admin" ? (
+                      <Badge className="bg-purple-100 text-purple-700 hover:bg-purple-100 border-purple-200 font-semibold">
+                        Admin
+                      </Badge>
                     ) : (
                       <Badge className="bg-blue-100 text-blue-700 hover:bg-blue-100 border-blue-200 font-semibold">
                         Cashier
@@ -404,10 +408,11 @@ export default function UserManagement() {
               <select
                 id="role"
                 value={form.role}
-                onChange={(e) => setForm((f) => ({ ...f, role: e.target.value as "cashier" | "owner" }))}
+                onChange={(e) => setForm((f) => ({ ...f, role: e.target.value as "cashier" | "owner" | "admin" }))}
                 className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-orange-400"
               >
                 <option value="cashier">Cashier (Kasir)</option>
+                <option value="admin">Admin (Administrator)</option>
                 <option value="owner">Owner (Pemilik)</option>
               </select>
             </div>

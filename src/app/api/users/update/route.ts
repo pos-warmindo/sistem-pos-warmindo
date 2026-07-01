@@ -19,23 +19,23 @@ export async function POST(request: NextRequest) {
     }
 
     const { data: roleData } = await supabase.rpc("get_my_role");
-    if (roleData !== "owner") {
-      return NextResponse.json({ error: "Forbidden: owner only" }, { status: 403 });
+    if (roleData !== "owner" && roleData !== "admin") {
+      return NextResponse.json({ error: "Forbidden: owner or admin only" }, { status: 403 });
     }
 
     // 2. Parse body
     const body = await request.json();
     const { user_id, display_name, phone, role } = body as {
       user_id: string;
-      display_name?: string;
+      display_name: string;
       phone?: string;
-      role?: "cashier" | "owner";
+      role?: "cashier" | "owner" | "admin";
     };
 
-    if (!user_id) {
-      return NextResponse.json({ error: "user_id wajib diisi." }, { status: 400 });
-    }
-    if (role && !["cashier", "owner"].includes(role)) {
+    if (!user_id) return NextResponse.json({ error: "User ID wajib diisi." }, { status: 400 });
+    if (!display_name?.trim()) return NextResponse.json({ error: "Nama wajib diisi." }, { status: 400 });
+
+    if (role && !["cashier", "owner", "admin"].includes(role)) {
       return NextResponse.json({ error: "Role tidak valid." }, { status: 400 });
     }
 

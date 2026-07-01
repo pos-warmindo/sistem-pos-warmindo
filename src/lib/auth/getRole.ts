@@ -5,7 +5,7 @@ import { createClient } from "@/lib/supabase/server";
  * Uses get_my_role() RPC which is SECURITY DEFINER — bypasses RLS entirely.
  * Safe to call from Server Components and API routes.
  */
-export async function getRole(): Promise<"cashier" | "owner" | null> {
+export async function getRole(): Promise<"cashier" | "owner" | "admin" | null> {
   try {
     const supabase = await createClient();
 
@@ -23,7 +23,7 @@ export async function getRole(): Promise<"cashier" | "owner" | null> {
     if (error || !data) return null;
 
     const role = data as string;
-    if (role === "cashier" || role === "owner") return role;
+    if (role === "cashier" || role === "owner" || role === "admin") return role;
 
     return null;
   } catch {

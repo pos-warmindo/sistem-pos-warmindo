@@ -22,8 +22,8 @@ export async function GET(request: NextRequest) {
     }
 
     const { data: roleData } = await supabase.rpc("get_my_role");
-    if (roleData !== "owner") {
-      return NextResponse.json({ error: "Forbidden: owner only" }, { status: 403 });
+    if (roleData !== "owner" && roleData !== "admin") {
+      return NextResponse.json({ error: "Forbidden: owner or admin only" }, { status: 403 });
     }
 
     // 2. Fetch auth users via admin client

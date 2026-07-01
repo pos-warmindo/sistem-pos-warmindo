@@ -59,12 +59,14 @@ export async function updateSession(request: NextRequest) {
 
   const isPosRoute       = pathname.startsWith("/cashier/pos");
   const isDashboardRoute = pathname.startsWith("/owner/dashboard");
+  const isOwnerRoute     = pathname.startsWith("/owner") && !isDashboardRoute; // Any other owner routes
+  const isAdminRoute     = pathname.startsWith("/admin");
   const isApiRoute       = pathname.startsWith("/api");
   const isWebhook        = pathname === "/api/pakasir/webhook";
   const isLoginRoute     = pathname.startsWith("/auth/login");
 
   // ── Protected routes ───────────────────────────────────────────
-  if (isPosRoute || isDashboardRoute || (isApiRoute && !isWebhook)) {
+  if (isPosRoute || isDashboardRoute || isOwnerRoute || isAdminRoute || (isApiRoute && !isWebhook)) {
     // Not logged in → redirect to login
     if (!user) {
       if (isApiRoute) {
@@ -74,16 +76,23 @@ export async function updateSession(request: NextRequest) {
     }
 
     // Logged in → check role for routes
-    if (isDashboardRoute) {
-      const role = await getUserRole(supabase);
+    const role = await getUserRole(supabase);
+
+    if (isAdminRoute && role !== "admin") {
+      if (role === "owner") return NextResponse.redirect(new URL("/owner/dashboard", request.url));
+      return NextResponse.redirect(new URL("/cashier/pos", request.url));
+    }
+
+    if (isDashboardRoute || isOwnerRoute) {
       if (role !== "owner") {
+        if (role === "admin") return NextResponse.redirect(new URL("/admin/menu", request.url));
         return NextResponse.redirect(new URL("/cashier/pos", request.url));
       }
     }
 
     if (isPosRoute) {
-      const role = await getUserRole(supabase);
       if (role !== "cashier") {
+        if (role === "admin") return NextResponse.redirect(new URL("/admin/menu", request.url));
         return NextResponse.redirect(new URL("/owner/dashboard", request.url));
       }
     }
