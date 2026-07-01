@@ -12,6 +12,7 @@ import {
   FileText,
   LogOut,
   User,
+  Users,
 } from "@/lib/icons";
 import { cn } from "@/lib/utils";
 
@@ -70,6 +71,7 @@ export default function OwnerLayoutClient({
     { name: "Beranda", href: "/owner/dashboard", icon: Home },
     { name: "Menu",    href: "/owner/menu",       icon: UtensilsCrossed },
     { name: "Stok",    href: "/owner/stok",        icon: Package },
+    { name: "Kelola User", href: "/owner/users",   icon: Users },
     { name: "Laporan", href: "/owner/laporan",     icon: FileText },
   ];
 

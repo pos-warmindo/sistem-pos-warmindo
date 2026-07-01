@@ -35,4 +35,7 @@ export {
   Download,
   ChevronLeft,
   ChevronRight,
+  Users,
+  Shield,
+  UserPlus,
 } from "lucide-react";
