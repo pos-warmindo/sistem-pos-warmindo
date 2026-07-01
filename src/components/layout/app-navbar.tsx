@@ -254,9 +254,9 @@ export function AppNavbar({
               <span className="max-w-28 truncate text-xs font-bold text-heading">
                 {displayName}
               </span>
-              <span className="text-[9px] text-muted-foreground capitalize font-semibold mt-0.5">
+              {/* <span className="text-[9px] text-muted-foreground capitalize font-semibold mt-0.5">
                 {role === "owner" ? "Owner" : role === "cashier" ? "Kasir" : "Staff"}
-              </span>
+              </span> */}
             </div>
           </div>
 

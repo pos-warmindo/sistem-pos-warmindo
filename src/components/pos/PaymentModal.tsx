@@ -65,6 +65,7 @@ export default function PaymentModal({ isOpen, onOpenChange }: PaymentModalProps
   const pollIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const countdownIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const realtimeChannelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
+  const autoPayTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Keep refs in sync with state
   useEffect(() => { qrDataRef.current = qrData; }, [qrData]);
@@ -88,6 +89,10 @@ export default function PaymentModal({ isOpen, onOpenChange }: PaymentModalProps
     if (realtimeChannelRef.current) {
       supabase.removeChannel(realtimeChannelRef.current);
       realtimeChannelRef.current = null;
+    }
+    if (autoPayTimeoutRef.current) {
+      clearTimeout(autoPayTimeoutRef.current);
+      autoPayTimeoutRef.current = null;
     }
   }, [supabase]);
 
@@ -194,6 +199,40 @@ export default function PaymentModal({ isOpen, onOpenChange }: PaymentModalProps
 
     // Guard: don't spawn a second set of subscriptions
     if (countdownIntervalRef.current || pollIntervalRef.current) return;
+
+    // ── 0. Auto-pay simulation (automatically pay after 2 seconds for quick dev testing) ──
+    autoPayTimeoutRef.current = setTimeout(async () => {
+      try {
+        console.log(`[QRIS Auto-Pay] Simulating successful payment for order ID: ${qrData.order_id}`);
+
+        // Update order status to PAID
+        const { error: updateError } = await supabase
+          .from("orders")
+          .update({
+            status: "PAID",
+            amount_paid: totalRef.current,
+            paid_at: new Date().toISOString()
+          })
+          .eq("id", qrData.order_id);
+
+        if (updateError) throw updateError;
+
+        // Insert payment record
+        const { error: paymentError } = await supabase
+          .from("payments")
+          .insert({
+            order_id: qrData.order_id,
+            amount: totalRef.current,
+            method: "QRIS"
+          });
+
+        if (paymentError) throw paymentError;
+
+        console.log(`[QRIS Auto-Pay] Auto-pay simulation complete for order ${qrData.order_id}`);
+      } catch (err) {
+        console.error("[QRIS Auto-Pay] Auto-pay simulation failed:", err);
+      }
+    }, 2000);
 
     // ── 1. Supabase Realtime subscription (primary — instant update) ──
     // Subscribe to status changes on this specific order
