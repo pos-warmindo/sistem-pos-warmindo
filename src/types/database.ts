@@ -479,7 +479,7 @@ export interface Database {
       }
     }
     Enums: {
-      user_role_enum: 'cashier' | 'owner'
+      user_role_enum: 'cashier' | 'owner' | 'admin'
       shift_status_enum: 'OPEN' | 'CLOSED'
       order_status_enum: 'PENDING' | 'QRIS_PENDING' | 'PAID' | 'VOIDED' | 'EXPIRED'
       payment_method_enum: 'TUNAI' | 'QRIS'

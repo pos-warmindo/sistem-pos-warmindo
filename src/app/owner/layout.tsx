@@ -24,7 +24,7 @@ export default async function OwnerLayout({
     redirect("/auth/login");
   }
 
-  if (role !== "owner") {
+  if (role !== "owner" && role !== "admin") {
     redirect(role === "cashier" ? "/cashier/pos" : "/auth/login");
   }
 

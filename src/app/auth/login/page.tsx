@@ -98,20 +98,20 @@ export default function LoginPage() {
           window.location.href = "/owner/dashboard";
           return;
         } else if (name === "admin") {
-          window.location.href = "/admin/menu";
+          window.location.href = "/owner/menu";
           return;
         }
         window.location.href = "/cashier/pos";
         return;
       }
 
-      const roleName = roleData as UserRole | null;
+      const roleName = roleData as string | null;
 
       if (roleName === "owner") {
         window.location.href = "/owner/dashboard";
         return;
       } else if (roleName === "admin") {
-        window.location.href = "/admin/menu";
+        window.location.href = "/owner/menu";
         return;
       }
 
