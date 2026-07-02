@@ -27,44 +27,20 @@ CREATE POLICY "user_roles_select_own"
 --    Uses SECURITY DEFINER helper to avoid circular check.
 CREATE POLICY "user_roles_select_owner"
   ON public.user_roles FOR SELECT TO authenticated
-  USING (
-    (SELECT r.name
-     FROM public.user_roles ur
-     JOIN public.roles r ON r.id = ur.role_id
-     WHERE ur.user_id = auth.uid()
-     LIMIT 1) = 'owner'
-  );
+  USING (public.get_my_role() = 'owner');
 
 -- ── 3. INSERT / UPDATE / DELETE: only owner ────────────────────
 CREATE POLICY "user_roles_insert_owner"
   ON public.user_roles FOR INSERT TO authenticated
-  WITH CHECK (
-    (SELECT r.name
-     FROM public.user_roles ur
-     JOIN public.roles r ON r.id = ur.role_id
-     WHERE ur.user_id = auth.uid()
-     LIMIT 1) = 'owner'
-  );
+  WITH CHECK (public.get_my_role() = 'owner');
 
 CREATE POLICY "user_roles_update_owner"
   ON public.user_roles FOR UPDATE TO authenticated
-  USING (
-    (SELECT r.name
-     FROM public.user_roles ur
-     JOIN public.roles r ON r.id = ur.role_id
-     WHERE ur.user_id = auth.uid()
-     LIMIT 1) = 'owner'
-  );
+  USING (public.get_my_role() = 'owner');
 
 CREATE POLICY "user_roles_delete_owner"
   ON public.user_roles FOR DELETE TO authenticated
-  USING (
-    (SELECT r.name
-     FROM public.user_roles ur
-     JOIN public.roles r ON r.id = ur.role_id
-     WHERE ur.user_id = auth.uid()
-     LIMIT 1) = 'owner'
-  );
+  USING (public.get_my_role() = 'owner');
 
 -- ── 4. Ensure get_my_role() is SECURITY DEFINER ────────────────
 --    SECURITY DEFINER means the function runs as the DB owner,

@@ -14,7 +14,7 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
-import { Plus, Pencil, Trash, AlertTriangle } from "@/lib/icons";
+import { Plus, Pencil, Trash, AlertTriangle, Image, Upload, Loader2 } from "@/lib/icons";
 import { formatRupiah } from "@/lib/utils/format";
 
 // ── Types ─────────────────────────────────────────────────────
@@ -28,6 +28,7 @@ type Product = {
   is_active: boolean;
   category_id: string | null;
   sort_order: number;
+  image_url: string | null;
   categories: { name: string } | null;
 };
 
@@ -37,6 +38,7 @@ type FormState = {
   description: string;
   category_id: string;
   is_active: boolean;
+  image_url: string;
 };
 
 const EMPTY_FORM: FormState = {
@@ -45,6 +47,7 @@ const EMPTY_FORM: FormState = {
   description: "",
   category_id: "",
   is_active: true,
+  image_url: "",
 };
 
 // ── Component ─────────────────────────────────────────────────
@@ -65,6 +68,7 @@ export default function ProductManagement() {
   const [isSaving, setIsSaving]               = useState(false);
   const [isDeleting, setIsDeleting]           = useState(false);
   const [togglingId, setTogglingId]           = useState<string | null>(null);
+  const [isUploading, setIsUploading]         = useState(false);
 
   // ── Fetch data ───────────────────────────────────────────────
   const fetchCategories = useCallback(async () => {
@@ -80,7 +84,7 @@ export default function ProductManagement() {
     setIsLoading(true);
     const query = supabase
       .from("products")
-      .select("id, name, description, base_price, is_active, category_id, sort_order, categories(name)")
+      .select("id, name, description, base_price, is_active, category_id, sort_order, image_url, categories(name)")
       .order("sort_order")
       .order("name");
 
@@ -119,6 +123,7 @@ export default function ProductManagement() {
       description: p.description ?? "",
       category_id: p.category_id ?? "",
       is_active:   p.is_active,
+      image_url:   p.image_url ?? "",
     });
     setDialogOpen(true);
   };
@@ -126,6 +131,67 @@ export default function ProductManagement() {
   const openDeleteDialog = (p: Product) => {
     setDeletingProduct(p);
     setDeleteDialogOpen(true);
+  };
+
+  // ── Image Upload helpers ──────────────────────────────────────
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate size (500 KB limit)
+    const MAX_SIZE = 500 * 1024; // 512,000 bytes
+    if (file.size > MAX_SIZE) {
+      toast.error("Ukuran file terlalu besar. Maksimal adalah 500 KB.");
+      e.target.value = ""; // clear input
+      return;
+    }
+
+    // Validate MIME type (must be image)
+    if (!file.type.startsWith("image/")) {
+      toast.error("Format file tidak didukung. Harus berupa gambar.");
+      e.target.value = ""; // clear input
+      return;
+    }
+
+    setIsUploading(true);
+    try {
+      const fileExt = file.name.split(".").pop()?.toLowerCase();
+      const fileName = `${Date.now()}-${Math.random().toString(36).substring(2, 9)}.${fileExt}`;
+      const filePath = `products/${fileName}`;
+
+      // Tentukan MIME type yang aman (misalnya .jfif dibaca sebagai image/jpeg jika kosong/tidak standar)
+      let contentType = file.type;
+      if (fileExt === "jfif" || !contentType) {
+        contentType = "image/jpeg";
+      }
+
+      const { error } = await supabase.storage
+        .from("product-images")
+        .upload(filePath, file, {
+          cacheControl: "3600",
+          upsert: false,
+          contentType: contentType,
+        });
+
+      if (error) throw error;
+
+      // Get public URL
+      const { data: urlData } = supabase.storage
+        .from("product-images")
+        .getPublicUrl(filePath);
+
+      setForm((f) => ({ ...f, image_url: urlData.publicUrl }));
+      toast.success("Foto berhasil diunggah.");
+    } catch (err: any) {
+      console.error("[ProductManagement] Upload error:", err);
+      toast.error("Gagal mengunggah foto: " + err.message);
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  const handleRemoveImage = () => {
+    setForm((f) => ({ ...f, image_url: "" }));
   };
 
   // ── Save (INSERT / UPDATE) ───────────────────────────────────
@@ -150,6 +216,7 @@ export default function ProductManagement() {
         description: form.description.trim() || null,
         category_id: form.category_id || null,
         is_active:   form.is_active,
+        image_url:   form.image_url.trim() || null,
       };
 
       if (editingProduct) {
@@ -286,6 +353,7 @@ export default function ProductManagement() {
             <table className="w-full text-sm">
               <thead className="bg-slate-50 border-b border-slate-100">
                 <tr>
+                  <th className="text-left px-4 py-3 font-semibold text-slate-600 w-16">Foto</th>
                   <th className="text-left px-4 py-3 font-semibold text-slate-600">Nama</th>
                   <th className="text-left px-4 py-3 font-semibold text-slate-600">Kategori</th>
                   <th className="text-right px-4 py-3 font-semibold text-slate-600">Harga</th>
@@ -299,6 +367,23 @@ export default function ProductManagement() {
                     key={p.id}
                     className={idx % 2 === 0 ? "bg-white" : "bg-slate-50/50"}
                   >
+                    {/* Foto */}
+                    <td className="px-4 py-3">
+                      {p.image_url ? (
+                        <div className="size-10 rounded-lg overflow-hidden border border-slate-100 shadow-sm shrink-0">
+                          <img
+                            src={p.image_url}
+                            alt={p.name}
+                            className="size-full object-cover"
+                          />
+                        </div>
+                      ) : (
+                        <div className="size-10 rounded-lg bg-slate-100 flex items-center justify-center text-slate-400 border border-slate-100 shrink-0">
+                          <Image className="size-5 stroke-[1.5]" />
+                        </div>
+                      )}
+                    </td>
+
                     {/* Nama */}
                     <td className="px-4 py-3">
                       <p className="font-medium text-slate-800">{p.name}</p>
@@ -464,6 +549,51 @@ export default function ProductManagement() {
                 rows={2}
                 className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-orange-400 resize-none"
               />
+            </div>
+
+            {/* Foto Produk */}
+            <div className="space-y-1.5">
+              <Label className="text-xs font-bold uppercase tracking-wider text-slate-500">
+                Foto Produk <span className="text-slate-300 font-normal normal-case">(maks 500KB, opsional)</span>
+              </Label>
+              
+              {form.image_url ? (
+                <div className="relative size-28 rounded-xl overflow-hidden border border-slate-200 group">
+                  <img
+                    src={form.image_url}
+                    alt="Preview produk"
+                    className="size-full object-cover"
+                  />
+                  <button
+                    type="button"
+                    onClick={handleRemoveImage}
+                    className="absolute inset-0 bg-black/50 flex items-center justify-center text-white opacity-0 group-hover:opacity-100 transition-opacity"
+                    title="Hapus Foto"
+                  >
+                    <Trash className="size-5" />
+                  </button>
+                </div>
+              ) : (
+                <div className="relative flex flex-col items-center justify-center border-2 border-dashed border-slate-200 rounded-xl p-4 hover:bg-slate-50 transition-colors">
+                  {isUploading ? (
+                    <div className="flex flex-col items-center gap-1.5 py-2">
+                      <Loader2 className="size-6 text-orange-500 animate-spin" />
+                      <span className="text-xs text-slate-500">Mengunggah foto...</span>
+                    </div>
+                  ) : (
+                    <label className="flex flex-col items-center gap-1.5 cursor-pointer py-2 w-full text-center">
+                      <Upload className="size-6 text-slate-400" />
+                      <span className="text-xs text-slate-500 font-medium">Klik untuk unggah foto</span>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleImageUpload}
+                        className="hidden"
+                      />
+                    </label>
+                  )}
+                </div>
+              )}
             </div>
 
             {/* Is Active */}
