@@ -3,7 +3,7 @@
 import { Product } from "@/types/database";
 import { formatRupiah } from "@/lib/utils/format";
 import { Badge } from "@/components/ui/badge";
-import { Package } from "@/lib/icons";
+import { Package, Image } from "@/lib/icons";
 import { cn } from "@/lib/utils";
 
 interface ProductCardProps {
@@ -55,6 +55,19 @@ export default function ProductCard({
           </Badge>
         </div>
       )}
+
+      {/* Product Image */}
+      <div className="relative w-full h-32 rounded-xl overflow-hidden mb-3 bg-slate-50 border border-slate-100 flex items-center justify-center text-slate-400 shrink-0">
+        {product.image_url ? (
+          <img
+            src={product.image_url}
+            alt={product.name}
+            className="size-full object-cover transition-transform duration-300 group-hover:scale-105"
+          />
+        ) : (
+          <Image className="size-8 stroke-[1.5]" />
+        )}
+      </div>
 
       {/* Main product info */}
       <div className="flex-1 flex flex-col justify-between space-y-3">
