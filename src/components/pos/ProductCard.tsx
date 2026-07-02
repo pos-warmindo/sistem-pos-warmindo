@@ -57,7 +57,7 @@ export default function ProductCard({
       )}
 
       {/* Product Image */}
-      <div className="relative w-full h-32 rounded-xl overflow-hidden mb-3 bg-slate-50 border border-slate-100 flex items-center justify-center text-slate-400 shrink-0">
+      <div className="relative w-full aspect-square rounded-xl overflow-hidden mb-3 bg-slate-50 border border-slate-100 flex items-center justify-center text-slate-400 shrink-0">
         {product.image_url ? (
           <img
             src={product.image_url}
