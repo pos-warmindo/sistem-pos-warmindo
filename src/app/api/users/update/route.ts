@@ -19,7 +19,9 @@ export async function POST(request: NextRequest) {
     }
 
     const { data: roleData } = await supabase.rpc("get_my_role");
-    if (roleData !== "owner" && roleData !== "admin") {
+    const callerRole = roleData as string | null;
+
+    if (callerRole !== "owner" && callerRole !== "admin") {
       return NextResponse.json({ error: "Forbidden: owner or admin only" }, { status: 403 });
     }
 
@@ -37,6 +39,14 @@ export async function POST(request: NextRequest) {
 
     if (role && !["cashier", "owner", "admin"].includes(role)) {
       return NextResponse.json({ error: "Role tidak valid." }, { status: 400 });
+    }
+
+    // Admin tidak boleh mengubah role — blokir di backend
+    if (callerRole === "admin" && role !== undefined) {
+      return NextResponse.json(
+        { error: "Forbidden: Admin tidak diizinkan mengubah hak akses (role) user." },
+        { status: 403 }
+      );
     }
 
     const admin = createAdminClient();
