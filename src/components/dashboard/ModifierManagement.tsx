@@ -79,10 +79,15 @@ export default function ModifierManagement() {
   const fetchProducts = useCallback(async () => {
     const { data } = await supabase
       .from("products")
-      .select("id, name")
+      .select("id, name, categories(name)")
       .eq("is_active", true)
       .order("name");
-    setProducts(data ?? []);
+    
+    const filtered = (data ?? [])
+      .filter((p: any) => p.categories?.name?.toLowerCase() !== "minuman")
+      .map((p: any) => ({ id: p.id, name: p.name }));
+
+    setProducts(filtered);
   }, [supabase]);
 
   const fetchModifiers = useCallback(async () => {
