@@ -14,7 +14,7 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
-import { Plus, Pencil, Trash } from "@/lib/icons";
+import { Plus, Pencil, Trash, X } from "@/lib/icons";
 import { formatRupiah } from "@/lib/utils/format";
 
 // ── Types ─────────────────────────────────────────────────────
@@ -273,7 +273,7 @@ export default function ModifierManagement() {
         {filterProductId !== "all" && " untuk produk ini"}
       </p>
 
-      {/* Grouped table */}
+      {/* Card layout — grouped by product × modifier_group */}
       <div className="space-y-4">
         {isLoading ? (
           <div className="p-8 text-center text-sm text-slate-400">
@@ -292,97 +292,76 @@ export default function ModifierManagement() {
             const productName   = items[0]?.products?.name ?? "—";
 
             return (
-              <div
-                key={key}
-                className="rounded-xl border border-slate-200 overflow-hidden bg-white"
-              >
+              <div key={key} className="rounded-xl border border-slate-200 bg-white overflow-hidden">
                 {/* Group header */}
                 <div className="bg-slate-50 border-b border-slate-100 px-4 py-2.5 flex items-center gap-2">
                   <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">
                     {productName}
                   </span>
                   <span className="text-slate-300">·</span>
-                  <span className="text-xs font-semibold text-slate-700">
-                    {groupName}
-                  </span>
+                  <span className="text-xs font-semibold text-slate-700">{groupName}</span>
                   <Badge className="ml-auto bg-slate-100 text-slate-500 border-slate-200 text-[10px]">
                     {items.length} opsi
                   </Badge>
                 </div>
 
-                {/* Modifier rows */}
-                <table className="w-full text-sm">
-                  <tbody>
-                    {items.map((m, idx) => (
-                      <tr
-                        key={m.id}
-                        className={idx % 2 === 0 ? "bg-white" : "bg-slate-50/40"}
-                      >
-                        {/* Nama modifier */}
-                        <td className="px-4 py-2.5 font-medium text-slate-800">
-                          {m.modifier_name}
-                        </td>
+                {/* Card grid */}
+                <div className="p-3 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2">
+                  {items.map((m) => (
+                    <div
+                      key={m.id}
+                      className={`relative rounded-xl border p-3 flex flex-col gap-1.5 ${
+                        m.is_active
+                          ? "border-slate-200 bg-white"
+                          : "border-slate-100 bg-slate-50 opacity-60"
+                      }`}
+                    >
+                      {/* Status dot */}
+                      <span
+                        className={`absolute top-2.5 right-2.5 size-2 rounded-full ${
+                          m.is_active ? "bg-green-500" : "bg-slate-300"
+                        }`}
+                        title={m.is_active ? "Aktif" : "Nonaktif"}
+                      />
 
-                        {/* Price delta */}
-                        <td className="px-4 py-2.5 text-sm">
-                          {m.price_delta === 0 ? (
-                            <span className="text-slate-400 text-xs">Gratis</span>
-                          ) : m.price_delta > 0 ? (
-                            <span className="text-green-600 font-semibold text-xs">
-                              +{formatRupiah(m.price_delta)}
-                            </span>
-                          ) : (
-                            <span className="text-red-500 font-semibold text-xs">
-                              -{formatRupiah(Math.abs(m.price_delta))}
-                            </span>
-                          )}
-                        </td>
+                      <p className="text-sm font-semibold text-slate-800 pr-4 leading-snug">
+                        {m.modifier_name}
+                      </p>
 
-                        {/* Status */}
-                        <td className="px-4 py-2.5">
-                          {m.is_active ? (
-                            <Badge className="bg-green-100 text-green-700 border-green-200 font-semibold text-[10px]">
-                              Aktif
-                            </Badge>
-                          ) : (
-                            <Badge
-                              variant="outline"
-                              className="text-slate-400 border-slate-200 font-semibold text-[10px]"
-                            >
-                              Nonaktif
-                            </Badge>
-                          )}
-                        </td>
+                      <p className={`text-xs font-bold ${
+                        m.price_delta === 0
+                          ? "text-slate-400"
+                          : m.price_delta > 0
+                          ? "text-green-600"
+                          : "text-red-500"
+                      }`}>
+                        {m.price_delta === 0
+                          ? "Gratis"
+                          : m.price_delta > 0
+                          ? `+${formatRupiah(m.price_delta)}`
+                          : `-${formatRupiah(Math.abs(m.price_delta))}`}
+                      </p>
 
-                        {/* Aksi */}
-                        <td className="px-4 py-2.5 text-right">
-                          <div className="flex items-center justify-end gap-2">
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => openEditDialog(m)}
-                              className="h-7 w-7 p-0 rounded-lg border-slate-200"
-                              title="Edit pilihan"
-                              aria-label="Edit pilihan"
-                            >
-                              <Pencil className="size-3" />
-                            </Button>
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => openDeleteDialog(m)}
-                              className="h-7 w-7 p-0 rounded-lg border-red-200 text-red-500 hover:bg-red-50"
-                              title="Hapus pilihan"
-                              aria-label="Hapus pilihan"
-                            >
-                              <Trash className="size-3" />
-                            </Button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+                      {/* Actions */}
+                      <div className="flex gap-1.5 mt-auto pt-1.5 border-t border-slate-100">
+                        <button
+                          onClick={() => openEditDialog(m)}
+                          className="flex-1 flex items-center justify-center py-1 rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-50 hover:text-slate-700 transition-colors"
+                          title="Edit"
+                        >
+                          <Pencil className="size-3" />
+                        </button>
+                        <button
+                          onClick={() => openDeleteDialog(m)}
+                          className="flex-1 flex items-center justify-center py-1 rounded-lg border border-red-100 text-red-400 hover:bg-red-50 hover:text-red-600 transition-colors"
+                          title="Hapus"
+                        >
+                          <Trash className="size-3" />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </div>
             );
           })
@@ -424,33 +403,46 @@ export default function ModifierManagement() {
               <Label htmlFor="mod-group" className="text-xs font-bold uppercase tracking-wider text-slate-500">
                 Kategori Pilihan (Grup) <span className="text-red-500">*</span>
               </Label>
-              <div className="relative">
-                <Input
-                  id="mod-group"
-                  value={form.modifier_group}
-                  onChange={(e) => setForm((f) => ({ ...f, modifier_group: e.target.value }))}
-                  onFocus={() => setShowGroupSuggestions(true)}
-                  onBlur={() => setTimeout(() => setShowGroupSuggestions(false), 150)}
-                  placeholder="contoh: Tingkat Pedas"
-                  className="rounded-xl"
-                  autoComplete="off"
-                />
-                {/* Suggestions dropdown */}
-                {showGroupSuggestions && (
-                  <div className="absolute z-10 mt-1 w-full rounded-xl border border-slate-200 bg-white shadow-lg overflow-hidden">
-                    {GROUP_SUGGESTIONS.filter((s) =>
-                      s.toLowerCase().includes(form.modifier_group.toLowerCase())
-                    ).map((s) => (
-                      <button
-                        key={s}
-                        type="button"
-                        onMouseDown={() => setForm((f) => ({ ...f, modifier_group: s }))}
-                        className="w-full px-4 py-2 text-left text-sm hover:bg-orange-50 hover:text-orange-700 transition-colors"
-                      >
-                        {s}
-                      </button>
-                    ))}
-                  </div>
+              <div className="relative flex gap-2">
+                <div className="relative flex-1">
+                  <Input
+                    id="mod-group"
+                    value={form.modifier_group}
+                    onChange={(e) => setForm((f) => ({ ...f, modifier_group: e.target.value }))}
+                    onFocus={() => setShowGroupSuggestions(true)}
+                    onBlur={() => setTimeout(() => setShowGroupSuggestions(false), 150)}
+                    placeholder="contoh: Tingkat Pedas"
+                    className="rounded-xl"
+                    autoComplete="off"
+                  />
+                  {/* Suggestions dropdown */}
+                  {showGroupSuggestions && (
+                    <div className="absolute z-10 mt-1 w-full rounded-xl border border-slate-200 bg-white shadow-lg overflow-hidden">
+                      {GROUP_SUGGESTIONS.filter((s) =>
+                        s.toLowerCase().includes(form.modifier_group.toLowerCase())
+                      ).map((s) => (
+                        <button
+                          key={s}
+                          type="button"
+                          onMouseDown={() => setForm((f) => ({ ...f, modifier_group: s }))}
+                          className="w-full px-4 py-2 text-left text-sm hover:bg-orange-50 hover:text-orange-700 transition-colors"
+                        >
+                          {s}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+                {/* Reset/Batal button */}
+                {form.modifier_group && (
+                  <button
+                    type="button"
+                    onClick={() => setForm((f) => ({ ...f, modifier_group: "" }))}
+                    title="Batal / Kosongkan kategori"
+                    className="px-3 rounded-xl border border-slate-200 text-slate-400 hover:text-red-500 hover:border-red-200 transition-colors shrink-0"
+                  >
+                    <X className="size-4" />
+                  </button>
                 )}
               </div>
               <p className="text-[11px] text-slate-400">

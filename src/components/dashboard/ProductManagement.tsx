@@ -58,6 +58,7 @@ export default function ProductManagement() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [filterCategoryId, setFilterCategoryId] = useState<string>("all");
+  const [searchQuery, setSearchQuery] = useState<string>("");
 
   // Dialog state
   const [dialogOpen, setDialogOpen]           = useState(false);
@@ -103,10 +104,12 @@ export default function ProductManagement() {
   }, [fetchCategories, fetchProducts]);
 
   // ── Filter produk ────────────────────────────────────────────
-  const filteredProducts =
-    filterCategoryId === "all"
-      ? products
-      : products.filter((p) => p.category_id === filterCategoryId);
+  const filteredProducts = products
+    .filter((p) => filterCategoryId === "all" || p.category_id === filterCategoryId)
+    .filter((p) =>
+      searchQuery.trim() === "" ||
+      p.name.toLowerCase().includes(searchQuery.toLowerCase())
+    );
 
   // ── Dialog helpers ───────────────────────────────────────────
   const openAddDialog = () => {
@@ -270,18 +273,17 @@ export default function ProductManagement() {
     }
   };
 
-  // ── Delete (soft: set is_active=false) ───────────────────────
+  // ── Delete (HARD DELETE — permanen dari database) ────────────
   const handleDelete = async () => {
     if (!deletingProduct) return;
     setIsDeleting(true);
     try {
-      // Soft-delete: set is_active = false (preserves order history)
       const { error } = await supabase
         .from("products")
-        .update({ is_active: false })
+        .delete()
         .eq("id", deletingProduct.id);
       if (error) throw error;
-      toast.success(`Produk "${deletingProduct.name}" dinonaktifkan.`);
+      toast.success(`Produk "${deletingProduct.name}" berhasil dihapus permanen.`);
       setDeleteDialogOpen(false);
       await fetchProducts();
     } catch (err: any) {
@@ -331,6 +333,25 @@ export default function ProductManagement() {
           <Plus className="size-4" />
           Tambah Produk
         </Button>
+      </div>
+
+      {/* Search bar */}
+      <div className="relative">
+        <input
+          type="text"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          placeholder="Cari nama menu..."
+          className="w-full rounded-xl border border-slate-200 bg-white pl-4 pr-10 py-2.5 text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-orange-400"
+        />
+        {searchQuery && (
+          <button
+            onClick={() => setSearchQuery("")}
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+          >
+            <X className="size-4" />
+          </button>
+        )}
       </div>
 
       <p className="text-xs text-muted-foreground">
@@ -521,19 +542,31 @@ export default function ProductManagement() {
               <Label htmlFor="prod-cat" className="text-xs font-bold uppercase tracking-wider text-slate-500">
                 Kategori
               </Label>
-              <select
-                id="prod-cat"
-                value={form.category_id}
-                onChange={(e) => setForm((f) => ({ ...f, category_id: e.target.value }))}
-                className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-orange-400"
-              >
-                <option value="">— Tanpa Kategori —</option>
-                {categories.map((cat) => (
-                  <option key={cat.id} value={cat.id}>
-                    {cat.name}
-                  </option>
-                ))}
-              </select>
+              <div className="flex gap-2">
+                <select
+                  id="prod-cat"
+                  value={form.category_id}
+                  onChange={(e) => setForm((f) => ({ ...f, category_id: e.target.value }))}
+                  className="flex-1 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-orange-400"
+                >
+                  <option value="">— Tanpa Kategori —</option>
+                  {categories.map((cat) => (
+                    <option key={cat.id} value={cat.id}>
+                      {cat.name}
+                    </option>
+                  ))}
+                </select>
+                {form.category_id && (
+                  <button
+                    type="button"
+                    onClick={() => setForm((f) => ({ ...f, category_id: "" }))}
+                    title="Reset kategori"
+                    className="px-3 rounded-xl border border-slate-200 text-slate-400 hover:text-red-500 hover:border-red-200 transition-colors"
+                  >
+                    <X className="size-4" />
+                  </button>
+                )}
+              </div>
             </div>
 
             {/* Deskripsi */}
@@ -654,17 +687,17 @@ export default function ProductManagement() {
 
           <div className="space-y-3 py-2">
             <p className="text-sm text-slate-600">
-              Produk{" "}
+              Apakah Anda yakin ingin menghapus produk{" "}
               <span className="font-semibold text-slate-800">
                 "{deletingProduct?.name}"
               </span>{" "}
-              akan dinonaktifkan sehingga tidak muncul di POS.
+              secara permanen?
             </p>
-            <div className="flex items-start gap-2 rounded-xl bg-amber-50 border border-amber-200 p-3">
-              <AlertTriangle className="size-4 text-amber-600 mt-0.5 shrink-0" />
-              <p className="text-xs text-amber-800 font-medium">
-                Data produk tidak dihapus permanen agar riwayat transaksi tetap
-                terjaga. Anda bisa mengaktifkan kembali produk kapan saja.
+            <div className="flex items-start gap-2 rounded-xl bg-red-50 border border-red-200 p-3">
+              <AlertTriangle className="size-4 text-red-600 mt-0.5 shrink-0" />
+              <p className="text-xs text-red-800 font-medium">
+                Data produk akan dihapus permanen dari database dan tidak dapat dikembalikan.
+                Riwayat transaksi yang sudah ada tidak terpengaruh.
               </p>
             </div>
           </div>
@@ -685,7 +718,7 @@ export default function ProductManagement() {
               {isDeleting ? (
                 <div className="size-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
               ) : (
-                "Ya, Nonaktifkan"
+                "Ya, Hapus Permanen"
               )}
             </Button>
           </DialogFooter>
