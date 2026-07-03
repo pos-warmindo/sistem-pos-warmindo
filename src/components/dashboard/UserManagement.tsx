@@ -50,11 +50,19 @@ export default function UserManagement() {
   const [isSaving, setIsSaving] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
 
+  const [currentUserRole, setCurrentUserRole] = useState<string>("");
+
   // Load Logged in User session
   useEffect(() => {
     async function loadCurrentUser() {
       const { data: { user } } = await supabase.auth.getUser();
       setCurrentUser(user);
+      if (user) {
+        const { data: roleData } = await supabase.rpc("get_my_role");
+        if (roleData) {
+          setCurrentUserRole(roleData as string);
+        }
+      }
     }
     loadCurrentUser();
   }, [supabase]);
@@ -229,7 +237,8 @@ export default function UserManagement() {
         </p>
         <Button
           onClick={openAddDialog}
-          className="bg-primary hover:bg-primary-hover text-white font-semibold rounded-xl gap-2"
+          disabled={currentUserRole === "admin"}
+          className="bg-primary hover:bg-primary-hover text-white font-semibold rounded-xl gap-2 disabled:opacity-50"
         >
           <UserPlus className="size-4" />
           Tambah User
@@ -310,9 +319,9 @@ export default function UserManagement() {
                         size="sm"
                         variant="outline"
                         onClick={() => openDeleteDialog(user)}
-                        disabled={currentUser && user.id === currentUser.id}
+                        disabled={currentUserRole === "admin" || (currentUser && user.id === currentUser.id)}
                         className="h-8 w-8 p-0 rounded-lg border-red-200 text-red-500 hover:bg-red-50 hover:text-red-600 disabled:opacity-50"
-                        title="Hapus User"
+                        title={currentUserRole === "admin" ? "Role Admin tidak diizinkan menghapus user" : "Hapus User"}
                       >
                         <Trash className="size-3.5" />
                       </Button>
