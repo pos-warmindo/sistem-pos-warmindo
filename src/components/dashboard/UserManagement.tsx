@@ -427,7 +427,6 @@ export default function UserManagement() {
               </select>
               {currentUserRole === "admin" && (
                 <p className="text-[11px] text-amber-600 flex items-center gap-1">
-                  <Shield className="size-3" />
                   Admin tidak dapat mengubah hak akses user.
                 </p>
               )}
