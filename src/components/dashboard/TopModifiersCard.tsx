@@ -40,7 +40,7 @@ export default async function TopModifiersCard() {
     <div className="rounded-xl border border-slate-200/80 bg-white p-6 shadow-sm">
       <div className="mb-4">
         <h3 className="text-sm font-semibold text-slate-800">
-          Modifikator Terlaris
+          Toping Terlaris
         </h3>
         <p className="text-xs text-slate-400 font-medium">
           Top 5 topping & level pedas paling populer

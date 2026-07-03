@@ -9,7 +9,7 @@ export default function AdminMenuPage() {
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-heading">Kelola Menu</h1>
         <p className="text-sm text-muted-foreground mt-1">
-          Atur produk, kategori, dan modifier yang tersedia di POS.
+          Atur produk, kategori, serta varian/topping tambahan yang tersedia di POS.
         </p>
       </div>
 
@@ -19,7 +19,7 @@ export default function AdminMenuPage() {
             Produk
           </TabsTrigger>
           <TabsTrigger value="modifier" className="rounded-lg font-semibold text-sm px-5 py-2">
-            Modifier
+            Varian / Topping
           </TabsTrigger>
           <TabsTrigger value="kategori" className="rounded-lg font-semibold text-sm px-5 py-2">
             Kategori

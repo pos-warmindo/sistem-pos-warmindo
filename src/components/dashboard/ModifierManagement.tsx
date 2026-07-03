@@ -95,7 +95,7 @@ export default function ModifierManagement() {
       .order("sort_order");
 
     if (error) {
-      toast.error("Gagal memuat modifier: " + error.message);
+      toast.error("Gagal memuat pilihan: " + error.message);
     } else {
       setModifiers((data as unknown as Modifier[]) ?? []);
     }
@@ -159,11 +159,11 @@ export default function ModifierManagement() {
       return;
     }
     if (!trimName) {
-      toast.error("Nama modifier tidak boleh kosong.");
+      toast.error("Nama pilihan tidak boleh kosong.");
       return;
     }
     if (!trimGroup) {
-      toast.error("Grup modifier tidak boleh kosong.");
+      toast.error("Kategori pilihan tidak boleh kosong.");
       return;
     }
     if (isNaN(delta)) {
@@ -187,13 +187,13 @@ export default function ModifierManagement() {
           .update(payload)
           .eq("id", editingModifier.id);
         if (error) throw error;
-        toast.success(`Modifier "${trimName}" berhasil diperbarui.`);
+        toast.success(`Pilihan "${trimName}" berhasil diperbarui.`);
       } else {
         const { error } = await supabase
           .from("product_modifiers")
-          .insert(payload);
+          .insert([payload]);
         if (error) throw error;
-        toast.success(`Modifier "${trimName}" berhasil ditambahkan.`);
+        toast.success(`Pilihan "${trimName}" berhasil ditambahkan.`);
       }
 
       setDialogOpen(false);
@@ -264,12 +264,12 @@ export default function ModifierManagement() {
           className="bg-primary hover:bg-primary-hover text-white font-semibold rounded-xl gap-2 shrink-0"
         >
           <Plus className="size-4" />
-          Tambah Modifier
+          Tambah Varian / Topping
         </Button>
       </div>
 
       <p className="text-xs text-muted-foreground">
-        {filteredModifiers.length} modifier
+        {filteredModifiers.length} pilihan varian & topping
         {filterProductId !== "all" && " untuk produk ini"}
       </p>
 
@@ -277,14 +277,14 @@ export default function ModifierManagement() {
       <div className="space-y-4">
         {isLoading ? (
           <div className="p-8 text-center text-sm text-slate-400">
-            Memuat modifier...
+            Memuat data pilihan...
           </div>
         ) : Object.keys(grouped).length === 0 ? (
           <div className="p-8 text-center text-sm text-slate-400 rounded-xl border border-dashed border-slate-200">
-            Belum ada modifier.{" "}
+            Belum ada pilihan varian & topping.{" "}
             {filterProductId !== "all"
-              ? "Tambahkan modifier untuk produk ini."
-              : "Pilih produk atau tambahkan modifier baru."}
+              ? "Tambahkan varian & topping untuk produk ini."
+              : "Pilih produk atau tambahkan varian & topping baru."}
           </div>
         ) : (
           Object.entries(grouped).map(([key, items]) => {
@@ -362,8 +362,8 @@ export default function ModifierManagement() {
                               variant="outline"
                               onClick={() => openEditDialog(m)}
                               className="h-7 w-7 p-0 rounded-lg border-slate-200"
-                              title="Edit modifier"
-                              aria-label="Edit modifier"
+                              title="Edit pilihan"
+                              aria-label="Edit pilihan"
                             >
                               <Pencil className="size-3" />
                             </Button>
@@ -372,8 +372,8 @@ export default function ModifierManagement() {
                               variant="outline"
                               onClick={() => openDeleteDialog(m)}
                               className="h-7 w-7 p-0 rounded-lg border-red-200 text-red-500 hover:bg-red-50"
-                              title="Hapus modifier"
-                              aria-label="Hapus modifier"
+                              title="Hapus pilihan"
+                              aria-label="Hapus pilihan"
                             >
                               <Trash className="size-3" />
                             </Button>
@@ -394,7 +394,7 @@ export default function ModifierManagement() {
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle className="font-bold text-heading">
-              {editingModifier ? "Edit Modifier" : "Tambah Modifier"}
+              {editingModifier ? "Edit Varian / Topping" : "Tambah Varian / Topping"}
             </DialogTitle>
           </DialogHeader>
 
@@ -422,7 +422,7 @@ export default function ModifierManagement() {
             {/* Modifier Group */}
             <div className="space-y-1.5">
               <Label htmlFor="mod-group" className="text-xs font-bold uppercase tracking-wider text-slate-500">
-                Grup Modifier <span className="text-red-500">*</span>
+                Kategori Pilihan (Grup) <span className="text-red-500">*</span>
               </Label>
               <div className="relative">
                 <Input
@@ -454,14 +454,14 @@ export default function ModifierManagement() {
                 )}
               </div>
               <p className="text-[11px] text-slate-400">
-                Modifier dalam grup yang sama akan tampil sebagai pilihan radio.
+                Pilihan dalam kategori yang sama akan tampil sebagai opsi pilihan radio.
               </p>
             </div>
 
             {/* Modifier Name */}
             <div className="space-y-1.5">
               <Label htmlFor="mod-name" className="text-xs font-bold uppercase tracking-wider text-slate-500">
-                Nama Modifier <span className="text-red-500">*</span>
+                Nama Pilihan (Topping/Level) <span className="text-red-500">*</span>
               </Label>
               <Input
                 id="mod-name"
@@ -494,7 +494,7 @@ export default function ModifierManagement() {
             <div className="flex items-center justify-between rounded-xl border border-slate-200 px-4 py-3">
               <div>
                 <p className="text-sm font-semibold text-slate-700">Status Aktif</p>
-                <p className="text-xs text-slate-400">Modifier tersedia di POS</p>
+                <p className="text-xs text-slate-400">Pilihan tersedia di POS</p>
               </div>
               <button
                 type="button"
@@ -532,7 +532,7 @@ export default function ModifierManagement() {
               ) : editingModifier ? (
                 "Simpan Perubahan"
               ) : (
-                "Tambah Modifier"
+                "Tambah Pilihan"
               )}
             </Button>
           </DialogFooter>
@@ -543,23 +543,23 @@ export default function ModifierManagement() {
       <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <DialogContent className="sm:max-w-sm">
           <DialogHeader>
-            <DialogTitle className="font-bold text-heading">Hapus Modifier</DialogTitle>
+            <DialogTitle className="font-bold text-heading">Hapus Pilihan</DialogTitle>
           </DialogHeader>
 
           <div className="py-2">
             <p className="text-sm text-slate-600">
-              Apakah Anda yakin ingin menghapus modifier{" "}
+              Apakah Anda yakin ingin menghapus pilihan{" "}
               <span className="font-semibold text-slate-800">
                 "{deletingModifier?.modifier_name}"
               </span>{" "}
-              dari grup{" "}
+              dari kategori{" "}
               <span className="font-semibold text-slate-800">
                 "{deletingModifier?.modifier_group}"
               </span>
               ?
             </p>
             <p className="text-xs text-slate-400 mt-2">
-              Riwayat transaksi yang sudah menggunakan modifier ini tidak akan terpengaruh.
+              Riwayat transaksi yang sudah menggunakan pilihan ini tidak akan terpengaruh.
             </p>
           </div>
 
