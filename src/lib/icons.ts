@@ -41,4 +41,5 @@ export {
   Image,
   Upload,
   Loader2,
+  Search,
 } from "lucide-react";

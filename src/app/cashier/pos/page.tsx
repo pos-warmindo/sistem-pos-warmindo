@@ -18,6 +18,8 @@ import { useStockRealtime } from "@/lib/hooks/useStockRealtime";
 import { useCart } from "@/lib/hooks/useCart";
 import { createClient } from "@/lib/supabase/client";
 import { toast } from "sonner";
+import { Input } from "@/components/ui/input";
+import { Search } from "@/lib/icons";
 
 export default function CashierPosPage() {
   const supabase = createClient();
@@ -35,6 +37,7 @@ export default function CashierPosPage() {
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [productModifiers, setProductModifiers] = useState<ProductModifier[]>([]);
   const [isModifierModalOpen, setIsModifierModalOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
 
   useEffect(() => {
     async function loadPOSData() {
@@ -102,6 +105,10 @@ export default function CashierPosPage() {
     return acc;
   }, {} as Record<string, boolean>);
 
+  const filteredProducts = products.filter((product) =>
+    product.name.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
   return (
     <ShiftGate>
       {isLoadingData || isStockLoading ? (
@@ -116,14 +123,31 @@ export default function CashierPosPage() {
           <main className="flex-1 flex flex-col lg:flex-row h-[calc(100vh-4rem)] overflow-hidden bg-slate-50/20">
             {/* Left Column - Product catalog area */}
             <div className="flex-1 flex flex-col h-full bg-slate-50/30 border-r border-border overflow-hidden">
+              <div className="bg-white px-6 pt-4 pb-1 border-b border-slate-100 flex flex-col gap-3 shrink-0">
+                <div className="relative">
+                  <span className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-slate-400">
+                    <Search className="size-4" />
+                  </span>
+                  <Input
+                    type="text"
+                    placeholder="Cari menu makanan atau minuman..."
+                    className="pl-9 pr-4 py-2 h-10 bg-slate-50 border-slate-200 text-slate-800 placeholder:text-slate-400 rounded-xl focus-visible:ring-primary focus-visible:border-primary w-full"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                  />
+                </div>
+              </div>
               <CategoryTabBar
                 categories={categories}
                 activeCategoryId={activeCategoryId}
-                onSelectCategory={setActiveCategoryId}
+                onSelectCategory={(id) => {
+                  setActiveCategoryId(id);
+                  setSearchQuery(""); // Reset search query when category changes
+                }}
               />
               <div className="flex-1 overflow-y-auto">
                 <ProductGrid
-                  products={products}
+                  products={filteredProducts}
                   activeCategoryId={activeCategoryId}
                   onSelectProduct={handleSelectProduct}
                   availabilityMap={availabilityMap}
