@@ -98,7 +98,7 @@ export default function LoginPage() {
           window.location.href = "/owner/dashboard";
           return;
         } else if (name === "admin") {
-          window.location.href = "/owner/menu";
+          window.location.href = "/admin/menu";
           return;
         }
         window.location.href = "/cashier/pos";
@@ -111,7 +111,7 @@ export default function LoginPage() {
         window.location.href = "/owner/dashboard";
         return;
       } else if (roleName === "admin") {
-        window.location.href = "/owner/menu";
+        window.location.href = "/admin/menu";
         return;
       }
 

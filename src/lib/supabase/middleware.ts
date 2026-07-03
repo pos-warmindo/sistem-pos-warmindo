@@ -28,7 +28,7 @@ async function getUserRole(
  *
  * Login redirect after auth:
  *   owner   → /owner/dashboard
- *   admin   → /owner/menu
+ *   admin   → /admin/menu
  *   cashier → /cashier/pos
  */
 export async function updateSession(request: NextRequest) {
@@ -63,6 +63,7 @@ export async function updateSession(request: NextRequest) {
 
   const isPosRoute       = pathname.startsWith("/cashier/pos");
   const isOwnerRoute     = pathname.startsWith("/owner");
+  const isAdminRoute     = pathname.startsWith("/admin");
   const isDashboardRoute = pathname.startsWith("/owner/dashboard");
   const isLaporanRoute   = pathname.startsWith("/owner/laporan");
   // Routes accessible by both owner AND admin
@@ -73,7 +74,7 @@ export async function updateSession(request: NextRequest) {
   const isApiRoute  = pathname.startsWith("/api");
   const isWebhook   = pathname === "/api/pakasir/webhook";
 
-  const isProtected = isPosRoute || isOwnerRoute || (isApiRoute && !isWebhook);
+  const isProtected = isPosRoute || isOwnerRoute || isAdminRoute || (isApiRoute && !isWebhook);
 
   if (!isProtected) return supabaseResponse;
 
@@ -88,37 +89,45 @@ export async function updateSession(request: NextRequest) {
   // Logged in — check role
   const role = await getUserRole(supabase);
 
+  // /admin/* — admin only
+  if (isAdminRoute) {
+    if (role === "admin") return supabaseResponse;
+    if (role === "owner") return NextResponse.redirect(new URL("/owner/dashboard", request.url));
+    return NextResponse.redirect(new URL("/cashier/pos", request.url));
+  }
+
   // /owner/dashboard — owner only
   if (isDashboardRoute) {
     if (role === "owner") return supabaseResponse;
-    if (role === "admin") return NextResponse.redirect(new URL("/owner/menu", request.url));
+    if (role === "admin") return NextResponse.redirect(new URL("/admin/menu", request.url));
     return NextResponse.redirect(new URL("/cashier/pos", request.url));
   }
 
   // /owner/laporan — owner only
   if (isLaporanRoute) {
     if (role === "owner") return supabaseResponse;
-    if (role === "admin") return NextResponse.redirect(new URL("/owner/menu", request.url));
+    if (role === "admin") return NextResponse.redirect(new URL("/admin/menu", request.url));
     return NextResponse.redirect(new URL("/cashier/pos", request.url));
   }
 
-  // /owner/menu, /owner/stok, /owner/users — owner + admin
+  // /owner/menu, /owner/stok, /owner/users — owner only (admin redirected to /admin)
   if (isSharedOwnerRoute) {
-    if (role === "owner" || role === "admin") return supabaseResponse;
+    if (role === "owner") return supabaseResponse;
+    if (role === "admin") return NextResponse.redirect(new URL("/admin/menu", request.url));
     return NextResponse.redirect(new URL("/cashier/pos", request.url));
   }
 
   // Any other /owner/* — owner only
   if (isOwnerRoute) {
     if (role === "owner") return supabaseResponse;
-    if (role === "admin") return NextResponse.redirect(new URL("/owner/menu", request.url));
+    if (role === "admin") return NextResponse.redirect(new URL("/admin/menu", request.url));
     return NextResponse.redirect(new URL("/cashier/pos", request.url));
   }
 
   // /cashier/pos — cashier only
   if (isPosRoute) {
     if (role === "cashier") return supabaseResponse;
-    if (role === "admin") return NextResponse.redirect(new URL("/owner/menu", request.url));
+    if (role === "admin") return NextResponse.redirect(new URL("/admin/menu", request.url));
     return NextResponse.redirect(new URL("/owner/dashboard", request.url));
   }
 
