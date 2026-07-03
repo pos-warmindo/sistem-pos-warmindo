@@ -105,9 +105,12 @@ export default function CashierPosPage() {
     return acc;
   }, {} as Record<string, boolean>);
 
-  const filteredProducts = products.filter((product) =>
-    product.name.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const filteredProducts = products.filter((product) => {
+    const queryWords = searchQuery.toLowerCase().trim().split(/\s+/);
+    return queryWords.every((word) =>
+      product.name.toLowerCase().includes(word)
+    );
+  });
 
   return (
     <ShiftGate>
