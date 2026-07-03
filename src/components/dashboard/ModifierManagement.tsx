@@ -60,19 +60,19 @@ const GROUP_SUGGESTIONS = [
 export default function ModifierManagement() {
   const supabase = createClient();
 
-  const [modifiers, setModifiers]   = useState<Modifier[]>([]);
-  const [products, setProducts]     = useState<Product[]>([]);
-  const [isLoading, setIsLoading]   = useState(true);
+  const [modifiers, setModifiers] = useState<Modifier[]>([]);
+  const [products, setProducts] = useState<Product[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [filterProductId, setFilterProductId] = useState<string>("all");
 
   // Dialog state
-  const [dialogOpen, setDialogOpen]             = useState(false);
+  const [dialogOpen, setDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [editingModifier, setEditingModifier]   = useState<Modifier | null>(null);
+  const [editingModifier, setEditingModifier] = useState<Modifier | null>(null);
   const [deletingModifier, setDeletingModifier] = useState<Modifier | null>(null);
-  const [form, setForm]                         = useState<FormState>(EMPTY_FORM);
-  const [isSaving, setIsSaving]                 = useState(false);
-  const [isDeleting, setIsDeleting]             = useState(false);
+  const [form, setForm] = useState<FormState>(EMPTY_FORM);
+  const [isSaving, setIsSaving] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   const [showGroupSuggestions, setShowGroupSuggestions] = useState(false);
 
   // ── Fetch ────────────────────────────────────────────────────
@@ -82,7 +82,7 @@ export default function ModifierManagement() {
       .select("id, name, categories(name)")
       .eq("is_active", true)
       .order("name");
-    
+
     const filtered = (data ?? [])
       .filter((p: any) => p.categories?.name?.toLowerCase() !== "minuman")
       .map((p: any) => ({ id: p.id, name: p.name }));
@@ -139,11 +139,11 @@ export default function ModifierManagement() {
   const openEditDialog = (m: Modifier) => {
     setEditingModifier(m);
     setForm({
-      product_id:     m.product_id,
-      modifier_group: m.modifier_group,
-      modifier_name:  m.modifier_name,
-      price_delta:    String(m.price_delta),
-      is_active:      m.is_active,
+      product_id: m.product_id,
+      modifier_group: "", // User explicitly wants this empty on edit
+      modifier_name: "",  // User explicitly wants this empty on edit
+      price_delta: String(m.price_delta),
+      is_active: m.is_active,
     });
     setDialogOpen(true);
   };
@@ -155,9 +155,9 @@ export default function ModifierManagement() {
 
   // ── Save ─────────────────────────────────────────────────────
   const handleSave = async () => {
-    const trimName  = form.modifier_name.trim();
+    const trimName = form.modifier_name.trim();
     const trimGroup = form.modifier_group.trim();
-    const delta     = parseFloat(form.price_delta);
+    const delta = parseFloat(form.price_delta);
 
     if (!form.product_id) {
       toast.error("Pilih produk terlebih dahulu.");
@@ -179,11 +179,11 @@ export default function ModifierManagement() {
     setIsSaving(true);
     try {
       const payload = {
-        product_id:     form.product_id,
+        product_id: form.product_id,
         modifier_group: trimGroup,
-        modifier_name:  trimName,
-        price_delta:    delta,
-        is_active:      form.is_active,
+        modifier_name: trimName,
+        price_delta: delta,
+        is_active: form.is_active,
       };
 
       if (editingModifier) {
@@ -202,6 +202,8 @@ export default function ModifierManagement() {
       }
 
       setDialogOpen(false);
+      setEditingModifier(null);
+      setForm(EMPTY_FORM);
       await fetchModifiers();
     } catch (err: any) {
       console.error("[ModifierManagement] Save error:", err);
@@ -241,11 +243,10 @@ export default function ModifierManagement() {
         <div className="flex items-center gap-2 flex-wrap">
           <button
             onClick={() => setFilterProductId("all")}
-            className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition-colors ${
-              filterProductId === "all"
-                ? "bg-orange-500 text-white border-orange-500"
-                : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50"
-            }`}
+            className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition-colors ${filterProductId === "all"
+              ? "bg-orange-500 text-white border-orange-500"
+              : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50"
+              }`}
           >
             Semua Produk
           </button>
@@ -253,11 +254,10 @@ export default function ModifierManagement() {
             <button
               key={p.id}
               onClick={() => setFilterProductId(p.id)}
-              className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition-colors ${
-                filterProductId === p.id
-                  ? "bg-orange-500 text-white border-orange-500"
-                  : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50"
-              }`}
+              className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition-colors ${filterProductId === p.id
+                ? "bg-orange-500 text-white border-orange-500"
+                : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50"
+                }`}
             >
               {p.name}
             </button>
@@ -294,7 +294,7 @@ export default function ModifierManagement() {
         ) : (
           Object.entries(grouped).map(([key, items]) => {
             const [, groupName] = key.split("||");
-            const productName   = items[0]?.products?.name ?? "—";
+            const productName = items[0]?.products?.name ?? "—";
 
             return (
               <div key={key} className="rounded-xl border border-slate-200 bg-white overflow-hidden">
@@ -315,17 +315,15 @@ export default function ModifierManagement() {
                   {items.map((m) => (
                     <div
                       key={m.id}
-                      className={`relative rounded-xl border p-3 flex flex-col gap-1.5 ${
-                        m.is_active
-                          ? "border-slate-200 bg-white"
-                          : "border-slate-100 bg-slate-50 opacity-60"
-                      }`}
+                      className={`relative rounded-xl border p-3 flex flex-col gap-1.5 ${m.is_active
+                        ? "border-slate-200 bg-white"
+                        : "border-slate-100 bg-slate-50 opacity-60"
+                        }`}
                     >
                       {/* Status dot */}
                       <span
-                        className={`absolute top-2.5 right-2.5 size-2 rounded-full ${
-                          m.is_active ? "bg-green-500" : "bg-slate-300"
-                        }`}
+                        className={`absolute top-2.5 right-2.5 size-2 rounded-full ${m.is_active ? "bg-green-500" : "bg-slate-300"
+                          }`}
                         title={m.is_active ? "Aktif" : "Nonaktif"}
                       />
 
@@ -333,18 +331,17 @@ export default function ModifierManagement() {
                         {m.modifier_name}
                       </p>
 
-                      <p className={`text-xs font-bold ${
-                        m.price_delta === 0
-                          ? "text-slate-400"
-                          : m.price_delta > 0
+                      <p className={`text-xs font-bold ${m.price_delta === 0
+                        ? "text-slate-400"
+                        : m.price_delta > 0
                           ? "text-green-600"
                           : "text-red-500"
-                      }`}>
+                        }`}>
                         {m.price_delta === 0
                           ? "Gratis"
                           : m.price_delta > 0
-                          ? `+${formatRupiah(m.price_delta)}`
-                          : `-${formatRupiah(Math.abs(m.price_delta))}`}
+                            ? `+${formatRupiah(m.price_delta)}`
+                            : `-${formatRupiah(Math.abs(m.price_delta))}`}
                       </p>
 
                       {/* Actions */}
@@ -374,7 +371,13 @@ export default function ModifierManagement() {
       </div>
 
       {/* ── Add / Edit Dialog ── */}
-      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+      <Dialog open={dialogOpen} onOpenChange={(open) => {
+        setDialogOpen(open);
+        if (!open) {
+          setEditingModifier(null);
+          setForm(EMPTY_FORM);
+        }
+      }}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle className="font-bold text-heading">
@@ -498,14 +501,12 @@ export default function ModifierManagement() {
                 role="switch"
                 aria-checked={form.is_active}
                 onClick={() => setForm((f) => ({ ...f, is_active: !f.is_active }))}
-                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                  form.is_active ? "bg-orange-500" : "bg-slate-200"
-                }`}
+                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${form.is_active ? "bg-orange-500" : "bg-slate-200"
+                  }`}
               >
                 <span
-                  className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${
-                    form.is_active ? "translate-x-6" : "translate-x-1"
-                  }`}
+                  className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${form.is_active ? "translate-x-6" : "translate-x-1"
+                    }`}
                 />
               </button>
             </div>
@@ -514,7 +515,11 @@ export default function ModifierManagement() {
           <DialogFooter className="gap-2">
             <Button
               variant="outline"
-              onClick={() => setDialogOpen(false)}
+              onClick={() => {
+                setDialogOpen(false);
+                setEditingModifier(null);
+                setForm(EMPTY_FORM);
+              }}
               className="rounded-xl"
             >
               Batal
