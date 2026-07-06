@@ -316,40 +316,42 @@ export default function ModifierManagement() {
       ) : (
         // ── LEVEL 2: DETAIL VIEW ──
         <div className="space-y-6">
-          <div className="flex items-center gap-3">
-            <button
-              onClick={() => setSelectedProduct(null)}
-              className="flex items-center justify-center size-8 rounded-full border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 hover:text-primary transition-colors shadow-sm"
-            >
-              <ChevronLeft className="size-5" />
-            </button>
-            <h2 className="text-lg font-bold text-slate-800">Detail Varian Menu</h2>
-          </div>
-
-          {/* Product Header */}
-          <div className="flex flex-col sm:flex-row gap-4 items-center sm:items-start p-4 bg-white rounded-xl border border-slate-200 shadow-sm">
-            <div className="relative size-16 sm:size-20 bg-slate-50 rounded-lg overflow-hidden shrink-0 flex items-center justify-center border border-slate-100">
-              {selectedProduct.image_url ? (
-                <img src={selectedProduct.image_url} alt={selectedProduct.name} className="size-full object-cover" />
-              ) : (
-                <ImageIcon className="size-6 text-slate-400 stroke-[1.5]" />
-              )}
-            </div>
-            <div className="flex-1 flex flex-col justify-center text-center sm:text-left h-full py-1">
-              <h3 className="font-bold text-base text-slate-800">{selectedProduct.name}</h3>
-              <p className="text-xs text-slate-500 mt-1 max-w-md mx-auto sm:mx-0">
-                Kelola daftar pilihan, level pedas, atau topping tambahan khusus untuk menu ini.
-              </p>
-            </div>
-            <div className="shrink-0 flex items-center h-full pt-2 sm:pt-0">
-              <Button
-                onClick={openAddDialog}
-                className="bg-primary hover:bg-primary-hover text-white font-semibold rounded-xl gap-2 shadow-sm shadow-primary/20"
+          {/* Product Header Compact */}
+          <div className="flex flex-col sm:flex-row gap-4 items-center justify-between p-3 bg-white rounded-xl border border-slate-200 shadow-sm">
+            <div className="flex items-center gap-4 w-full sm:w-auto">
+              <button
+                onClick={() => setSelectedProduct(null)}
+                className="flex items-center justify-center size-8 rounded-full border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 hover:text-primary transition-colors shrink-0"
+                title="Kembali"
               >
-                <Plus className="size-4" />
-                Tambah Topping / Varian
-              </Button>
+                <ChevronLeft className="size-5" />
+              </button>
+              
+              <div className="flex items-center gap-3">
+                <div className="relative size-12 bg-slate-50 rounded-lg overflow-hidden shrink-0 flex items-center justify-center border border-slate-100">
+                  {selectedProduct.image_url ? (
+                    <img src={selectedProduct.image_url} alt={selectedProduct.name} className="size-full object-cover" />
+                  ) : (
+                    <ImageIcon className="size-5 text-slate-400 stroke-[1.5]" />
+                  )}
+                </div>
+                <div>
+                  <h3 className="font-bold text-sm text-slate-800">{selectedProduct.name}</h3>
+                  <p className="text-[11px] text-slate-500 font-medium">
+                    {productStats.find((p) => p.id === selectedProduct.id)?.groupCount ?? 0} Grup &bull; {productStats.find((p) => p.id === selectedProduct.id)?.modifierCount ?? 0} Opsi
+                  </p>
+                </div>
+              </div>
             </div>
+
+            <Button
+              onClick={openAddDialog}
+              size="sm"
+              className="bg-primary hover:bg-primary-hover text-white font-semibold rounded-lg gap-2 w-full sm:w-auto shadow-sm shadow-primary/20"
+            >
+              <Plus className="size-3.5" />
+              Tambah Opsi
+            </Button>
           </div>
 
           <div className="space-y-4">
@@ -370,62 +372,57 @@ export default function ModifierManagement() {
                     </Badge>
                   </div>
 
-                  {/* Card grid */}
-                  <div className="p-3 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
-                    {items.map((m) => (
-                      <div
-                        key={m.id}
-                        className={`relative rounded-xl border p-3 flex flex-col gap-1.5 transition-colors ${
-                          m.is_active
-                            ? "border-slate-200 bg-white hover:border-slate-300"
-                            : "border-slate-100 bg-slate-50 opacity-60"
-                        }`}
-                      >
-                        {/* Status dot */}
-                        <span
-                          className={`absolute top-2.5 right-2.5 size-2 rounded-full ${
-                            m.is_active ? "bg-green-500" : "bg-slate-300"
-                          }`}
-                          title={m.is_active ? "Aktif" : "Nonaktif"}
-                        />
-
-                        <p className="text-sm font-semibold text-slate-800 pr-4 leading-snug">
-                          {m.modifier_name}
-                        </p>
-
-                        <p className={`text-xs font-bold ${
-                          m.price_delta === 0
-                            ? "text-slate-400"
-                            : m.price_delta > 0
-                              ? "text-green-600"
-                              : "text-red-500"
-                        }`}>
-                          {m.price_delta === 0
-                            ? "Gratis"
-                            : m.price_delta > 0
-                              ? `+${formatRupiah(m.price_delta)}`
-                              : `-${formatRupiah(Math.abs(m.price_delta))}`}
-                        </p>
-
-                        {/* Actions */}
-                        <div className="flex gap-1.5 mt-auto pt-2 border-t border-slate-100">
-                          <button
-                            onClick={() => openEditDialog(m)}
-                            className="flex-1 flex items-center justify-center py-1.5 rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-50 hover:text-slate-700 hover:border-slate-300 transition-colors"
-                            title="Edit"
-                          >
-                            <Pencil className="size-3" />
-                          </button>
-                          <button
-                            onClick={() => openDeleteDialog(m)}
-                            className="flex-1 flex items-center justify-center py-1.5 rounded-lg border border-red-100 text-red-400 hover:bg-red-50 hover:text-red-600 hover:border-red-200 transition-colors"
-                            title="Hapus"
-                          >
-                            <Trash className="size-3" />
-                          </button>
-                        </div>
-                      </div>
-                    ))}
+                  {/* Data Table */}
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-left border-collapse">
+                      <thead>
+                        <tr className="border-b border-slate-100 bg-slate-50/50">
+                          <th className="px-4 py-2.5 text-xs font-semibold text-slate-500 w-1/2">Nama Opsi</th>
+                          <th className="px-4 py-2.5 text-xs font-semibold text-slate-500 whitespace-nowrap">Harga</th>
+                          <th className="px-4 py-2.5 text-xs font-semibold text-slate-500">Status</th>
+                          <th className="px-4 py-2.5 text-xs font-semibold text-slate-500 text-right">Aksi</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {items.map((m) => (
+                          <tr key={m.id} className="border-b border-slate-50 last:border-0 hover:bg-slate-50/80 transition-colors">
+                            <td className="px-4 py-2.5">
+                              <p className={`text-sm font-semibold ${m.is_active ? "text-slate-800" : "text-slate-500"}`}>
+                                {m.modifier_name}
+                              </p>
+                            </td>
+                            <td className="px-4 py-2.5">
+                              <p className={`text-xs font-bold whitespace-nowrap ${m.price_delta === 0 ? "text-slate-400" : m.price_delta > 0 ? "text-green-600" : "text-red-500"}`}>
+                                {m.price_delta === 0 ? "Gratis" : m.price_delta > 0 ? `+${formatRupiah(m.price_delta)}` : `-${formatRupiah(Math.abs(m.price_delta))}`}
+                              </p>
+                            </td>
+                            <td className="px-4 py-2.5">
+                              <Badge className={`text-[10px] px-2 py-0.5 whitespace-nowrap border-0 ${m.is_active ? "bg-green-100 text-green-700 hover:bg-green-100" : "bg-slate-100 text-slate-500 hover:bg-slate-100"}`}>
+                                {m.is_active ? "Aktif" : "Nonaktif"}
+                              </Badge>
+                            </td>
+                            <td className="px-4 py-2.5">
+                              <div className="flex items-center justify-end gap-1">
+                                <button
+                                  onClick={() => openEditDialog(m)}
+                                  className="p-1.5 rounded-md text-slate-400 hover:bg-slate-100 hover:text-slate-700 transition-colors"
+                                  title="Edit"
+                                >
+                                  <Pencil className="size-3.5" />
+                                </button>
+                                <button
+                                  onClick={() => openDeleteDialog(m)}
+                                  className="p-1.5 rounded-md text-slate-400 hover:bg-red-50 hover:text-red-600 transition-colors"
+                                  title="Hapus"
+                                >
+                                  <Trash className="size-3.5" />
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
                   </div>
                 </div>
               ))
