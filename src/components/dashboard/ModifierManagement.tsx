@@ -148,11 +148,11 @@ export default function ModifierManagement() {
   const openEditDialog = (m: Modifier) => {
     setEditingModifier(m);
     setForm({
-      product_id: m.product_id,
-      modifier_group: "", // User explicitly wants this empty on edit
-      modifier_name: "",  // User explicitly wants this empty on edit
-      price_delta: String(m.price_delta),
-      is_active: m.is_active,
+      product_id:     m.product_id,
+      modifier_group: m.modifier_group,
+      modifier_name:  m.modifier_name,
+      price_delta:    String(m.price_delta),
+      is_active:      m.is_active,
     });
     setDialogOpen(true);
   };
@@ -440,6 +440,7 @@ export default function ModifierManagement() {
         if (!open) {
           setEditingModifier(null);
           setForm(EMPTY_FORM);
+          setShowGroupSuggestions(false);
         }
       }}>
         <DialogContent className="sm:max-w-md">
@@ -481,8 +482,15 @@ export default function ModifierManagement() {
                   <Input
                     id="mod-group"
                     value={form.modifier_group}
-                    onChange={(e) => setForm((f) => ({ ...f, modifier_group: e.target.value }))}
-                    onFocus={() => setShowGroupSuggestions(true)}
+                    onChange={(e) => {
+                      setForm((f) => ({ ...f, modifier_group: e.target.value }));
+                      setShowGroupSuggestions(true); // hanya buka saat user mengetik
+                    }}
+                    onFocus={() => {
+                      // Hanya tampilkan suggestions jika user sudah pernah mengetik
+                      // (modifier_group tidak kosong → user sedang mencari)
+                      // Tidak auto-open saat dialog baru dibuka
+                    }}
                     onBlur={() => setTimeout(() => setShowGroupSuggestions(false), 150)}
                     placeholder="contoh: Tingkat Pedas"
                     className="rounded-xl"
