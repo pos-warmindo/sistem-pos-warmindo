@@ -63,7 +63,7 @@ export default function ModifierManagement() {
   const [modifiers, setModifiers] = useState<Modifier[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [filterProductId, setFilterProductId] = useState<string>("all");
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
 
   // Dialog state
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -112,25 +112,35 @@ export default function ModifierManagement() {
   }, [fetchProducts, fetchModifiers]);
 
   // ── Filtered list ────────────────────────────────────────────
-  const filteredModifiers =
-    filterProductId === "all"
-      ? modifiers
-      : modifiers.filter((m) => m.product_id === filterProductId);
+  const filteredModifiers = selectedProduct
+    ? modifiers.filter((m) => m.product_id === selectedProduct.id)
+    : [];
 
   // ── Group by modifier_group for display ──────────────────────
   const grouped = filteredModifiers.reduce<Record<string, Modifier[]>>((acc, m) => {
-    const key = `${m.product_id}||${m.modifier_group}`;
+    const key = m.modifier_group;
     if (!acc[key]) acc[key] = [];
     acc[key].push(m);
     return acc;
   }, {});
+
+  // ── Calculate Stats for Level 1 ──────────────────────────────
+  const productStats = products.map((p) => {
+    const productMods = modifiers.filter((m) => m.product_id === p.id);
+    const groups = new Set(productMods.map((m) => m.modifier_group));
+    return {
+      ...p,
+      groupCount: groups.size,
+      modifierCount: productMods.length,
+    };
+  });
 
   // ── Dialog helpers ───────────────────────────────────────────
   const openAddDialog = () => {
     setEditingModifier(null);
     setForm({
       ...EMPTY_FORM,
-      product_id: filterProductId !== "all" ? filterProductId : "",
+      product_id: selectedProduct ? selectedProduct.id : "",
     });
     setDialogOpen(true);
   };
@@ -236,138 +246,191 @@ export default function ModifierManagement() {
   // ── Render ────────────────────────────────────────────────────
   return (
     <div className="space-y-4">
-      {/* Header + filter */}
-      <div className="flex flex-col sm:flex-row sm:items-center gap-3 justify-between">
-        {/* Product filter */}
-        <div className="flex items-center gap-2 flex-wrap">
-          <button
-            onClick={() => setFilterProductId("all")}
-            className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition-colors ${filterProductId === "all"
-              ? "bg-orange-500 text-white border-orange-500"
-              : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50"
-              }`}
-          >
-            Semua Produk
-          </button>
-          {products.map((p) => (
-            <button
-              key={p.id}
-              onClick={() => setFilterProductId(p.id)}
-              className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition-colors ${filterProductId === p.id
-                ? "bg-orange-500 text-white border-orange-500"
-                : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50"
-                }`}
+      {selectedProduct === null ? (
+        // ── LEVEL 1: GRID VIEW ──
+        <div className="space-y-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div>
+              <h2 className="text-lg font-bold text-slate-800">Daftar Menu Varian & Topping</h2>
+              <p className="text-xs text-muted-foreground mt-1">
+                Pilih menu di bawah ini untuk mengatur varian, level pedas, atau topping.
+              </p>
+            </div>
+            <Button
+              onClick={openAddDialog}
+              className="bg-primary hover:bg-primary-hover text-white font-semibold rounded-xl gap-2 shrink-0"
             >
-              {p.name}
-            </button>
-          ))}
-        </div>
-
-        <Button
-          onClick={openAddDialog}
-          className="bg-primary hover:bg-primary-hover text-white font-semibold rounded-xl gap-2 shrink-0"
-        >
-          <Plus className="size-4" />
-          Tambah Varian / Topping
-        </Button>
-      </div>
-
-      <p className="text-xs text-muted-foreground">
-        {filteredModifiers.length} pilihan varian & topping
-        {filterProductId !== "all" && " untuk produk ini"}
-      </p>
-
-      {/* Card layout — grouped by product × modifier_group */}
-      <div className="space-y-4">
-        {isLoading ? (
-          <div className="p-8 text-center text-sm text-slate-400">
-            Memuat data pilihan...
+              <Plus className="size-4" />
+              Tambah Varian Manual
+            </Button>
           </div>
-        ) : Object.keys(grouped).length === 0 ? (
-          <div className="p-8 text-center text-sm text-slate-400 rounded-xl border border-dashed border-slate-200">
-            Belum ada pilihan varian & topping.{" "}
-            {filterProductId !== "all"
-              ? "Tambahkan varian & topping untuk produk ini."
-              : "Pilih produk atau tambahkan varian & topping baru."}
-          </div>
-        ) : (
-          Object.entries(grouped).map(([key, items]) => {
-            const [, groupName] = key.split("||");
-            const productName = items[0]?.products?.name ?? "—";
 
-            return (
-              <div key={key} className="rounded-xl border border-slate-200 bg-white overflow-hidden">
-                {/* Group header */}
-                <div className="bg-slate-50 border-b border-slate-100 px-4 py-2.5 flex items-center gap-2">
-                  <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">
-                    {productName}
-                  </span>
-                  <span className="text-slate-300">·</span>
-                  <span className="text-xs font-semibold text-slate-700">{groupName}</span>
-                  <Badge className="ml-auto bg-slate-100 text-slate-500 border-slate-200 text-[10px]">
-                    {items.length} opsi
-                  </Badge>
-                </div>
-
-                {/* Card grid */}
-                <div className="p-3 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2">
-                  {items.map((m) => (
-                    <div
-                      key={m.id}
-                      className={`relative rounded-xl border p-3 flex flex-col gap-1.5 ${m.is_active
-                        ? "border-slate-200 bg-white"
-                        : "border-slate-100 bg-slate-50 opacity-60"
-                        }`}
-                    >
-                      {/* Status dot */}
-                      <span
-                        className={`absolute top-2.5 right-2.5 size-2 rounded-full ${m.is_active ? "bg-green-500" : "bg-slate-300"
-                          }`}
-                        title={m.is_active ? "Aktif" : "Nonaktif"}
-                      />
-
-                      <p className="text-sm font-semibold text-slate-800 pr-4 leading-snug">
-                        {m.modifier_name}
-                      </p>
-
-                      <p className={`text-xs font-bold ${m.price_delta === 0
-                        ? "text-slate-400"
-                        : m.price_delta > 0
-                          ? "text-green-600"
-                          : "text-red-500"
-                        }`}>
-                        {m.price_delta === 0
-                          ? "Gratis"
-                          : m.price_delta > 0
-                            ? `+${formatRupiah(m.price_delta)}`
-                            : `-${formatRupiah(Math.abs(m.price_delta))}`}
-                      </p>
-
-                      {/* Actions */}
-                      <div className="flex gap-1.5 mt-auto pt-1.5 border-t border-slate-100">
-                        <button
-                          onClick={() => openEditDialog(m)}
-                          className="flex-1 flex items-center justify-center py-1 rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-50 hover:text-slate-700 transition-colors"
-                          title="Edit"
-                        >
-                          <Pencil className="size-3" />
-                        </button>
-                        <button
-                          onClick={() => openDeleteDialog(m)}
-                          className="flex-1 flex items-center justify-center py-1 rounded-lg border border-red-100 text-red-400 hover:bg-red-50 hover:text-red-600 transition-colors"
-                          title="Hapus"
-                        >
-                          <Trash className="size-3" />
-                        </button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-2">
+            {isLoading ? (
+              <div className="col-span-full p-8 text-center text-sm text-slate-400">
+                Memuat daftar menu...
               </div>
-            );
-          })
-        )}
-      </div>
+            ) : productStats.length === 0 ? (
+              <div className="col-span-full p-8 text-center text-sm text-slate-400 rounded-xl border border-dashed border-slate-200 bg-white">
+                Belum ada menu makanan.
+              </div>
+            ) : (
+              productStats.map((p) => (
+                <div
+                  key={p.id}
+                  onClick={() => setSelectedProduct(p)}
+                  className="group flex flex-col bg-white rounded-xl border border-slate-200 shadow-sm hover:shadow-md hover:border-primary transition-all cursor-pointer overflow-hidden"
+                >
+                  <div className="relative aspect-video w-full bg-slate-50 flex items-center justify-center border-b border-slate-100 shrink-0">
+                    {p.image_url ? (
+                      <img src={p.image_url} alt={p.name} className="size-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                    ) : (
+                      <ImageIcon className="size-8 text-slate-400 stroke-[1.5]" />
+                    )}
+                    {!p.is_active && (
+                      <Badge className="absolute top-2 right-2 bg-slate-800 text-white font-semibold px-2 py-0.5 text-[10px]">
+                        Nonaktif
+                      </Badge>
+                    )}
+                  </div>
+                  <div className="p-4 flex flex-col flex-1 justify-between">
+                    <div>
+                      <h3 className="font-bold text-slate-800 text-sm line-clamp-1 group-hover:text-primary transition-colors">{p.name}</h3>
+                      <p className="text-xs font-semibold text-slate-500 mt-1.5">
+                        {p.groupCount} Grup Varian &bull; {p.modifierCount} Topping
+                      </p>
+                    </div>
+                    <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-center">
+                      <span className="text-xs font-bold text-primary group-hover:translate-x-1 transition-transform duration-200 flex items-center gap-1.5">
+                        Kelola Varian &rarr;
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+      ) : (
+        // ── LEVEL 2: DETAIL VIEW ──
+        <div className="space-y-6">
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => setSelectedProduct(null)}
+              className="flex items-center justify-center size-8 rounded-full border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 hover:text-primary transition-colors shadow-sm"
+            >
+              <ChevronLeft className="size-5" />
+            </button>
+            <h2 className="text-lg font-bold text-slate-800">Detail Varian Menu</h2>
+          </div>
+
+          {/* Product Header */}
+          <div className="flex flex-col sm:flex-row gap-4 items-center sm:items-start p-4 bg-white rounded-xl border border-slate-200 shadow-sm">
+            <div className="relative size-16 sm:size-20 bg-slate-50 rounded-lg overflow-hidden shrink-0 flex items-center justify-center border border-slate-100">
+              {selectedProduct.image_url ? (
+                <img src={selectedProduct.image_url} alt={selectedProduct.name} className="size-full object-cover" />
+              ) : (
+                <ImageIcon className="size-6 text-slate-400 stroke-[1.5]" />
+              )}
+            </div>
+            <div className="flex-1 flex flex-col justify-center text-center sm:text-left h-full py-1">
+              <h3 className="font-bold text-base text-slate-800">{selectedProduct.name}</h3>
+              <p className="text-xs text-slate-500 mt-1 max-w-md mx-auto sm:mx-0">
+                Kelola daftar pilihan, level pedas, atau topping tambahan khusus untuk menu ini.
+              </p>
+            </div>
+            <div className="shrink-0 flex items-center h-full pt-2 sm:pt-0">
+              <Button
+                onClick={openAddDialog}
+                className="bg-primary hover:bg-primary-hover text-white font-semibold rounded-xl gap-2 shadow-sm shadow-primary/20"
+              >
+                <Plus className="size-4" />
+                Tambah Topping / Varian
+              </Button>
+            </div>
+          </div>
+
+          <div className="space-y-4">
+            {Object.keys(grouped).length === 0 ? (
+              <div className="p-8 text-center text-sm text-slate-400 rounded-xl border border-dashed border-slate-200 bg-white shadow-sm">
+                Belum ada pilihan varian & topping untuk produk ini.
+              </div>
+            ) : (
+              Object.entries(grouped).map(([groupName, items]) => (
+                <div key={groupName} className="rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden">
+                  {/* Group header */}
+                  <div className="bg-slate-50 border-b border-slate-100 px-4 py-2.5 flex items-center gap-2">
+                    <span className="text-xs font-bold text-slate-600 uppercase tracking-wider">
+                      {groupName}
+                    </span>
+                    <Badge className="ml-auto bg-white text-slate-500 border-slate-200 text-[10px] shadow-sm shadow-slate-100">
+                      {items.length} opsi
+                    </Badge>
+                  </div>
+
+                  {/* Card grid */}
+                  <div className="p-3 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+                    {items.map((m) => (
+                      <div
+                        key={m.id}
+                        className={`relative rounded-xl border p-3 flex flex-col gap-1.5 transition-colors ${
+                          m.is_active
+                            ? "border-slate-200 bg-white hover:border-slate-300"
+                            : "border-slate-100 bg-slate-50 opacity-60"
+                        }`}
+                      >
+                        {/* Status dot */}
+                        <span
+                          className={`absolute top-2.5 right-2.5 size-2 rounded-full ${
+                            m.is_active ? "bg-green-500" : "bg-slate-300"
+                          }`}
+                          title={m.is_active ? "Aktif" : "Nonaktif"}
+                        />
+
+                        <p className="text-sm font-semibold text-slate-800 pr-4 leading-snug">
+                          {m.modifier_name}
+                        </p>
+
+                        <p className={`text-xs font-bold ${
+                          m.price_delta === 0
+                            ? "text-slate-400"
+                            : m.price_delta > 0
+                              ? "text-green-600"
+                              : "text-red-500"
+                        }`}>
+                          {m.price_delta === 0
+                            ? "Gratis"
+                            : m.price_delta > 0
+                              ? `+${formatRupiah(m.price_delta)}`
+                              : `-${formatRupiah(Math.abs(m.price_delta))}`}
+                        </p>
+
+                        {/* Actions */}
+                        <div className="flex gap-1.5 mt-auto pt-2 border-t border-slate-100">
+                          <button
+                            onClick={() => openEditDialog(m)}
+                            className="flex-1 flex items-center justify-center py-1.5 rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-50 hover:text-slate-700 hover:border-slate-300 transition-colors"
+                            title="Edit"
+                          >
+                            <Pencil className="size-3" />
+                          </button>
+                          <button
+                            onClick={() => openDeleteDialog(m)}
+                            className="flex-1 flex items-center justify-center py-1.5 rounded-lg border border-red-100 text-red-400 hover:bg-red-50 hover:text-red-600 hover:border-red-200 transition-colors"
+                            title="Hapus"
+                          >
+                            <Trash className="size-3" />
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+      )}
 
       {/* ── Add / Edit Dialog ── */}
       <Dialog open={dialogOpen} onOpenChange={(open) => {
@@ -394,7 +457,8 @@ export default function ModifierManagement() {
                 id="mod-product"
                 value={form.product_id}
                 onChange={(e) => setForm((f) => ({ ...f, product_id: e.target.value }))}
-                className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-orange-400"
+                disabled={!!selectedProduct}
+                className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-orange-400 disabled:opacity-50 disabled:bg-slate-50"
               >
                 <option value="">— Pilih Produk —</option>
                 {products.map((p) => (
