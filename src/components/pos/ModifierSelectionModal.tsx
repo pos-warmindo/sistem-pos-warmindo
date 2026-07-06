@@ -145,66 +145,66 @@ export default function ModifierSelectionModal({
               return a.localeCompare(b);
             })
             .map((groupName) => {
-            const isSingle = isSingleSelectGroup(groupName);
-            const groupItems = groupedModifiers[groupName];
+              const isSingle = isSingleSelectGroup(groupName);
+              const groupItems = groupedModifiers[groupName];
 
-            return (
-              <div key={groupName} className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <h4 className="font-bold text-heading text-sm uppercase tracking-wider">
-                    {groupName}
-                  </h4>
-                  <span
-                    className={cn(
-                      "text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider",
-                      isSingle
-                        ? "bg-slate-100 text-slate-600 border border-slate-200"
-                        : "bg-slate-100 text-slate-600 border border-slate-200"
-                    )}
-                  >
-                    {isSingle ? "Pilih Satu" : "Bisa Pilih Banyak"}
-                  </span>
-                </div>
+              return (
+                <div key={groupName} className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <h4 className="font-bold text-heading text-sm uppercase tracking-wider">
+                      {groupName}
+                    </h4>
+                    <span
+                      className={cn(
+                        "text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider",
+                        isSingle
+                          ? "bg-slate-100 text-slate-600 border border-slate-200"
+                          : "bg-slate-100 text-slate-600 border border-slate-200"
+                      )}
+                    >
+                      {isSingle ? "Pilih Satu" : "Bisa Pilih Banyak"}
+                    </span>
+                  </div>
 
-                <div className="grid grid-cols-2 gap-3">
-                  {groupItems
-                    .filter((m) => m.is_active)
-                    .map((item) => {
-                      const isSelected = getIsSelected(groupName, item.id);
-                      return (
-                        <div
-                          key={item.id}
-                          role="button"
-                          onClick={() =>
-                            handleSelectModifier(groupName, item)
-                          }
-                          className={cn(
-                            "flex items-center justify-between p-3.5 rounded-xl border-2 text-left cursor-pointer transition-all duration-200 select-none",
-                            isSelected
-                              ? "border-primary bg-primary/5 hover:bg-primary/10 shadow-sm"
-                              : "border-slate-100 hover:border-slate-200 hover:bg-slate-50/50"
-                          )}
-                        >
-                          <div className="space-y-0.5">
-                            <p className="text-sm font-semibold text-heading leading-tight">
-                              {item.modifier_name}
-                            </p>
-                            <p className="text-xs text-muted-foreground font-medium">
-                              {Number(item.price_delta) === 0
-                                ? "Gratis"
-                                : `+${formatRupiah(Number(item.price_delta))}`}
-                            </p>
+                  <div className="grid grid-cols-2 gap-3">
+                    {groupItems
+                      .filter((m) => m.is_active)
+                      .map((item) => {
+                        const isSelected = getIsSelected(groupName, item.id);
+                        return (
+                          <div
+                            key={item.id}
+                            role="button"
+                            onClick={() =>
+                              handleSelectModifier(groupName, item)
+                            }
+                            className={cn(
+                              "flex items-center justify-between p-3.5 rounded-xl border-2 text-left cursor-pointer transition-all duration-200 select-none",
+                              isSelected
+                                ? "border-primary bg-primary/5 hover:bg-primary/10 shadow-sm"
+                                : "border-slate-100 hover:border-slate-200 hover:bg-slate-50/50"
+                            )}
+                          >
+                            <div className="space-y-0.5">
+                              <p className="text-sm font-semibold text-heading leading-tight">
+                                {item.modifier_name}
+                              </p>
+                              <p className="text-xs text-muted-foreground font-medium">
+                                {Number(item.price_delta) === 0
+                                  ? "Gratis"
+                                  : `+${formatRupiah(Number(item.price_delta))}`}
+                              </p>
+                            </div>
+                            {isSelected && (
+                              <CheckCircle className="size-5 text-primary shrink-0 animate-in zoom-in-75 duration-150" />
+                            )}
                           </div>
-                          {isSelected && (
-                            <CheckCircle className="size-5 text-primary shrink-0 animate-in zoom-in-75 duration-150" />
-                          )}
-                        </div>
-                      );
-                    })}
+                        );
+                      })}
+                  </div>
                 </div>
-              </div>
-            );
-          })}
+              );
+            })}
         </div>
 
         <Separator />

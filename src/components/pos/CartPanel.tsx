@@ -83,14 +83,14 @@ export default function CartPanel() {
             <Button
               type="button"
               variant="outline"
-              className="font-semibold text-xs py-5 border-slate-200 hover:bg-red-50 hover:text-red-600 hover:border-red-100 rounded-xl"
+              className="font-semibold text-sm py-6 border-slate-200 hover:bg-red-50 hover:text-red-600 hover:border-red-100 rounded-xl"
               onClick={handleClear}
             >
               Batal Semua
             </Button>
             <Button
               type="button"
-              className="bg-primary hover:bg-primary-hover text-white font-semibold text-xs py-5 rounded-xl shadow-md shadow-primary/10"
+              className="bg-primary hover:bg-primary-hover text-white font-semibold text-sm py-6 rounded-xl shadow-md shadow-primary/10"
               onClick={handleCheckout}
             >
               Bayar Sekarang

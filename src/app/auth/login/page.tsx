@@ -105,7 +105,7 @@ export default function LoginPage() {
         return;
       }
 
-      const roleName = roleData as UserRole | null;
+      const roleName = roleData as string | null;
 
       if (roleName === "owner") {
         window.location.href = "/owner/dashboard";

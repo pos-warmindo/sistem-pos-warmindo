@@ -20,6 +20,7 @@ interface NavigationItem {
   name: string;
   href: string;
   icon: React.ComponentType<{ className?: string }>;
+  ownerOnly: boolean;
 }
 
 export default function OwnerLayoutClient({
@@ -33,6 +34,7 @@ export default function OwnerLayoutClient({
 
   const [ownerName, setOwnerName] = useState<string>("Owner");
   const [ownerEmail, setOwnerEmail] = useState<string>("");
+  const [userRole, setUserRole]   = useState<string>("");
 
   useEffect(() => {
     async function getOwnerProfile() {
@@ -50,6 +52,10 @@ export default function OwnerLayoutClient({
         } else if (user.email) {
           setOwnerName(user.email.split("@")[0]);
         }
+
+        // Fetch role for conditional nav
+        const { data: roleData } = await supabase.rpc("get_my_role");
+        if (roleData) setUserRole(roleData as string);
       }
     }
     getOwnerProfile();
@@ -67,13 +73,18 @@ export default function OwnerLayoutClient({
     }
   };
 
-  const navItems: NavigationItem[] = [
-    { name: "Beranda", href: "/owner/dashboard", icon: Home },
-    { name: "Menu",    href: "/owner/menu",       icon: UtensilsCrossed },
-    { name: "Stok",    href: "/owner/stok",        icon: Package },
-    { name: "Kelola User", href: "/owner/users",   icon: Users },
-    { name: "Laporan", href: "/owner/laporan",     icon: FileText },
+  // owner: semua nav | admin: hanya menu/stok/users
+  const allNavItems: NavigationItem[] = [
+    { name: "Beranda",     href: "/owner/dashboard", icon: Home,           ownerOnly: true  },
+    { name: "Menu",        href: "/owner/menu",       icon: UtensilsCrossed, ownerOnly: false },
+    { name: "Stok",        href: "/owner/stok",       icon: Package,        ownerOnly: false },
+    { name: "Kelola User", href: "/owner/users",      icon: Users,          ownerOnly: false },
+    { name: "Laporan",     href: "/owner/laporan",    icon: FileText,       ownerOnly: true  },
   ];
+
+  const navItems = allNavItems.filter(
+    (item) => !item.ownerOnly || userRole === "owner"
+  );
 
   return (
     <div className="min-h-screen flex bg-slate-50/50">

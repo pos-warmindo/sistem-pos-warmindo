@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { AppNavbar } from "@/components/layout/app-navbar";
 import { Toaster } from "@/components/ui/sonner";
+import { NetworkStatus } from "@/components/NetworkStatus";
 import { ShiftProvider } from "@/lib/hooks/useShift";
 import { CartProvider } from "@/lib/hooks/useCart";
 
@@ -34,6 +35,7 @@ export default function RootLayout({
             <AppNavbar />
             {children}
             <Toaster richColors position="top-right" />
+            <NetworkStatus />
           </CartProvider>
         </ShiftProvider>
       </body>

@@ -38,4 +38,8 @@ export {
   Users,
   Shield,
   UserPlus,
+  Image,
+  Upload,
+  Loader2,
+  Search,
 } from "lucide-react";

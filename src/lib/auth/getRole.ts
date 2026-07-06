@@ -4,12 +4,16 @@ import { createClient } from "@/lib/supabase/server";
  * Server-side role detection.
  * Uses get_my_role() RPC which is SECURITY DEFINER — bypasses RLS entirely.
  * Safe to call from Server Components and API routes.
+ *
+ * Supported roles: 'cashier' | 'owner' | 'admin'
+ * - owner:   full access (dashboard, laporan, menu, stok, kelola user)
+ * - admin:   partial access (menu, stok, kelola user — no dashboard/laporan)
+ * - cashier: POS only
  */
 export async function getRole(): Promise<"cashier" | "owner" | "admin" | null> {
   try {
     const supabase = await createClient();
 
-    // First verify user is authenticated
     const {
       data: { user },
       error: userError,
@@ -17,7 +21,6 @@ export async function getRole(): Promise<"cashier" | "owner" | "admin" | null> {
 
     if (userError || !user) return null;
 
-    // Use SECURITY DEFINER RPC — bypasses RLS, no circular dependency
     const { data, error } = await supabase.rpc("get_my_role");
 
     if (error || !data) return null;

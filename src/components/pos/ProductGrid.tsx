@@ -3,12 +3,15 @@
 import { Product } from "@/types/database";
 import ProductCard from "./ProductCard";
 
+import { Skeleton } from "@/components/ui/skeleton";
+
 interface ProductGridProps {
   products: Product[];
   activeCategoryId: string | null;
   onSelectProduct: (product: Product) => void;
   // Map of product availability, e.g. { [product_id]: boolean }
   availabilityMap?: Record<string, boolean>;
+  isLoading?: boolean;
 }
 
 export default function ProductGrid({
@@ -16,7 +19,22 @@ export default function ProductGrid({
   activeCategoryId,
   onSelectProduct,
   availabilityMap = {},
+  isLoading = false,
 }: ProductGridProps) {
+  if (isLoading) {
+    return (
+      <div className="grid grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-3 p-4">
+        {Array.from({ length: 12 }).map((_, i) => (
+          <div key={i} className="flex flex-col gap-2">
+            <Skeleton className="w-full aspect-square rounded-lg" />
+            <Skeleton className="h-3 w-3/4" />
+            <Skeleton className="h-3 w-1/2" />
+          </div>
+        ))}
+      </div>
+    );
+  }
+
   // Filter products by active category ID
   const filteredProducts = products.filter((prod) => {
     if (!prod.is_active) return false;
@@ -35,7 +53,7 @@ export default function ProductGrid({
   }
 
   return (
-    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 p-6">
+    <div className="grid grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-3 p-4">
       {filteredProducts
         .sort((a, b) => a.sort_order - b.sort_order)
         .map((product) => {
