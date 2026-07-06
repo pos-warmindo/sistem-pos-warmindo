@@ -323,6 +323,7 @@ export default function ModifierManagement() {
                 onClick={() => setSelectedProduct(null)}
                 className="flex items-center justify-center size-8 rounded-full border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 hover:text-primary transition-colors shrink-0"
                 title="Kembali"
+                aria-label="Kembali ke daftar menu"
               >
                 <ChevronLeft className="size-5" />
               </button>
@@ -407,6 +408,7 @@ export default function ModifierManagement() {
                                   onClick={() => openEditDialog(m)}
                                   className="p-1.5 rounded-md text-slate-400 hover:bg-slate-100 hover:text-slate-700 transition-colors"
                                   title="Edit"
+                                  aria-label={`Edit ${m.modifier_name}`}
                                 >
                                   <Pencil className="size-3.5" />
                                 </button>
@@ -414,6 +416,7 @@ export default function ModifierManagement() {
                                   onClick={() => openDeleteDialog(m)}
                                   className="p-1.5 rounded-md text-slate-400 hover:bg-red-50 hover:text-red-600 transition-colors"
                                   title="Hapus"
+                                  aria-label={`Hapus ${m.modifier_name}`}
                                 >
                                   <Trash className="size-3.5" />
                                 </button>

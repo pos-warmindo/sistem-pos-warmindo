@@ -117,14 +117,6 @@ export default function CashierPosPage() {
 
   return (
     <ShiftGate>
-      {isLoadingData || isStockLoading ? (
-        <div className="flex h-[calc(100vh-4rem)] items-center justify-center bg-slate-50/20">
-          <div className="flex flex-col items-center space-y-4">
-            <div className="size-10 border-4 border-primary border-t-transparent rounded-full animate-spin" />
-            <p className="text-sm font-semibold text-slate-500">Memuat menu dan stok...</p>
-          </div>
-        </div>
-      ) : (
         <>
           <main className="flex-1 flex flex-col lg:flex-row h-[calc(100vh-4rem)] overflow-hidden bg-slate-50/20">
             {/* Left Column - Product catalog area */}
@@ -157,6 +149,7 @@ export default function CashierPosPage() {
                   activeCategoryId={activeCategoryId}
                   onSelectProduct={handleSelectProduct}
                   availabilityMap={availabilityMap}
+                  isLoading={isLoadingData || isStockLoading}
                 />
               </div>
             </div>
@@ -182,13 +175,11 @@ export default function CashierPosPage() {
             />
           )}
 
-          {/* Checkout & Payment Modal */}
           <PaymentModal
             isOpen={isCheckoutOpen}
             onOpenChange={setCheckoutOpen}
           />
         </>
-      )}
     </ShiftGate>
   );
 }

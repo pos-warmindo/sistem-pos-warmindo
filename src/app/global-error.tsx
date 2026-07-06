@@ -1,39 +1,41 @@
-"use client"
+"use client";
+
+import { useEffect } from "react";
+import { Button } from "@/components/ui/button";
+import { AlertTriangle } from "@/lib/icons";
 
 export default function GlobalError({
   error,
   reset,
-}: Readonly<{
-  error: Error & { digest?: string }
-  reset: () => void
-}>) {
+}: {
+  error: Error & { digest?: string };
+  reset: () => void;
+}) {
+  useEffect(() => {
+    console.error("Global Error Boundary caught:", error);
+  }, [error]);
+
   return (
     <html lang="id">
-      <body className="flex min-h-screen items-center justify-center bg-white px-4 py-10 text-slate-900">
-        <main className="w-full max-w-xl rounded-2xl border border-slate-200 bg-white p-8 shadow-sm">
-          <p className="text-sm font-medium tracking-widest text-orange-500">
-            ERROR
-          </p>
-          <h1 className="mt-2 text-3xl font-semibold text-slate-900">
-            Terjadi kesalahan aplikasi
-          </h1>
-          <p className="mt-3 text-sm text-slate-500">
-            {error.message ?? "Terjadi kesalahan yang tidak terduga."}
-          </p>
-          {error.digest && (
-            <p className="mt-1 font-mono text-xs text-slate-400">
-              ID: {error.digest}
+      <body>
+        <div className="flex h-screen w-full flex-col items-center justify-center bg-slate-50 p-4">
+          <div className="flex max-w-md flex-col items-center justify-center space-y-4 rounded-xl border border-slate-200 bg-white p-8 text-center shadow-sm">
+            <div className="flex size-16 items-center justify-center rounded-full bg-red-100">
+              <AlertTriangle className="size-8 text-red-600" />
+            </div>
+            <h2 className="text-xl font-bold text-slate-800">Error Fatal Sistem</h2>
+            <p className="text-sm text-slate-500">
+              Terjadi kesalahan kritikal pada aplikasi. Silakan coba kembali.
             </p>
-          )}
-          <button
-            type="button"
-            onClick={reset}
-            className="mt-6 inline-flex h-10 items-center justify-center rounded-lg bg-orange-500 px-4 text-sm font-medium text-white transition-colors hover:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2"
-          >
-            Coba lagi
-          </button>
-        </main>
+            <Button
+              onClick={() => reset()}
+              className="mt-4 bg-primary text-white hover:bg-primary-hover rounded-xl"
+            >
+              Muat Ulang
+            </Button>
+          </div>
+        </div>
       </body>
     </html>
-  )
+  );
 }
