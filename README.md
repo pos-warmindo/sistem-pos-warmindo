@@ -4,7 +4,7 @@ Aplikasi **Point of Sale (POS)** khusus untuk bisnis F&B (Warmindo). Aplikasi in
 
 ## Tech Stack
 
-- **Framework**: Next.js 14 (App Router)
+- **Framework**: Next.js 16 (App Router)
 - **Styling**: Tailwind CSS, shadcn/ui
 - **Icons**: Lucide React
 - **Database & Auth**: Supabase
