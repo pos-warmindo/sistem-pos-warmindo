@@ -7,4 +7,4 @@ if (!apiKey) {
 }
 
 // Inisialisasi GoogleGenAI instance server-side
-export const ai = new GoogleGenAI(apiKey ? { apiKey } : undefined);
+export const ai = new GoogleGenAI(apiKey ? { apiKey } : {});
