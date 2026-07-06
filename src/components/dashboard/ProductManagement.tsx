@@ -14,7 +14,7 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
-import { Plus, Pencil, Trash, AlertTriangle, Image, Upload, Loader2 } from "@/lib/icons";
+import { Plus, Pencil, Trash, AlertTriangle, Image, Upload, Loader2, X } from "@/lib/icons";
 import { formatRupiah } from "@/lib/utils/format";
 
 // ── Types ─────────────────────────────────────────────────────
