@@ -265,7 +265,7 @@ export default function ModifierManagement() {
             </Button>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-2">
+          <div className="grid grid-cols-4 md:grid-cols-6 lg:grid-cols-6 gap-3 mt-2">
             {isLoading ? (
               <div className="col-span-full p-8 text-center text-sm text-slate-400">
                 Memuat daftar menu...
@@ -279,30 +279,32 @@ export default function ModifierManagement() {
                 <div
                   key={p.id}
                   onClick={() => setSelectedProduct(p)}
-                  className="group flex flex-col bg-white rounded-xl border border-slate-200 shadow-sm hover:shadow-md hover:border-primary transition-all cursor-pointer overflow-hidden"
+                  className="group relative flex flex-col h-full rounded-xl border bg-white p-2.5 transition-all duration-200 select-none border-slate-100 hover:border-slate-200 hover:shadow-sm active:scale-[0.98] cursor-pointer"
                 >
-                  <div className="relative aspect-video w-full bg-slate-50 flex items-center justify-center border-b border-slate-100 shrink-0">
+                  <div className="relative w-full aspect-square rounded-lg overflow-hidden mb-2 bg-slate-50 border border-slate-100 flex items-center justify-center text-slate-400 shrink-0">
                     {p.image_url ? (
                       <img src={p.image_url} alt={p.name} className="size-full object-cover group-hover:scale-105 transition-transform duration-300" />
                     ) : (
-                      <ImageIcon className="size-8 text-slate-400 stroke-[1.5]" />
+                      <ImageIcon className="size-5 stroke-[1.5]" />
                     )}
                     {!p.is_active && (
-                      <Badge className="absolute top-2 right-2 bg-slate-800 text-white font-semibold px-2 py-0.5 text-[10px]">
+                      <Badge className="absolute top-1.5 right-1.5 bg-slate-800 text-white font-semibold px-1.5 py-0.5 text-[8px]">
                         Nonaktif
                       </Badge>
                     )}
                   </div>
-                  <div className="p-4 flex flex-col flex-1 justify-between">
-                    <div>
-                      <h3 className="font-bold text-slate-800 text-sm line-clamp-1 group-hover:text-primary transition-colors">{p.name}</h3>
-                      <p className="text-xs font-semibold text-slate-500 mt-1.5">
-                        {p.groupCount} Grup Varian &bull; {p.modifierCount} Topping
+                  <div className="flex-1 flex flex-col justify-between space-y-1.5">
+                    <div className="space-y-0.5">
+                      <h3 className="font-semibold text-slate-800 leading-tight group-hover:text-primary transition-colors text-[16px] sm:text-xs">
+                        {p.name}
+                      </h3>
+                      <p className="text-[12px] text-muted-foreground leading-tight">
+                        {p.groupCount} Grup &bull; {p.modifierCount} Opsi
                       </p>
                     </div>
-                    <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-center">
-                      <span className="text-xs font-bold text-primary group-hover:translate-x-1 transition-transform duration-200 flex items-center gap-1.5">
-                        Kelola Varian &rarr;
+                    <div className="flex items-center justify-end pt-1">
+                      <span className="text-[12px] font-bold text-primary group-hover:translate-x-0.5 transition-transform duration-200">
+                        Kelola &rarr;
                       </span>
                     </div>
                   </div>
