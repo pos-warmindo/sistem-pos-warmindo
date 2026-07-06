@@ -47,6 +47,7 @@ export default function CashierPosPage() {
         const { data: catData, error: catError } = await supabase
           .from("categories")
           .select("*")
+          .eq("is_active", true)
           .order("sort_order", { ascending: true });
         
         if (catError) throw catError;
@@ -55,6 +56,7 @@ export default function CashierPosPage() {
         const { data: prodData, error: prodError } = await supabase
           .from("products")
           .select("*")
+          .eq("is_active", true)
           .order("sort_order", { ascending: true });
         
         if (prodError) throw prodError;
@@ -63,6 +65,7 @@ export default function CashierPosPage() {
         const { data: modData, error: modError } = await supabase
           .from("product_modifiers")
           .select("*")
+          .eq("is_active", true)
           .order("sort_order", { ascending: true });
         
         if (modError) throw modError;
@@ -126,7 +129,7 @@ export default function CashierPosPage() {
           <main className="flex-1 flex flex-col lg:flex-row h-[calc(100vh-4rem)] overflow-hidden bg-slate-50/20">
             {/* Left Column - Product catalog area */}
             <div className="flex-1 flex flex-col h-full bg-slate-50/30 border-r border-border overflow-hidden">
-              <div className="bg-white px-6 pt-4 pb-1 border-b border-slate-100 flex flex-col gap-3 shrink-0">
+              <div className="bg-white px-4 pt-4 pb-1 border-b border-slate-100 flex flex-col gap-3 shrink-0">
                 <div className="relative">
                   <span className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-slate-400">
                     <Search className="size-4" />

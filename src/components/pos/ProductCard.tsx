@@ -37,9 +37,9 @@ export default function ProductCard({
         }
       }}
       className={cn(
-        "group relative flex flex-col h-full rounded-2xl border bg-card p-4 transition-all duration-200 select-none",
+        "group relative flex flex-col h-full rounded-xl border bg-card p-2.5 transition-all duration-200 select-none",
         isAvailable
-          ? "border-slate-100 hover:border-slate-200 hover:shadow-md active:scale-[0.98] cursor-pointer"
+          ? "border-slate-100 hover:border-slate-200 hover:shadow-sm active:scale-[0.98] cursor-pointer"
           : "border-slate-100 bg-slate-50/60 opacity-60 cursor-not-allowed"
       )}
     >
@@ -48,16 +48,16 @@ export default function ProductCard({
         <div className="absolute top-3 right-3 z-10">
           <Badge
             variant="outline"
-            className="flex items-center gap-1 bg-amber-50 border-amber-200 text-amber-600 font-semibold px-2 py-0.5 text-[10px] tracking-wide"
+            className="flex items-center gap-0.5 bg-amber-50 border-amber-200 text-amber-600 font-semibold px-1.5 py-0.5 text-[8px] tracking-wide"
           >
-            <Package className="size-3" />
+            <Package className="size-2.5" />
             STOK HABIS
           </Badge>
         </div>
       )}
 
       {/* Product Image */}
-      <div className="relative w-full aspect-square rounded-xl overflow-hidden mb-3 bg-slate-50 border border-slate-100 flex items-center justify-center text-slate-400 shrink-0">
+      <div className="relative w-full aspect-square rounded-lg overflow-hidden mb-2 bg-slate-50 border border-slate-100 flex items-center justify-center text-slate-400 shrink-0">
         {product.image_url ? (
           <img
             src={product.image_url}
@@ -65,30 +65,30 @@ export default function ProductCard({
             className="size-full object-cover transition-transform duration-300 group-hover:scale-105"
           />
         ) : (
-          <Image className="size-8 stroke-[1.5]" />
+          <Image className="size-5 stroke-[1.5]" />
         )}
       </div>
 
       {/* Main product info */}
-      <div className="flex-1 flex flex-col justify-between space-y-3">
-        <div className="space-y-1">
-          <h3 className="font-semibold text-heading leading-tight group-hover:text-primary transition-colors text-base">
+      <div className="flex-1 flex flex-col justify-between space-y-1.5">
+        <div className="space-y-0.5">
+          <h3 className="font-semibold text-heading leading-tight group-hover:text-primary transition-colors text-[11px] sm:text-xs">
             {product.name}
           </h3>
           {product.description && (
-            <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed">
+            <p className="text-[9px] text-muted-foreground line-clamp-2 leading-tight">
               {product.description}
             </p>
           )}
         </div>
 
         {/* Pricing info */}
-        <div className="flex items-center justify-between pt-2">
-          <span className="font-bold text-slate-900 text-base">
+        <div className="flex items-center justify-between pt-1">
+          <span className="font-bold text-slate-900 text-[10px] sm:text-xs">
             {formatRupiah(Number(product.base_price))}
           </span>
           {isAvailable && (
-            <span className="text-[10px] font-bold text-primary group-hover:translate-x-0.5 transition-transform duration-200">
+            <span className="text-[8px] font-bold text-primary group-hover:translate-x-0.5 transition-transform duration-200">
               Pilih &rarr;
             </span>
           )}

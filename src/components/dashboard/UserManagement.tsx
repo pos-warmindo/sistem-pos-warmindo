@@ -418,16 +418,23 @@ export default function UserManagement() {
                 id="role"
                 value={form.role}
                 onChange={(e) => setForm((f) => ({ ...f, role: e.target.value as "cashier" | "owner" | "admin" }))}
-                disabled={currentUserRole === "admin"}
+                disabled={currentUserRole === "admin" || (!!editingUser && !!currentUser && editingUser.id === currentUser.id)}
                 className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-orange-400 disabled:bg-slate-50 disabled:text-slate-400 disabled:cursor-not-allowed"
               >
                 <option value="cashier">Cashier (Kasir)</option>
                 <option value="admin">Admin (Administrator)</option>
-                <option value="owner">Owner (Pemilik)</option>
+                {editingUser?.role === "owner" && (
+                  <option value="owner">Owner (Pemilik)</option>
+                )}
               </select>
               {currentUserRole === "admin" && (
                 <p className="text-[11px] text-amber-600 flex items-center gap-1">
                   Admin tidak dapat mengubah hak akses user.
+                </p>
+              )}
+              {!!editingUser && !!currentUser && editingUser.id === currentUser.id && (
+                <p className="text-[11px] text-slate-400 flex items-center gap-1">
+                  Anda tidak dapat mengubah hak akses akun Anda sendiri.
                 </p>
               )}
             </div>

@@ -15,7 +15,7 @@ export default function CategoryTabBar({
   onSelectCategory,
 }: CategoryTabBarProps) {
   return (
-    <div className="w-full bg-white border-b border-border px-6 py-3 shrink-0">
+    <div className="w-full bg-white border-b border-border px-4 py-3 shrink-0">
       <div className="flex items-center gap-2 overflow-x-auto scrollbar-none pb-1 -mb-1">
         {/* 'Semua Menu' Tab */}
         <button

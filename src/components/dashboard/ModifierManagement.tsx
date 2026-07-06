@@ -14,11 +14,11 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
-import { Plus, Pencil, Trash, X } from "@/lib/icons";
+import { Plus, Pencil, Trash, X, ChevronLeft, Image as ImageIcon } from "@/lib/icons";
 import { formatRupiah } from "@/lib/utils/format";
 
 // ── Types ─────────────────────────────────────────────────────
-type Product = { id: string; name: string };
+type Product = { id: string; name: string; image_url: string | null; is_active: boolean };
 
 type Modifier = {
   id: string;
@@ -79,13 +79,12 @@ export default function ModifierManagement() {
   const fetchProducts = useCallback(async () => {
     const { data } = await supabase
       .from("products")
-      .select("id, name, categories(name)")
-      .eq("is_active", true)
+      .select("id, name, image_url, is_active, categories(name)")
       .order("name");
 
     const filtered = (data ?? [])
       .filter((p: any) => p.categories?.name?.toLowerCase() !== "minuman")
-      .map((p: any) => ({ id: p.id, name: p.name }));
+      .map((p: any) => ({ id: p.id, name: p.name, image_url: p.image_url, is_active: p.is_active }));
 
     setProducts(filtered);
   }, [supabase]);
