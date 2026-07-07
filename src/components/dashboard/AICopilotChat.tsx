@@ -1,12 +1,13 @@
 "use client";
 
 import React, { useState, useRef, useEffect } from "react";
+import ReactMarkdown from "react-markdown";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Bot, Send, Sparkles, User, X, MessageSquare, Loader2 } from "@/lib/icons";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Bot, Send, Sparkles, User, X, Loader2 } from "@/lib/icons";
 import { cn } from "@/lib/utils";
 import { chatWithCopilot } from "@/app/actions/ai-chat";
 
@@ -128,13 +129,63 @@ export function AICopilotChat() {
                 
                 <div
                   className={cn(
-                    "px-4 py-2.5 rounded-2xl text-sm whitespace-pre-wrap shadow-sm",
+                    "px-4 py-2.5 rounded-2xl text-sm shadow-sm",
                     msg.role === "user"
-                      ? "bg-orange-500 text-white rounded-br-sm"
+                      ? "bg-orange-500 text-white rounded-br-sm whitespace-pre-wrap"
                       : "bg-white text-slate-800 border border-slate-100 rounded-bl-sm"
                   )}
                 >
-                  {msg.text}
+                  {msg.role === "user" ? (
+                    msg.text
+                  ) : (
+                    <ReactMarkdown
+                      components={{
+                        // Bold
+                        strong: ({ children }) => (
+                          <strong className="font-semibold text-slate-900">{children}</strong>
+                        ),
+                        // Italic
+                        em: ({ children }) => (
+                          <em className="italic">{children}</em>
+                        ),
+                        // Paragraphs
+                        p: ({ children }) => (
+                          <p className="mb-1.5 last:mb-0 leading-relaxed">{children}</p>
+                        ),
+                        // Unordered list
+                        ul: ({ children }) => (
+                          <ul className="list-disc pl-4 mb-1.5 space-y-0.5">{children}</ul>
+                        ),
+                        // Ordered list
+                        ol: ({ children }) => (
+                          <ol className="list-decimal pl-4 mb-1.5 space-y-0.5">{children}</ol>
+                        ),
+                        li: ({ children }) => (
+                          <li className="leading-relaxed">{children}</li>
+                        ),
+                        // Headings
+                        h1: ({ children }) => (
+                          <h1 className="font-bold text-base mb-1 text-slate-900">{children}</h1>
+                        ),
+                        h2: ({ children }) => (
+                          <h2 className="font-bold text-sm mb-1 text-slate-900">{children}</h2>
+                        ),
+                        h3: ({ children }) => (
+                          <h3 className="font-semibold text-sm mb-0.5 text-slate-800">{children}</h3>
+                        ),
+                        // Code inline
+                        code: ({ children }) => (
+                          <code className="bg-slate-100 rounded px-1 py-0.5 text-xs font-mono text-orange-600">
+                            {children}
+                          </code>
+                        ),
+                        // Horizontal rule
+                        hr: () => <hr className="border-slate-200 my-2" />,
+                      }}
+                    >
+                      {msg.text}
+                    </ReactMarkdown>
+                  )}
                 </div>
               </div>
             ))}
