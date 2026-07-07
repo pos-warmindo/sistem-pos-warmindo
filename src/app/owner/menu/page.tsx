@@ -14,14 +14,14 @@ export default function MenuPage() {
       </div>
 
       <Tabs defaultValue="produk">
-        <TabsList className="bg-slate-100/80 p-1 rounded-xl mb-6">
-          <TabsTrigger value="produk"   className="rounded-lg font-semibold text-sm px-5 py-2">
+        <TabsList className="bg-slate-100/80 py-6 px-2 rounded-xl mb-6">
+          <TabsTrigger value="produk"   className="rounded-lg font-semibold text-sm px-5 py-4">
             Produk
           </TabsTrigger>
-          <TabsTrigger value="modifier" className="rounded-lg font-semibold text-sm px-5 py-2">
+          <TabsTrigger value="modifier" className="rounded-lg font-semibold text-sm px-5 py-4">
             Varian / Topping
           </TabsTrigger>
-          <TabsTrigger value="kategori" className="rounded-lg font-semibold text-sm px-5 py-2">
+          <TabsTrigger value="kategori" className="rounded-lg font-semibold text-sm px-5 py-4">
             Kategori
           </TabsTrigger>
         </TabsList>
