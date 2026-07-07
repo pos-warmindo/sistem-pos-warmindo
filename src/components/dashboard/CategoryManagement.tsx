@@ -196,60 +196,115 @@ export default function CategoryManagement() {
             Belum ada kategori. Tambahkan kategori pertama.
           </div>
         ) : (
-          <table className="w-full text-sm">
-            <thead className="bg-slate-50 border-b border-slate-100">
-              <tr>
-                <th className="text-left px-4 py-3 font-semibold text-slate-600">Nama</th>
-                <th className="text-center px-4 py-3 font-semibold text-slate-600">Urutan</th>
-                <th className="text-center px-4 py-3 font-semibold text-slate-600">Status</th>
-                <th className="text-right px-4 py-3 font-semibold text-slate-600">Aksi</th>
-              </tr>
-            </thead>
-            <tbody>
-              {categories.map((cat, idx) => (
-                <tr
-                  key={cat.id}
-                  className={idx % 2 === 0 ? "bg-white" : "bg-slate-50/50"}
-                >
-                  <td className="px-4 py-3 font-medium text-slate-800">{cat.name}</td>
-                  <td className="px-4 py-3 text-center text-slate-500">{cat.sort_order}</td>
-                  <td className="px-4 py-3 text-center">
-                    {cat.is_active ? (
-                      <Badge className="bg-green-100 text-green-700 border-green-200 font-semibold">
-                        Aktif
-                      </Badge>
-                    ) : (
-                      <Badge variant="outline" className="text-slate-400 border-slate-200 font-semibold">
-                        Nonaktif
-                      </Badge>
-                    )}
-                  </td>
-                  <td className="px-4 py-3 text-right">
-                    <div className="flex items-center justify-end gap-2">
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => openEditDialog(cat)}
-                        className="h-8 w-8 p-0 rounded-lg border-slate-200"
-                        title="Edit"
-                      >
-                        <Pencil className="size-3.5" />
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => openDeleteDialog(cat)}
-                        className="h-8 w-8 p-0 rounded-lg border-red-200 text-red-500 hover:bg-red-50 hover:text-red-600"
-                        title="Hapus"
-                      >
-                        <Trash className="size-3.5" />
-                      </Button>
+          <>
+            {/* ── Mobile Layout (Cards) ── */}
+            <div className="md:hidden divide-y divide-slate-100">
+              {categories.map((cat) => (
+                <div key={cat.id} className="p-4 flex flex-col gap-3">
+                  <div className="flex justify-between items-center">
+                    <div>
+                      <h4 className="font-semibold text-slate-800 text-sm">{cat.name}</h4>
+                      <p className="text-xs text-slate-500 mt-1">Urutan Tampil: {cat.sort_order}</p>
                     </div>
-                  </td>
-                </tr>
+                    <div>
+                      {cat.is_active ? (
+                        <Badge className="bg-green-100 text-green-700 border-green-200 font-semibold text-[10px] px-2 py-0.5">
+                          Aktif
+                        </Badge>
+                      ) : (
+                        <Badge
+                          variant="outline"
+                          className="text-slate-400 border-slate-200 font-semibold text-[10px] px-2 py-0.5"
+                        >
+                          Nonaktif
+                        </Badge>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Actions */}
+                  <div className="flex items-center justify-end gap-2 border-t border-slate-50 pt-2">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => openEditDialog(cat)}
+                      className="h-8 w-8 p-0 rounded-lg border-slate-200"
+                      title="Edit"
+                    >
+                      <Pencil className="size-3.5" />
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => openDeleteDialog(cat)}
+                      className="h-8 w-8 p-0 rounded-lg border-red-200 text-red-500 hover:bg-red-50 hover:text-red-600"
+                      title="Hapus"
+                    >
+                      <Trash className="size-3.5" />
+                    </Button>
+                  </div>
+                </div>
               ))}
-            </tbody>
-          </table>
+            </div>
+
+            {/* ── Desktop Layout (Traditional Table) ── */}
+            <div className="hidden md:block overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead className="bg-slate-50 border-b border-slate-100">
+                  <tr>
+                    <th className="text-left px-4 py-3 font-semibold text-slate-600">Nama</th>
+                    <th className="text-center px-4 py-3 font-semibold text-slate-600">Urutan</th>
+                    <th className="text-center px-4 py-3 font-semibold text-slate-600">Status</th>
+                    <th className="text-right px-4 py-3 font-semibold text-slate-600">Aksi</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {categories.map((cat, idx) => (
+                    <tr
+                      key={cat.id}
+                      className={idx % 2 === 0 ? "bg-white" : "bg-slate-50/50"}
+                    >
+                      <td className="px-4 py-3 font-medium text-slate-800">{cat.name}</td>
+                      <td className="px-4 py-3 text-center text-slate-500">{cat.sort_order}</td>
+                      <td className="px-4 py-3 text-center">
+                        {cat.is_active ? (
+                          <Badge className="bg-green-100 text-green-700 border-green-200 font-semibold">
+                            Aktif
+                          </Badge>
+                        ) : (
+                          <Badge variant="outline" className="text-slate-400 border-slate-200 font-semibold">
+                            Nonaktif
+                          </Badge>
+                        )}
+                      </td>
+                      <td className="px-4 py-3 text-right">
+                        <div className="flex items-center justify-end gap-2">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => openEditDialog(cat)}
+                            className="h-8 w-8 p-0 rounded-lg border-slate-200"
+                            title="Edit"
+                          >
+                            <Pencil className="size-3.5" />
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => openDeleteDialog(cat)}
+                            className="h-8 w-8 p-0 rounded-lg border-red-200 text-red-500 hover:bg-red-50 hover:text-red-600"
+                            title="Hapus"
+                          >
+                            <Trash className="size-3.5" />
+                          </Button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </>
         )}
       </div>
 
@@ -309,14 +364,12 @@ export default function CategoryManagement() {
                 role="switch"
                 aria-checked={form.is_active}
                 onClick={() => setForm((f) => ({ ...f, is_active: !f.is_active }))}
-                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                  form.is_active ? "bg-orange-500" : "bg-slate-200"
-                }`}
+                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${form.is_active ? "bg-orange-500" : "bg-slate-200"
+                  }`}
               >
                 <span
-                  className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${
-                    form.is_active ? "translate-x-6" : "translate-x-1"
-                  }`}
+                  className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${form.is_active ? "translate-x-6" : "translate-x-1"
+                    }`}
                 />
               </button>
             </div>

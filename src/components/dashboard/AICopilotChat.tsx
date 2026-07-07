@@ -54,7 +54,7 @@ export function AICopilotChat() {
       } else if (result.text) {
         setMessages((prev) => [
           ...prev,
-          { role: "model", text: result.text },
+          { role: "model", text: result.text || "" },
         ]);
       }
     } catch (error) {
@@ -78,7 +78,7 @@ export function AICopilotChat() {
     return (
       <Button
         onClick={() => setIsOpen(true)}
-        className="fixed bottom-6 right-6 md:bottom-10 md:right-10 h-14 w-14 rounded-full shadow-xl bg-orange-500 hover:bg-orange-600 transition-all duration-300 z-50 p-0"
+        className="fixed bottom-24 right-4 md:bottom-10 md:right-10 h-14 w-14 rounded-full shadow-xl bg-orange-500 hover:bg-orange-600 transition-all duration-300 z-50 p-0"
       >
         <Sparkles className="h-6 w-6 text-white" />
       </Button>
@@ -86,7 +86,7 @@ export function AICopilotChat() {
   }
 
   return (
-    <Card className="fixed bottom-4 right-4 md:bottom-8 md:right-8 w-[calc(100vw-2rem)] md:w-[400px] h-[500px] max-h-[calc(100vh-6rem)] shadow-2xl flex flex-col z-50 border-orange-200 overflow-hidden animate-in slide-in-from-bottom-5 fade-in duration-300 p-0">
+    <Card className="fixed bottom-20 right-4 md:bottom-8 md:right-8 w-[calc(100vw-2rem)] md:w-[400px] h-[500px] max-h-[calc(100vh-8rem)] shadow-2xl flex flex-col z-50 border-orange-200 overflow-hidden animate-in slide-in-from-bottom-5 fade-in duration-300 p-0">
       <CardHeader className="bg-gradient-to-r from-orange-500 to-orange-400 p-4 text-white flex flex-row items-center justify-between space-y-0 rounded-t-lg">
         <div className="flex items-center space-x-2">
           <div className="bg-white/20 p-2 rounded-full">

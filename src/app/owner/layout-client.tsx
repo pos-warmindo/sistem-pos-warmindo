@@ -154,7 +154,7 @@ export default function OwnerLayoutClient({
       </aside>
 
       {/* ── Main Content ── */}
-      <div className="flex flex-col flex-1 md:pl-60 pb-20 md:pb-0 min-h-screen">
+      <div className="flex flex-col flex-1 md:pl-60 pb-20 md:pb-0 min-h-screen min-w-0">
         {/* Mobile Header */}
         <header className="md:hidden flex h-16 items-center justify-between px-4 border-b border-slate-200 bg-white sticky top-0 z-10">
           <Link href="/owner/dashboard">

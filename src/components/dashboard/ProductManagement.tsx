@@ -359,7 +359,7 @@ export default function ProductManagement() {
         {filterCategoryId !== "all" && ` dalam kategori ini`}
       </p>
 
-      {/* Table */}
+      {/* Table & Cards Container */}
       <div className="rounded-xl border border-slate-200 overflow-hidden bg-white">
         {isLoading ? (
           <div className="p-8 text-center text-sm text-slate-400">
@@ -370,129 +370,230 @@ export default function ProductManagement() {
             Belum ada produk. Tambahkan produk pertama.
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead className="bg-slate-50 border-b border-slate-100">
-                <tr>
-                  <th className="text-left px-4 py-3 font-semibold text-slate-600 w-16">Foto</th>
-                  <th className="text-left px-4 py-3 font-semibold text-slate-600">Nama</th>
-                  <th className="text-left px-4 py-3 font-semibold text-slate-600">Kategori</th>
-                  <th className="text-right px-4 py-3 font-semibold text-slate-600">Harga</th>
-                  <th className="text-center px-4 py-3 font-semibold text-slate-600">Status</th>
-                  <th className="text-right px-4 py-3 font-semibold text-slate-600">Aksi</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredProducts.map((p, idx) => (
-                  <tr
-                    key={p.id}
-                    className={idx % 2 === 0 ? "bg-white" : "bg-slate-50/50"}
-                  >
+          <>
+            {/* ── Mobile Layout (Cards) ── */}
+            <div className="md:hidden divide-y divide-slate-100">
+              {filteredProducts.map((p) => (
+                <div key={p.id} className="p-4 flex flex-col gap-3">
+                  <div className="flex gap-3">
                     {/* Foto */}
-                    <td className="px-4 py-3">
-                      {p.image_url ? (
-                        <div className="size-10 rounded-lg overflow-hidden border border-slate-100 shadow-sm shrink-0">
-                          <img
-                            src={p.image_url}
-                            alt={p.name}
-                            className="size-full object-cover"
-                          />
-                        </div>
-                      ) : (
-                        <div className="size-10 rounded-lg bg-slate-100 flex items-center justify-center text-slate-400 border border-slate-100 shrink-0">
-                          <Image className="size-5 stroke-[1.5]" />
-                        </div>
-                      )}
-                    </td>
-
-                    {/* Nama */}
-                    <td className="px-4 py-3">
-                      <p className="font-medium text-slate-800">{p.name}</p>
+                    {p.image_url ? (
+                      <div className="size-14 rounded-xl overflow-hidden border border-slate-100 shadow-sm shrink-0">
+                        <img
+                          src={p.image_url}
+                          alt={p.name}
+                          className="size-full object-cover"
+                        />
+                      </div>
+                    ) : (
+                      <div className="size-14 rounded-xl bg-slate-100 flex items-center justify-center text-slate-400 border border-slate-100 shrink-0">
+                        <Image className="size-5 stroke-[1.5]" />
+                      </div>
+                    )}
+                    {/* Detail */}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-start justify-between gap-2">
+                        <h4 className="font-semibold text-slate-800 text-sm truncate">{p.name}</h4>
+                        <span className="font-bold text-slate-900 text-sm shrink-0">
+                          {formatRupiah(p.base_price)}
+                        </span>
+                      </div>
                       {p.description && (
-                        <p className="text-xs text-slate-400 mt-0.5 line-clamp-1">
+                        <p className="text-xs text-slate-400 mt-1 line-clamp-2">
                           {p.description}
                         </p>
                       )}
-                    </td>
+                      <span className="inline-block mt-2 px-2 py-0.5 rounded bg-slate-100 text-slate-500 text-[10px] font-semibold">
+                        {p.categories?.name ?? "Tanpa Kategori"}
+                      </span>
+                    </div>
+                  </div>
 
-                    {/* Kategori */}
-                    <td className="px-4 py-3 text-slate-500 text-xs">
-                      {p.categories?.name ?? (
-                        <span className="italic text-slate-300">—</span>
-                      )}
-                    </td>
-
-                    {/* Harga */}
-                    <td className="px-4 py-3 text-right font-semibold text-slate-800">
-                      {formatRupiah(p.base_price)}
-                    </td>
-
-                    {/* Status badge */}
-                    <td className="px-4 py-3 text-center">
+                  {/* Actions & Status */}
+                  <div className="flex items-center justify-between border-t border-slate-50 pt-2 mt-1">
+                    <div>
                       {p.is_active ? (
-                        <Badge className="bg-green-100 text-green-700 border-green-200 font-semibold">
+                        <Badge className="bg-green-100 text-green-700 border-green-200 font-semibold text-[10px] px-2 py-0.5">
                           Aktif
                         </Badge>
                       ) : (
                         <Badge
                           variant="outline"
-                          className="text-slate-400 border-slate-200 font-semibold"
+                          className="text-slate-400 border-slate-200 font-semibold text-[10px] px-2 py-0.5"
                         >
                           Nonaktif
                         </Badge>
                       )}
-                    </td>
-
-                    {/* Aksi */}
-                    <td className="px-4 py-3 text-right">
-                      <div className="flex items-center justify-end gap-2">
-                        {/* Toggle aktif/nonaktif */}
-                        <button
-                          onClick={() => handleToggleActive(p)}
-                          disabled={togglingId === p.id}
-                          title={p.is_active ? "Nonaktifkan" : "Aktifkan"}
-                          aria-label={p.is_active ? "Nonaktifkan produk" : "Aktifkan produk"}
-                          className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors disabled:opacity-50 ${
-                            p.is_active ? "bg-orange-500" : "bg-slate-200"
+                    </div>
+                    <div className="flex items-center gap-3">
+                      {/* Toggle */}
+                      <button
+                        onClick={() => handleToggleActive(p)}
+                        disabled={togglingId === p.id}
+                        title={p.is_active ? "Nonaktifkan" : "Aktifkan"}
+                        aria-label={p.is_active ? "Nonaktifkan produk" : "Aktifkan produk"}
+                        className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors disabled:opacity-50 ${
+                          p.is_active ? "bg-orange-500" : "bg-slate-200"
+                        }`}
+                      >
+                        <span
+                          className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white shadow transition-transform ${
+                            p.is_active ? "translate-x-[18px]" : "translate-x-0.5"
                           }`}
-                        >
-                          <span
-                            className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white shadow transition-transform ${
-                              p.is_active ? "translate-x-[18px]" : "translate-x-0.5"
-                            }`}
-                          />
-                        </button>
+                        />
+                      </button>
 
-                        {/* Edit */}
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => openEditDialog(p)}
-                          className="h-8 w-8 p-0 rounded-lg border-slate-200"
-                          title="Edit produk"
-                          aria-label="Edit produk"
-                        >
-                          <Pencil className="size-3.5" />
-                        </Button>
+                      {/* Edit */}
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => openEditDialog(p)}
+                        className="h-8 w-8 p-0 rounded-lg border-slate-200"
+                        title="Edit produk"
+                        aria-label="Edit produk"
+                      >
+                        <Pencil className="size-3.5" />
+                      </Button>
 
-                        {/* Hapus */}
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => openDeleteDialog(p)}
-                          className="h-8 w-8 p-0 rounded-lg border-red-200 text-red-500 hover:bg-red-50 hover:text-red-600"
-                          title="Nonaktifkan/hapus produk"
-                          aria-label="Hapus produk"
-                        >
-                          <Trash className="size-3.5" />
-                        </Button>
-                      </div>
-                    </td>
+                      {/* Hapus */}
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => openDeleteDialog(p)}
+                        className="h-8 w-8 p-0 rounded-lg border-red-200 text-red-500 hover:bg-red-50 hover:text-red-600"
+                        title="Nonaktifkan/hapus produk"
+                        aria-label="Hapus produk"
+                      >
+                        <Trash className="size-3.5" />
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* ── Desktop Layout (Traditional Table) ── */}
+            <div className="hidden md:block overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead className="bg-slate-50 border-b border-slate-100">
+                  <tr>
+                    <th className="text-left px-4 py-3 font-semibold text-slate-600 w-16">Foto</th>
+                    <th className="text-left px-4 py-3 font-semibold text-slate-600">Nama</th>
+                    <th className="text-left px-4 py-3 font-semibold text-slate-600">Kategori</th>
+                    <th className="text-right px-4 py-3 font-semibold text-slate-600">Harga</th>
+                    <th className="text-center px-4 py-3 font-semibold text-slate-600">Status</th>
+                    <th className="text-right px-4 py-3 font-semibold text-slate-600">Aksi</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody>
+                  {filteredProducts.map((p, idx) => (
+                    <tr
+                      key={p.id}
+                      className={idx % 2 === 0 ? "bg-white" : "bg-slate-50/50"}
+                    >
+                      {/* Foto */}
+                      <td className="px-4 py-3">
+                        {p.image_url ? (
+                          <div className="size-10 rounded-lg overflow-hidden border border-slate-100 shadow-sm shrink-0">
+                            <img
+                              src={p.image_url}
+                              alt={p.name}
+                              className="size-full object-cover"
+                            />
+                          </div>
+                        ) : (
+                          <div className="size-10 rounded-lg bg-slate-100 flex items-center justify-center text-slate-400 border border-slate-100 shrink-0">
+                            <Image className="size-5 stroke-[1.5]" />
+                          </div>
+                        )}
+                      </td>
+
+                      {/* Nama */}
+                      <td className="px-4 py-3">
+                        <p className="font-medium text-slate-800">{p.name}</p>
+                        {p.description && (
+                          <p className="text-xs text-slate-400 mt-0.5 line-clamp-1">
+                            {p.description}
+                          </p>
+                        )}
+                      </td>
+
+                      {/* Kategori */}
+                      <td className="px-4 py-3 text-slate-500 text-xs">
+                        {p.categories?.name ?? (
+                          <span className="italic text-slate-300">—</span>
+                        )}
+                      </td>
+
+                      {/* Harga */}
+                      <td className="px-4 py-3 text-right font-semibold text-slate-800">
+                        {formatRupiah(p.base_price)}
+                      </td>
+
+                      {/* Status badge */}
+                      <td className="px-4 py-3 text-center">
+                        {p.is_active ? (
+                          <Badge className="bg-green-100 text-green-700 border-green-200 font-semibold">
+                            Aktif
+                          </Badge>
+                        ) : (
+                          <Badge
+                            variant="outline"
+                            className="text-slate-400 border-slate-200 font-semibold"
+                          >
+                            Nonaktif
+                          </Badge>
+                        )}
+                      </td>
+
+                      {/* Aksi */}
+                      <td className="px-4 py-3 text-right">
+                        <div className="flex items-center justify-end gap-2">
+                          <button
+                            onClick={() => handleToggleActive(p)}
+                            disabled={togglingId === p.id}
+                            title={p.is_active ? "Nonaktifkan" : "Aktifkan"}
+                            aria-label={p.is_active ? "Nonaktifkan produk" : "Aktifkan produk"}
+                            className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors disabled:opacity-50 ${
+                              p.is_active ? "bg-orange-500" : "bg-slate-200"
+                            }`}
+                          >
+                            <span
+                              className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white shadow transition-transform ${
+                                p.is_active ? "translate-x-[18px]" : "translate-x-0.5"
+                              }`}
+                            />
+                          </button>
+
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => openEditDialog(p)}
+                            className="h-8 w-8 p-0 rounded-lg border-slate-200"
+                            title="Edit produk"
+                            aria-label="Edit produk"
+                          >
+                            <Pencil className="size-3.5" />
+                          </Button>
+
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => openDeleteDialog(p)}
+                            className="h-8 w-8 p-0 rounded-lg border-red-200 text-red-500 hover:bg-red-50 hover:text-red-600"
+                            title="Nonaktifkan/hapus produk"
+                            aria-label="Hapus produk"
+                          >
+                            <Trash className="size-3.5" />
+                          </Button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </>
         )}
       </div>
 

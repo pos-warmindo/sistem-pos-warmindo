@@ -373,8 +373,49 @@ export default function ModifierManagement() {
                     </Badge>
                   </div>
 
-                  {/* Data Table */}
-                  <div className="overflow-x-auto">
+                  {/* Mobile Layout (Cards) */}
+                  <div className="md:hidden divide-y divide-slate-100">
+                    {items.map((m) => (
+                      <div key={m.id} className="p-4 flex flex-col gap-3">
+                        <div className="flex justify-between items-center">
+                          <div>
+                            <h4 className="font-semibold text-slate-800 text-sm">{m.modifier_name}</h4>
+                            <p className={`text-xs font-bold mt-1 ${m.price_delta === 0 ? "text-slate-400" : m.price_delta > 0 ? "text-green-600" : "text-red-500"}`}>
+                              {m.price_delta === 0 ? "Gratis" : m.price_delta > 0 ? `+${formatRupiah(m.price_delta)}` : `-${formatRupiah(Math.abs(m.price_delta))}`}
+                            </p>
+                          </div>
+                          <div>
+                            <Badge className={`text-[10px] px-2 py-0.5 whitespace-nowrap border-0 ${m.is_active ? "bg-green-100 text-green-700" : "bg-slate-100 text-slate-500"}`}>
+                              {m.is_active ? "Aktif" : "Nonaktif"}
+                            </Badge>
+                          </div>
+                        </div>
+
+                        {/* Actions */}
+                        <div className="flex items-center justify-end gap-1 border-t border-slate-50 pt-2">
+                          <button
+                            onClick={() => openEditDialog(m)}
+                            className="p-1.5 rounded-md text-slate-400 hover:bg-slate-100 hover:text-slate-700 transition-colors"
+                            title="Edit"
+                            aria-label={`Edit ${m.modifier_name}`}
+                          >
+                            <Pencil className="size-3.5" />
+                          </button>
+                          <button
+                            onClick={() => openDeleteDialog(m)}
+                            className="p-1.5 rounded-md text-slate-400 hover:bg-red-50 hover:text-red-600 transition-colors"
+                            title="Hapus"
+                            aria-label={`Hapus ${m.modifier_name}`}
+                          >
+                            <Trash className="size-3.5" />
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Desktop Layout (Table) */}
+                  <div className="hidden md:block overflow-x-auto">
                     <table className="w-full text-left border-collapse">
                       <thead>
                         <tr className="border-b border-slate-100 bg-slate-50/50">
