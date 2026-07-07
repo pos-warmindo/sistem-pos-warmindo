@@ -151,6 +151,8 @@ export async function chatWithCopilot(
       ? criticalStock.map((s) => `${s.name}: ${s.current_stock}/${s.min_stock_threshold} ${s.unit}`).join(", ")
       : "Semua stok dalam kondisi aman ✓";
 
+    const lowestStockText = rawMaterials?.slice(0, 5).map((s) => `${s.name}: ${s.current_stock} ${s.unit}`).join(", ") ?? "Belum ada data bahan baku";
+
     // Shift aktif
     const { data: activeShift } = await supabase
       .from("shifts")
@@ -195,6 +197,9 @@ ${busiestHour}
 
 ─── STOK BAHAN BAKU KRITIS ───
 ${criticalText}
+
+─── 5 STOK BAHAN BAKU TERENDAH SAAT INI ───
+${lowestStockText}
 
 ─── STATUS SHIFT ───
 ${shiftInfo}
