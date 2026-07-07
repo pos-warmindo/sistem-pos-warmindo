@@ -70,6 +70,21 @@ export async function chatWithCopilot(
     const monthCount   = monthOrders?.length ?? 0;
     const monthAvg     = monthCount > 0 ? Math.round(monthRevenue / monthCount) : 0;
 
+    // Pendapatan bulan lalu
+    const lastMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+    const thisMonthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+
+    const { data: lastMonthOrders } = await supabase
+      .from("orders")
+      .select("total_amount")
+      .eq("status", "PAID")
+      .gte("created_at", toWIB(lastMonthStart))
+      .lt("created_at", toWIB(thisMonthStart));
+
+    const lastMonthRevenue = lastMonthOrders?.reduce((s, o) => s + o.total_amount, 0) ?? 0;
+    const lastMonthCount   = lastMonthOrders?.length ?? 0;
+    const lastMonthAvg     = lastMonthCount > 0 ? Math.round(lastMonthRevenue / lastMonthCount) : 0;
+
     // Metode pembayaran (7 hari)
     const paymentMethodMap: Record<string, number> = {};
     last7Orders?.forEach((o) => {
@@ -167,6 +182,7 @@ Tugas utama: membantu owner/admin dengan analisis penjualan, stok, dan operasion
 • Hari ini: ${formatRupiah(todayRevenue)} dari ${todayCount} transaksi
 • 7 hari terakhir: ${formatRupiah(last7Revenue)} dari ${last7Count} transaksi (rata-rata ${formatRupiah(last7Avg)}/transaksi)
 • Bulan ini: ${formatRupiah(monthRevenue)} dari ${monthCount} transaksi (rata-rata ${formatRupiah(monthAvg)}/transaksi)
+• Bulan lalu: ${formatRupiah(lastMonthRevenue)} dari ${lastMonthCount} transaksi (rata-rata ${formatRupiah(lastMonthAvg)}/transaksi)
 
 ─── METODE PEMBAYARAN (7 hari) ───
 ${topPaymentMethod}
