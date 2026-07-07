@@ -42,4 +42,8 @@ export {
   Upload,
   Loader2,
   Search,
+  Bot,
+  Send,
+  Sparkles,
+  MessageSquare,
 } from "lucide-react";

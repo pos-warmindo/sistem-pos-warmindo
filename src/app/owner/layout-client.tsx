@@ -15,6 +15,7 @@ import {
   Users,
 } from "@/lib/icons";
 import { cn } from "@/lib/utils";
+import { AICopilotChat } from "@/components/dashboard/AICopilotChat";
 
 interface NavigationItem {
   name: string;
@@ -196,6 +197,9 @@ export default function OwnerLayoutClient({
           <span className="text-[10px] font-semibold tracking-wider">Keluar</span>
         </button>
       </nav>
+
+      {/* ── AI Copilot Chatbot ── */}
+      {userRole === "owner" && <AICopilotChat />}
     </div>
   );
 }
