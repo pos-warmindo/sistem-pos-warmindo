@@ -300,10 +300,10 @@ export default function ProductManagement() {
       {/* Header + filter */}
       <div className="flex flex-col sm:flex-row sm:items-center gap-3 justify-between">
         {/* Category filter pills */}
-        <div className="flex items-center gap-2 flex-wrap">
+        <div className="flex items-center gap-3 flex-wrap">
           <button
             onClick={() => setFilterCategoryId("all")}
-            className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition-colors ${
+            className={`px-3 py-1.5 rounded-lg text-sm font-semibold border transition-colors ${
               filterCategoryId === "all"
                 ? "bg-orange-500 text-white border-orange-500"
                 : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50"
@@ -315,7 +315,7 @@ export default function ProductManagement() {
             <button
               key={cat.id}
               onClick={() => setFilterCategoryId(cat.id)}
-              className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition-colors ${
+              className={`px-3 py-1.5 rounded-lg text-sm font-semibold border transition-colors ${
                 filterCategoryId === cat.id
                   ? "bg-orange-500 text-white border-orange-500"
                   : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50"
