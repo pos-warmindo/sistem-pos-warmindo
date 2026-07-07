@@ -40,7 +40,6 @@ export default async function LowStockAlertCard() {
 
       {lowStockMaterials.length === 0 ? (
         <div className="flex h-48 flex-col items-center justify-center rounded-lg border border-dashed border-emerald-100 bg-emerald-50/20 text-center">
-          <span className="text-2xl mb-1">✓</span>
           <p className="text-xs font-semibold text-emerald-600">
             Semua stok dalam kondisi baik
           </p>
