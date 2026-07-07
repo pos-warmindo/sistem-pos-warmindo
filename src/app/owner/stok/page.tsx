@@ -200,14 +200,14 @@ export default function StokPage() {
   return (
     <main className="p-6 space-y-6">
       {/* Header */}
-      <div className="flex items-start justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-heading">Kelola Stok Bahan Baku</h1>
           <p className="text-sm text-muted-foreground mt-1">
             Monitor stok dan lakukan restock bahan baku.
           </p>
         </div>
-        <Button onClick={openAddDialog} className="bg-primary hover:bg-primary-hover text-white font-semibold rounded-xl gap-2">
+        <Button onClick={openAddDialog} className="bg-primary hover:bg-primary-hover text-white font-semibold rounded-xl gap-2 w-full sm:w-auto justify-center">
           <Plus className="size-4" /> Tambah Bahan Baku
         </Button>
       </div>
@@ -228,7 +228,7 @@ export default function StokPage() {
         </div>
       </div>
 
-      {/* Table */}
+      {/* Table & Cards Container */}
       <div className="rounded-xl border border-slate-200 overflow-hidden bg-white">
         {isLoading ? (
           <div className="p-8 text-center text-sm text-slate-400">Memuat data stok...</div>
@@ -238,66 +238,122 @@ export default function StokPage() {
             <p className="text-sm text-slate-400">Belum ada bahan baku. Tambahkan bahan baku pertama.</p>
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead className="bg-slate-50 border-b border-slate-100">
-                <tr>
-                  <th className="text-left px-4 py-3 font-semibold text-slate-600">Nama</th>
-                  <th className="text-center px-4 py-3 font-semibold text-slate-600">Stok</th>
-                  <th className="text-center px-4 py-3 font-semibold text-slate-600">Min</th>
-                  <th className="text-center px-4 py-3 font-semibold text-slate-600">Satuan</th>
-                  <th className="text-right px-4 py-3 font-semibold text-slate-600">Biaya/Unit</th>
-                  <th className="text-center px-4 py-3 font-semibold text-slate-600">Status</th>
-                  <th className="text-right px-4 py-3 font-semibold text-slate-600">Aksi</th>
-                </tr>
-              </thead>
-              <tbody>
-                {materials.map((m, idx) => {
-                  const status = getStockStatus(m);
-                  return (
-                    <tr key={m.id} className={idx % 2 === 0 ? "bg-white" : "bg-slate-50/40"}>
-                      <td className="px-4 py-3 font-medium text-slate-800">{m.name}</td>
-                      <td className={`px-4 py-3 text-center font-bold ${
-                        status === "empty" ? "text-red-600" :
-                        status === "low"   ? "text-amber-600" : "text-green-600"
-                      }`}>
-                        {m.current_stock}
-                      </td>
-                      <td className="px-4 py-3 text-center text-slate-500">{m.min_stock_threshold}</td>
-                      <td className="px-4 py-3 text-center text-slate-500">{m.unit}</td>
-                      <td className="px-4 py-3 text-right text-slate-600">{formatRupiah(m.cost_per_unit)}</td>
-                      <td className="px-4 py-3 text-center">
+          <>
+            {/* ── Mobile Layout (Cards) ── */}
+            <div className="md:hidden divide-y divide-slate-100">
+              {materials.map((m) => {
+                const status = getStockStatus(m);
+                return (
+                  <div key={m.id} className="p-4 flex flex-col gap-3">
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <h4 className="font-semibold text-slate-800 text-sm">{m.name}</h4>
+                        <p className="text-xs text-slate-500 mt-1">
+                          Threshold Min: {m.min_stock_threshold} {m.unit}
+                        </p>
+                        <p className="text-xs text-slate-500 mt-0.5">
+                          Biaya/Unit: {formatRupiah(m.cost_per_unit)}
+                        </p>
+                      </div>
+                      <div className="flex flex-col items-end gap-1.5">
+                        <span className={`text-sm font-bold ${
+                          status === "empty" ? "text-red-600" :
+                          status === "low"   ? "text-amber-600" : "text-green-600"
+                        }`}>
+                          {m.current_stock} <span className="text-[10px] font-normal text-slate-400">{m.unit}</span>
+                        </span>
                         {status === "empty" ? (
-                          <Badge className="bg-red-100 text-red-700 border-red-200 font-semibold text-[10px]">Habis</Badge>
+                          <Badge className="bg-red-100 text-red-700 border-red-200 font-semibold text-[10px] px-2 py-0.5">Habis</Badge>
                         ) : status === "low" ? (
-                          <Badge className="bg-amber-100 text-amber-700 border-amber-200 font-semibold text-[10px]">Rendah</Badge>
+                          <Badge className="bg-amber-100 text-amber-700 border-amber-200 font-semibold text-[10px] px-2 py-0.5">Rendah</Badge>
                         ) : (
-                          <Badge className="bg-green-100 text-green-700 border-green-200 font-semibold text-[10px]">Aman</Badge>
+                          <Badge className="bg-green-100 text-green-700 border-green-200 font-semibold text-[10px] px-2 py-0.5">Aman</Badge>
                         )}
-                      </td>
-                      <td className="px-4 py-3 text-right">
-                        <div className="flex items-center justify-end gap-2">
-                          <Button size="sm" variant="outline" onClick={() => openRestockDialog(m)}
-                            className="h-8 px-2.5 rounded-lg text-xs font-semibold text-blue-600 border-blue-200 hover:bg-blue-50"
-                            title="Restock">
-                            Restock
-                          </Button>
-                          <Button size="sm" variant="outline" onClick={() => openEditDialog(m)}
-                            className="h-8 w-8 p-0 rounded-lg border-slate-200" title="Edit">
-                            <Pencil className="size-3.5" />
-                          </Button>
-                          <Button size="sm" variant="outline" onClick={() => { setDeletingMaterial(m); setDeleteDialogOpen(true); }}
-                            className="h-8 w-8 p-0 rounded-lg border-red-200 text-red-500 hover:bg-red-50" title="Hapus">
-                            <Trash className="size-3.5" />
-                          </Button>
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
+                      </div>
+                    </div>
+
+                    {/* Actions */}
+                    <div className="flex items-center justify-end gap-2 border-t border-slate-50 pt-2">
+                      <Button size="sm" variant="outline" onClick={() => openRestockDialog(m)}
+                        className="h-8 px-3 rounded-lg text-xs font-semibold text-blue-600 border-blue-200 hover:bg-blue-50">
+                        Restock
+                      </Button>
+                      <Button size="sm" variant="outline" onClick={() => openEditDialog(m)}
+                        className="h-8 w-8 p-0 rounded-lg border-slate-200" title="Edit">
+                        <Pencil className="size-3.5" />
+                      </Button>
+                      <Button size="sm" variant="outline" onClick={() => { setDeletingMaterial(m); setDeleteDialogOpen(true); }}
+                        className="h-8 w-8 p-0 rounded-lg border-red-200 text-red-500 hover:bg-red-50" title="Hapus">
+                        <Trash className="size-3.5" />
+                      </Button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* ── Desktop Layout (Table) ── */}
+            <div className="hidden md:block overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead className="bg-slate-50 border-b border-slate-100">
+                  <tr>
+                    <th className="text-left px-4 py-3 font-semibold text-slate-600">Nama</th>
+                    <th className="text-center px-4 py-3 font-semibold text-slate-600">Stok</th>
+                    <th className="text-center px-4 py-3 font-semibold text-slate-600">Min</th>
+                    <th className="text-center px-4 py-3 font-semibold text-slate-600">Satuan</th>
+                    <th className="text-right px-4 py-3 font-semibold text-slate-600">Biaya/Unit</th>
+                    <th className="text-center px-4 py-3 font-semibold text-slate-600">Status</th>
+                    <th className="text-right px-4 py-3 font-semibold text-slate-600">Aksi</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {materials.map((m, idx) => {
+                    const status = getStockStatus(m);
+                    return (
+                      <tr key={m.id} className={idx % 2 === 0 ? "bg-white" : "bg-slate-50/40"}>
+                        <td className="px-4 py-3 font-medium text-slate-800">{m.name}</td>
+                        <td className={`px-4 py-3 text-center font-bold ${
+                          status === "empty" ? "text-red-600" :
+                          status === "low"   ? "text-amber-600" : "text-green-600"
+                        }`}>
+                          {m.current_stock}
+                        </td>
+                        <td className="px-4 py-3 text-center text-slate-500">{m.min_stock_threshold}</td>
+                        <td className="px-4 py-3 text-center text-slate-500">{m.unit}</td>
+                        <td className="px-4 py-3 text-right text-slate-600">{formatRupiah(m.cost_per_unit)}</td>
+                        <td className="px-4 py-3 text-center">
+                          {status === "empty" ? (
+                            <Badge className="bg-red-100 text-red-700 border-red-200 font-semibold text-[10px]">Habis</Badge>
+                          ) : status === "low" ? (
+                            <Badge className="bg-amber-100 text-amber-700 border-amber-200 font-semibold text-[10px]">Rendah</Badge>
+                          ) : (
+                            <Badge className="bg-green-100 text-green-700 border-green-200 font-semibold text-[10px]">Aman</Badge>
+                          )}
+                        </td>
+                        <td className="px-4 py-3 text-right">
+                          <div className="flex items-center justify-end gap-2">
+                            <Button size="sm" variant="outline" onClick={() => openRestockDialog(m)}
+                              className="h-8 px-2.5 rounded-lg text-xs font-semibold text-blue-600 border-blue-200 hover:bg-blue-50"
+                              title="Restock">
+                              Restock
+                            </Button>
+                            <Button size="sm" variant="outline" onClick={() => openEditDialog(m)}
+                              className="h-8 w-8 p-0 rounded-lg border-slate-200" title="Edit">
+                              <Pencil className="size-3.5" />
+                            </Button>
+                            <Button size="sm" variant="outline" onClick={() => { setDeletingMaterial(m); setDeleteDialogOpen(true); }}
+                              className="h-8 w-8 p-0 rounded-lg border-red-200 text-red-500 hover:bg-red-50" title="Hapus">
+                              <Trash className="size-3.5" />
+                            </Button>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </>
         )}
       </div>
 
