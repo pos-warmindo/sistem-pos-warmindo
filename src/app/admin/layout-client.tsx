@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { toast } from "sonner";
@@ -78,7 +79,10 @@ export default function AdminLayoutClient({
         {/* Logo */}
         <div className="flex h-16 items-center px-6 border-b border-slate-100">
           <Link href="/admin/menu" className="flex items-center space-x-2">
-            <span className="text-xl font-bold text-primary">WP2 POS Admin</span>
+            <div className="w-6 h-6 rounded-full overflow-hidden border border-slate-200 relative bg-white">
+              <Image src="/logo.png" alt="WP2 Logo" fill className="object-cover" />
+            </div>
+            <span className="text-md font-bold text-primary">WP2 POS Admin</span>
           </Link>
         </div>
 
@@ -141,7 +145,10 @@ export default function AdminLayoutClient({
       <div className="flex flex-col flex-1 md:pl-60 pb-20 md:pb-0 min-h-screen">
         {/* Mobile Header */}
         <header className="md:hidden flex h-16 items-center justify-between px-4 border-b border-slate-200 bg-white sticky top-0 z-10">
-          <Link href="/admin/menu">
+          <Link href="/admin/menu" className="flex items-center space-x-2">
+            <div className="w-6 h-6 rounded-full overflow-hidden border border-slate-200 relative bg-white">
+              <Image src="/logo.png" alt="WP2 Logo" fill className="object-cover" />
+            </div>
             <span className="text-lg font-bold text-primary">WP2 POS Admin</span>
           </Link>
           <div className="flex items-center space-x-2 text-slate-800 text-sm font-medium">

@@ -1,6 +1,7 @@
 "use client"
 
 import Link from "next/link"
+import Image from "next/image"
 import { usePathname } from "next/navigation"
 import { useState, useEffect } from "react"
 import { useShift } from "@/lib/hooks/useShift"
@@ -129,7 +130,9 @@ export function AppNavbar({
             <SheetContent side="left" className="w-80 flex flex-col h-full">
               <SheetHeader className="space-y-2 border-b border-border pb-4">
                 <SheetTitle className="flex items-center gap-2 text-left text-lg">
-                  <Package className="size-5 text-primary" />
+                  <div className="w-6 h-6 rounded-full overflow-hidden border border-slate-200 relative bg-white">
+                    <Image src="/logo.png" alt="WP2 Logo" fill className="object-cover" />
+                  </div>
                   WP2 POS
                 </SheetTitle>
                 <SheetDescription className="text-left">
@@ -195,7 +198,9 @@ export function AppNavbar({
             className="flex items-center gap-2 font-semibold text-foreground"
             aria-label="Beranda WP2 POS"
           >
-            <Package className="size-5 text-primary" />
+            <div className="w-7 h-7 rounded-full overflow-hidden border border-slate-200 relative bg-white">
+              <Image src="/logo.png" alt="WP2 Logo" fill className="object-cover" />
+            </div>
             <span>WP2 POS</span>
           </Link>
         </div>
