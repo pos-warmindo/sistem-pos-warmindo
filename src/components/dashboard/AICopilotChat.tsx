@@ -141,7 +141,7 @@ const markdownComponents = {
 function AIAvatar() {
   return (
     <div className="w-7 h-7 rounded-full bg-white flex items-center justify-center shrink-0 shadow-sm border border-slate-200 overflow-hidden relative">
-      <Image src="/logo.png" alt="AI Logo" fill className="object-cover" />
+      <Image src="/logo.png" alt="AI Logo" fill sizes="64px" className="object-cover" />
     </div>
   );
 }
@@ -245,7 +245,7 @@ export function AICopilotChat() {
           className="h-14 w-14 rounded-full shadow-lg shadow-orange-300/40 bg-white hover:bg-slate-50 transition-all duration-200 p-0 border border-slate-200 relative overflow-hidden"
           aria-label="Buka WP2 Copilot"
         >
-          <Image src="/logo.png" alt="AI Logo" fill className="object-cover p-1" />
+          <Image src="/logo.png" alt="AI Logo" fill sizes="64px" className="object-cover p-1" />
         </Button>
       </motion.div>
     );
@@ -296,7 +296,7 @@ export function AICopilotChat() {
                     className="flex flex-col items-center pt-8 pb-4"
                   >
                     <div className="w-16 h-16 rounded-full bg-white border border-slate-200 flex items-center justify-center shadow-lg shadow-slate-200/50 mb-6 relative overflow-hidden">
-                      <Image src="/logo.png" alt="AI Logo" fill className="object-cover" />
+                      <Image src="/logo.png" alt="AI Logo" fill sizes="64px" className="object-cover" />
                     </div>
 
                     <h2 className="text-[20px] font-bold text-slate-800 mb-3 text-center tracking-tight">

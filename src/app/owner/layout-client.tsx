@@ -96,7 +96,7 @@ export default function OwnerLayoutClient({
         <div className="flex h-16 items-center px-6 border-b border-slate-100">
           <Link href="/owner/dashboard" className="flex items-center space-x-2">
             <div className="w-6 h-6 rounded-full overflow-hidden border border-slate-200 relative bg-white">
-              <Image src="/logo.png" alt="WP2 Logo" fill className="object-cover" />
+              <Image src="/logo.png" alt="WP2 Logo" fill sizes="32px" className="object-cover" />
             </div>
             <span className="text-md font-bold text-primary">WP2 POS Owner</span>
           </Link>
@@ -163,7 +163,7 @@ export default function OwnerLayoutClient({
         <header className="md:hidden flex h-16 items-center justify-between px-4 border-b border-slate-200 bg-white sticky top-0 z-10">
           <Link href="/owner/dashboard" className="flex items-center space-x-2">
             <div className="w-6 h-6 rounded-full overflow-hidden border border-slate-200 relative bg-white">
-              <Image src="/logo.png" alt="WP2 Logo" fill className="object-cover" />
+              <Image src="/logo.png" alt="WP2 Logo" fill sizes="32px" className="object-cover" />
             </div>
             <span className="text-lg font-bold text-primary">WP2 POS Owner</span>
           </Link>

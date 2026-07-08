@@ -131,7 +131,7 @@ export function AppNavbar({
               <SheetHeader className="space-y-2 border-b border-border pb-4">
                 <SheetTitle className="flex items-center gap-2 text-left text-lg">
                   <div className="w-6 h-6 rounded-full overflow-hidden border border-slate-200 relative bg-white">
-                    <Image src="/logo.png" alt="WP2 Logo" fill className="object-cover" />
+                    <Image src="/logo.png" alt="WP2 Logo" fill sizes="32px" className="object-cover" />
                   </div>
                   WP2 POS
                 </SheetTitle>
@@ -199,7 +199,7 @@ export function AppNavbar({
             aria-label="Beranda WP2 POS"
           >
             <div className="w-7 h-7 rounded-full overflow-hidden border border-slate-200 relative bg-white">
-              <Image src="/logo.png" alt="WP2 Logo" fill className="object-cover" />
+              <Image src="/logo.png" alt="WP2 Logo" fill sizes="32px" className="object-cover" />
             </div>
             <span>WP2 POS</span>
           </Link>
