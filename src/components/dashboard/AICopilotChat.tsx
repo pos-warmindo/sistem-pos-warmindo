@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useRef, useEffect } from "react";
+import Image from "next/image";
 import ReactMarkdown from "react-markdown";
 import { motion, AnimatePresence, Variants } from "framer-motion";
 import { Button } from "@/components/ui/button";
@@ -139,8 +140,8 @@ const markdownComponents = {
 // ─── Sub-Components ──────────────────────────────────────────────────────────
 function AIAvatar() {
   return (
-    <div className="w-7 h-7 rounded-full bg-gradient-to-br from-orange-500 to-orange-400 flex items-center justify-center shrink-0 shadow-sm shadow-orange-200/50">
-      <Sparkles className="w-3.5 h-3.5 text-white" />
+    <div className="w-7 h-7 rounded-full bg-white flex items-center justify-center shrink-0 shadow-sm border border-slate-200 overflow-hidden relative">
+      <Image src="/logo.png" alt="AI Logo" fill className="object-cover" />
     </div>
   );
 }
@@ -241,10 +242,10 @@ export function AICopilotChat() {
       >
         <Button
           onClick={() => setIsOpen(true)}
-          className="h-14 w-14 rounded-full shadow-lg shadow-orange-300/40 bg-gradient-to-br from-[#FF7A00] to-[#FFA94D] hover:from-[#e66e00] hover:to-[#ff9933] transition-all duration-200 p-0 border border-white/20"
+          className="h-14 w-14 rounded-full shadow-lg shadow-orange-300/40 bg-white hover:bg-slate-50 transition-all duration-200 p-0 border border-slate-200 relative overflow-hidden"
           aria-label="Buka WP2 Copilot"
         >
-          <Sparkles className="h-6 w-6 text-white" />
+          <Image src="/logo.png" alt="AI Logo" fill className="object-cover p-1" />
         </Button>
       </motion.div>
     );
@@ -294,8 +295,8 @@ export function AICopilotChat() {
                     animate="visible"
                     className="flex flex-col items-center pt-8 pb-4"
                   >
-                    <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-[#FF7A00] to-[#FFA94D] flex items-center justify-center shadow-lg shadow-orange-200/50 mb-6">
-                      <Sparkles className="w-8 h-8 text-white" />
+                    <div className="w-16 h-16 rounded-full bg-white border border-slate-200 flex items-center justify-center shadow-lg shadow-slate-200/50 mb-6 relative overflow-hidden">
+                      <Image src="/logo.png" alt="AI Logo" fill className="object-cover" />
                     </div>
 
                     <h2 className="text-[20px] font-bold text-slate-800 mb-3 text-center tracking-tight">
