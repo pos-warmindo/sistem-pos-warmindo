@@ -2,35 +2,172 @@
 
 import React, { useState, useRef, useEffect } from "react";
 import ReactMarkdown from "react-markdown";
+import { motion, AnimatePresence, Variants } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Bot, Send, Sparkles, User, X, Loader2, MessageSquareText } from "@/lib/icons";
+import {
+  Sparkles,
+  X,
+  Loader2,
+  TrendingUp,
+  Package,
+  Target,
+  ArrowUp,
+  DollarSign,
+  Brain,
+} from "@/lib/icons";
 import { cn } from "@/lib/utils";
 import { chatWithCopilot } from "@/app/actions/ai-chat";
 
+// ─── Types ───────────────────────────────────────────────────────────────────
 interface Message {
   role: "user" | "model";
   text: string;
 }
 
-const TEMPLATE_QUESTIONS = [
-  { label: "Rekap Pendapatan Bulanan", prompt: "Berikan rekap pendapatan bulanan saya." },
-  { label: "Rekap Total Penjualan", prompt: "Berikan rekap total penjualan hari ini." },
-  { label: "Rekap Stok Bahan", prompt: "Berikan rekap stok bahan baku saat ini." },
-  { label: "Rencana Target Besok", prompt: "Buatkan rencana target penjualan untuk besok." },
+// ─── Constants ───────────────────────────────────────────────────────────────
+const PRIMARY_ACTIONS = [
+  {
+    icon: TrendingUp,
+    label: "Analisis Penjualan",
+    prompt: "Tolong berikan analisis penjualan hari ini secara detail.",
+  },
+  {
+    icon: Package,
+    label: "Cek Stok",
+    prompt: "Bagaimana kondisi stok bahan baku saat ini? Apakah ada yang menipis?",
+  },
+  {
+    icon: DollarSign,
+    label: "Ringkasan Laba",
+    prompt: "Berikan ringkasan laba kotor untuk hari ini.",
+  },
+  {
+    icon: Target,
+    label: "Target Bisnis",
+    prompt: "Buatkan rencana dan target penjualan untuk besok.",
+  },
 ];
 
+const SUGGESTED_QUESTIONS = [
+  "Pendapatan Hari Ini",
+  "Produk Terlaris",
+  "Stok Menipis",
+  "Prediksi Besok",
+  "Laporan Mingguan",
+  "Analisis Profit",
+];
+
+// ─── Animation Variants ──────────────────────────────────────────────────────
+const panelVariants: Variants = {
+  hidden: { opacity: 0, y: 24, scale: 0.98 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    scale: 1,
+    transition: { type: "spring", stiffness: 400, damping: 30 },
+  },
+  exit: {
+    opacity: 0,
+    y: 16,
+    scale: 0.98,
+    transition: { duration: 0.15, ease: "easeIn" },
+  },
+};
+
+const messageVariants: Variants = {
+  hidden: { opacity: 0, y: 10 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: { type: "spring", stiffness: 400, damping: 28 },
+  },
+};
+
+const cardVariants: Variants = {
+  rest: { y: 0, boxShadow: "0px 1px 2px rgba(0,0,0,0.05)" },
+  hover: { y: -2, boxShadow: "0px 4px 12px rgba(0,0,0,0.08)", transition: { duration: 0.2 } },
+  tap: { y: 0, scale: 0.98 },
+};
+
+const pillVariants: Variants = {
+  rest: { scale: 1 },
+  hover: { scale: 1.02, transition: { duration: 0.2 } },
+  tap: { scale: 0.96 },
+};
+
+// ─── Markdown Components ─────────────────────────────────────────────────────
+const markdownComponents = {
+  strong: ({ children }: { children?: React.ReactNode }) => (
+    <strong className="font-semibold text-slate-900">{children}</strong>
+  ),
+  em: ({ children }: { children?: React.ReactNode }) => (
+    <em className="italic">{children}</em>
+  ),
+  p: ({ children }: { children?: React.ReactNode }) => (
+    <p className="mb-3 last:mb-0 leading-[1.6]">{children}</p>
+  ),
+  ul: ({ children }: { children?: React.ReactNode }) => (
+    <ul className="list-disc pl-5 mb-3 space-y-1.5">{children}</ul>
+  ),
+  ol: ({ children }: { children?: React.ReactNode }) => (
+    <ol className="list-decimal pl-5 mb-3 space-y-1.5">{children}</ol>
+  ),
+  li: ({ children }: { children?: React.ReactNode }) => (
+    <li className="leading-[1.6]">{children}</li>
+  ),
+  h1: ({ children }: { children?: React.ReactNode }) => (
+    <h1 className="font-bold text-lg mb-2 text-slate-900">{children}</h1>
+  ),
+  h2: ({ children }: { children?: React.ReactNode }) => (
+    <h2 className="font-bold text-base mb-2 text-slate-900">{children}</h2>
+  ),
+  h3: ({ children }: { children?: React.ReactNode }) => (
+    <h3 className="font-semibold text-sm mb-1 text-slate-800">{children}</h3>
+  ),
+  code: ({ children }: { children?: React.ReactNode }) => (
+    <code className="bg-slate-100 rounded px-1.5 py-0.5 text-[13px] font-mono text-orange-600 border border-slate-200/60">
+      {children}
+    </code>
+  ),
+  hr: () => <hr className="border-slate-200 my-4" />,
+};
+
+// ─── Sub-Components ──────────────────────────────────────────────────────────
+function AIAvatar() {
+  return (
+    <div className="w-7 h-7 rounded-full bg-gradient-to-br from-orange-500 to-orange-400 flex items-center justify-center shrink-0 shadow-sm shadow-orange-200/50">
+      <Sparkles className="w-3.5 h-3.5 text-white" />
+    </div>
+  );
+}
+
+function TypingIndicator() {
+  return (
+    <motion.div
+      variants={messageVariants}
+      initial="hidden"
+      animate="visible"
+      className="flex items-start gap-3 max-w-[75%] self-start"
+    >
+      <AIAvatar />
+      <div className="px-4 py-4 bg-white border border-slate-200 rounded-2xl flex items-center gap-1.5 shadow-sm">
+        <span className="w-1.5 h-1.5 bg-slate-300 rounded-full animate-bounce [animation-delay:-0.3s]" />
+        <span className="w-1.5 h-1.5 bg-slate-300 rounded-full animate-bounce [animation-delay:-0.15s]" />
+        <span className="w-1.5 h-1.5 bg-slate-300 rounded-full animate-bounce" />
+      </div>
+    </motion.div>
+  );
+}
+
+// ─── Main Component ──────────────────────────────────────────────────────────
 export function AICopilotChat() {
   const [isOpen, setIsOpen] = useState(false);
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      role: "model",
-      text: "Halo! Saya AI Business Insight Copilot. Ada yang ingin Anda tanyakan tentang performa penjualan atau stok bahan baku hari ini?",
-    },
-  ]);
+  // Start with empty state as requested so the Welcome Section shows first
+  const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -40,22 +177,23 @@ export function AICopilotChat() {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, isLoading]);
 
-  // Check if template questions should be shown (only when there's just the initial greeting)
-  const showTemplates = messages.length === 1 && messages[0].role === "model" && !isLoading;
+  const showWelcome = messages.length === 0 && !isLoading;
 
   const handleSendMessage = async (messageText: string) => {
     if (!messageText.trim() || isLoading) return;
 
     setInput("");
 
-    // Add user message to UI immediately
-    const updatedMessages: Message[] = [...messages, { role: "user", text: messageText.trim() }];
+    const updatedMessages: Message[] = [
+      ...messages,
+      { role: "user", text: messageText.trim() },
+    ];
     setMessages(updatedMessages);
     setIsLoading(true);
 
     try {
       const result = await chatWithCopilot(updatedMessages);
-      
+
       if (result.error) {
         setMessages((prev) => [
           ...prev,
@@ -67,10 +205,13 @@ export function AICopilotChat() {
           { role: "model", text: result.text || "" },
         ]);
       }
-    } catch (error) {
+    } catch {
       setMessages((prev) => [
         ...prev,
-        { role: "model", text: "[Error]: Terjadi kesalahan jaringan saat menghubungi AI." },
+        {
+          role: "model",
+          text: "[Error]: Terjadi kesalahan jaringan saat menghubungi AI.",
+        },
       ]);
     } finally {
       setIsLoading(false);
@@ -81,10 +222,6 @@ export function AICopilotChat() {
     await handleSendMessage(input);
   };
 
-  const handleTemplateClick = (prompt: string) => {
-    handleSendMessage(prompt);
-  };
-
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
@@ -92,178 +229,206 @@ export function AICopilotChat() {
     }
   };
 
+  // ─── FAB (closed state) ──────────────────────────────────────────────────
   if (!isOpen) {
     return (
-      <Button
-        onClick={() => setIsOpen(true)}
-        className="fixed bottom-24 right-4 md:bottom-10 md:right-10 h-14 w-14 rounded-full shadow-xl bg-orange-500 hover:bg-orange-600 transition-all duration-300 z-50 p-0"
+      <motion.div
+        className="fixed bottom-24 right-4 md:bottom-10 md:right-10 z-50"
+        initial={{ scale: 0 }}
+        animate={{ scale: 1 }}
+        whileHover={{ scale: 1.05 }}
+        whileTap={{ scale: 0.95 }}
       >
-        <Sparkles className="h-6 w-6 text-white" />
-      </Button>
+        <Button
+          onClick={() => setIsOpen(true)}
+          className="h-14 w-14 rounded-full shadow-lg shadow-orange-300/40 bg-gradient-to-br from-[#FF7A00] to-[#FFA94D] hover:from-[#e66e00] hover:to-[#ff9933] transition-all duration-200 p-0 border border-white/20"
+          aria-label="Buka WP2 Copilot"
+        >
+          <Sparkles className="h-6 w-6 text-white" />
+        </Button>
+      </motion.div>
     );
   }
 
+  // ─── Chat Panel (open state) ─────────────────────────────────────────────
   return (
-    <Card className="fixed bottom-20 right-4 md:bottom-8 md:right-8 w-[calc(100vw-2rem)] md:w-[400px] h-[500px] max-h-[calc(100vh-8rem)] shadow-2xl flex flex-col z-50 border-orange-200 overflow-hidden animate-in slide-in-from-bottom-5 fade-in duration-300 p-0 bg-slate-50">
-      <CardHeader className="bg-gradient-to-r from-orange-500 to-orange-400 p-4 text-white flex flex-row items-center justify-between space-y-0 rounded-t-lg">
-        <div className="flex items-center space-x-2">
-          <div className="bg-white/20 p-2 rounded-full">
-            <Bot className="h-5 w-5 text-white" />
-          </div>
-          <div>
-            <h3 className="font-semibold text-sm">WP2 AI Copilot</h3>
-            <p className="text-xs text-orange-100 opacity-90">Asisten Bisnis Anda</p>
-          </div>
-        </div>
-        <Button
-          variant="ghost"
-          size="icon"
-          className="text-white hover:bg-white/20 hover:text-white rounded-full h-8 w-8"
-          onClick={() => setIsOpen(false)}
-        >
-          <X className="h-5 w-5" />
-        </Button>
-      </CardHeader>
+    <AnimatePresence>
+      <motion.div
+        key="copilot-panel"
+        variants={panelVariants}
+        initial="hidden"
+        animate="visible"
+        exit="exit"
+        className="fixed bottom-20 right-4 md:bottom-8 md:right-8 z-50"
+      >
+        <Card className="w-[calc(100vw-2rem)] md:w-[440px] h-[600px] max-h-[calc(100vh-8rem)] shadow-2xl shadow-slate-900/10 flex flex-col border border-slate-200 overflow-hidden rounded-2xl p-0 bg-[#FAFAFA]">
+          {/* ── Header ────────────────────────────────────────────────── */}
+          <CardHeader className="bg-white h-[64px] px-5 py-5 border-b border-slate-200 flex flex-row items-center justify-between shrink-0">
+            <div className="flex items-center gap-3">
+              <div className="flex flex-col justify-center">
+                <h3 className="font-semibold text-[16px] text-slate-800 leading-none">
+                  Asisten Warmindo
+                </h3>
+              </div>
+            </div>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-full h-8 w-8 transition-colors duration-200"
+              onClick={() => setIsOpen(false)}
+              aria-label="Tutup chat"
+            >
+              <X className="h-4 w-4" />
+            </Button>
+          </CardHeader>
 
-      <CardContent className="flex-1 p-0 overflow-hidden relative bg-slate-50">
-        <ScrollArea className="h-full w-full p-4">
-          <div className="flex flex-col space-y-4 pb-4">
-            {messages.map((msg, idx) => (
-              <div
-                key={idx}
-                className={cn(
-                  "flex items-end space-x-2 max-w-[85%]",
-                  msg.role === "user" ? "self-end flex-row-reverse space-x-reverse" : "self-start"
+          {/* ── Chat Area ──────────────────────────────────────────────── */}
+          <CardContent className="flex-1 p-0 overflow-hidden relative">
+            <ScrollArea className="h-full w-full">
+              <div className="flex flex-col gap-5 p-5 pb-4">
+                {/* ── Welcome Area ── */}
+                {showWelcome && (
+                  <motion.div
+                    variants={messageVariants}
+                    initial="hidden"
+                    animate="visible"
+                    className="flex flex-col items-center pt-8 pb-4"
+                  >
+                    <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-[#FF7A00] to-[#FFA94D] flex items-center justify-center shadow-lg shadow-orange-200/50 mb-6">
+                      <Sparkles className="w-8 h-8 text-white" />
+                    </div>
+
+                    <h2 className="text-[20px] font-bold text-slate-800 mb-3 text-center tracking-tight">
+                      Perkenalkan Saya Asisten Warmindo
+                    </h2>
+
+                    <p className="text-[12px] text-slate-500 text-center leading-[1.6] max-w-[320px] mb-8">
+                      Saya siap membantu menganalisis penjualan, stok, laba, pelanggan, dan performa bisnis Anda.
+                    </p>
+
+
+                    {/* Suggested Questions */}
+                    <div className="w-full">
+                      <p className="text-[12px] font-bold text-slate-400 mb-3 tracking-wider">
+                        Coba Tanyakan
+                      </p>
+                      <div className="flex flex-wrap gap-2">
+                        {SUGGESTED_QUESTIONS.map((question, idx) => (
+                          <motion.button
+                            key={idx}
+                            variants={pillVariants}
+                            initial="rest"
+                            whileHover="hover"
+                            whileTap="tap"
+                            onClick={() => handleSendMessage(question)}
+                            className="px-3.5 py-2 text-[12px] font-medium text-slate-600 bg-white border border-slate-200 rounded-full hover:border-[#FF7A00] hover:text-[#FF7A00] transition-colors shadow-sm"
+                          >
+                            {question}
+                          </motion.button>
+                        ))}
+                      </div>
+                    </div>
+                  </motion.div>
                 )}
-              >
-                <Avatar className="w-8 h-8 shrink-0 border border-slate-200">
-                  {msg.role === "model" ? (
-                    <AvatarFallback className="bg-orange-100 text-orange-600"><Bot className="w-4 h-4"/></AvatarFallback>
-                  ) : (
-                    <AvatarFallback className="bg-slate-200 text-slate-700"><User className="w-4 h-4"/></AvatarFallback>
-                  )}
-                </Avatar>
-                
-                <div
-                  className={cn(
-                    "px-4 py-2.5 rounded-2xl text-sm shadow-sm",
-                    msg.role === "user"
-                      ? "bg-orange-500 text-white rounded-br-sm whitespace-pre-wrap"
-                      : "bg-white text-slate-800 border border-slate-100 rounded-bl-sm"
-                  )}
-                >
-                  {msg.role === "user" ? (
-                    msg.text
-                  ) : (
-                    <ReactMarkdown
-                      components={{
-                        // Bold
-                        strong: ({ children }) => (
-                          <strong className="font-semibold text-slate-900">{children}</strong>
-                        ),
-                        // Italic
-                        em: ({ children }) => (
-                          <em className="italic">{children}</em>
-                        ),
-                        // Paragraphs
-                        p: ({ children }) => (
-                          <p className="mb-1.5 last:mb-0 leading-relaxed">{children}</p>
-                        ),
-                        // Unordered list
-                        ul: ({ children }) => (
-                          <ul className="list-disc pl-4 mb-1.5 space-y-0.5">{children}</ul>
-                        ),
-                        // Ordered list
-                        ol: ({ children }) => (
-                          <ol className="list-decimal pl-4 mb-1.5 space-y-0.5">{children}</ol>
-                        ),
-                        li: ({ children }) => (
-                          <li className="leading-relaxed">{children}</li>
-                        ),
-                        // Headings
-                        h1: ({ children }) => (
-                          <h1 className="font-bold text-base mb-1 text-slate-900">{children}</h1>
-                        ),
-                        h2: ({ children }) => (
-                          <h2 className="font-bold text-sm mb-1 text-slate-900">{children}</h2>
-                        ),
-                        h3: ({ children }) => (
-                          <h3 className="font-semibold text-sm mb-0.5 text-slate-800">{children}</h3>
-                        ),
-                        // Code inline
-                        code: ({ children }) => (
-                          <code className="bg-slate-100 rounded px-1 py-0.5 text-xs font-mono text-orange-600">
-                            {children}
-                          </code>
-                        ),
-                        // Horizontal rule
-                        hr: () => <hr className="border-slate-200 my-2" />,
-                      }}
-                    >
-                      {msg.text}
-                    </ReactMarkdown>
-                  )}
-                </div>
-              </div>
-            ))}
 
-            {/* Template Quick Questions */}
-            {showTemplates && (
-              <div className="flex flex-col gap-2 mt-1 animate-in fade-in slide-in-from-bottom-2 duration-500">
-                <div className="grid grid-cols-2 gap-1.5">
-                  {TEMPLATE_QUESTIONS.map((tq, idx) => (
-                    <button
+                {/* ── Messages ── */}
+                <AnimatePresence mode="popLayout">
+                  {messages.map((msg, idx) => (
+                    <motion.div
                       key={idx}
-                      onClick={() => handleTemplateClick(tq.prompt)}
-                      className="text-left px-3 py-2.5 text-xs rounded-xl border border-orange-200 bg-white hover:bg-orange-50 hover:border-orange-300 text-slate-700 hover:text-orange-700 transition-all duration-200 shadow-sm hover:shadow cursor-pointer"
+                      variants={messageVariants}
+                      initial="hidden"
+                      animate="visible"
+                      layout
+                      className={cn(
+                        "flex items-start gap-3 max-w-[75%]",
+                        msg.role === "user"
+                          ? "self-end flex-row-reverse"
+                          : "self-start"
+                      )}
                     >
-                      {tq.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
-            
-            {isLoading && (
-              <div className="flex items-end space-x-2 max-w-[85%] self-start">
-                <Avatar className="w-8 h-8 shrink-0 border border-slate-200">
-                  <AvatarFallback className="bg-orange-100 text-orange-600"><Bot className="w-4 h-4"/></AvatarFallback>
-                </Avatar>
-                <div className="px-4 py-3 bg-white border border-slate-100 rounded-2xl rounded-bl-sm flex items-center space-x-1 shadow-sm">
-                  <div className="w-1.5 h-1.5 bg-orange-400 rounded-full animate-bounce [animation-delay:-0.3s]"></div>
-                  <div className="w-1.5 h-1.5 bg-orange-400 rounded-full animate-bounce [animation-delay:-0.15s]"></div>
-                  <div className="w-1.5 h-1.5 bg-orange-400 rounded-full animate-bounce"></div>
-                </div>
-              </div>
-            )}
-            <div ref={messagesEndRef} />
-          </div>
-        </ScrollArea>
-      </CardContent>
+                      {/* Avatar */}
+                      {msg.role === "model" ? (
+                        <AIAvatar />
+                      ) : (
+                        <Avatar className="w-7 h-7 shrink-0 ring-1 ring-orange-200 shadow-sm">
+                          <AvatarFallback className="bg-white text-[#FF7A00] text-[11px] font-bold">
+                            U
+                          </AvatarFallback>
+                        </Avatar>
+                      )}
 
-      <CardFooter className="p-3 bg-white border-t border-slate-100">
-        <form 
-          className="flex w-full items-center space-x-2"
-          onSubmit={(e) => { e.preventDefault(); handleSend(); }}
-        >
-          <Input
-            placeholder="Tanya soal performa penjualan..."
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyDown={handleKeyDown}
-            disabled={isLoading}
-            className="flex-1 rounded-full border-slate-200 focus-visible:ring-orange-500 bg-slate-50 pr-4"
-          />
-          <Button
-            type="submit"
-            size="icon"
-            disabled={!input.trim() || isLoading}
-            className="rounded-full bg-orange-500 hover:bg-orange-600 shrink-0 h-10 w-10 shadow-sm"
-          >
-            {isLoading ? <Loader2 className="h-4 w-4 animate-spin text-white" /> : <Send className="h-4 w-4 text-white" />}
-          </Button>
-        </form>
-      </CardFooter>
-    </Card>
+                      {/* Bubble */}
+                      <div
+                        className={cn(
+                          "px-4 py-3.5 rounded-2xl text-[15px] leading-[1.6] shadow-sm",
+                          msg.role === "user"
+                            ? "bg-[#FFF4ED] text-[#9a4a00] border border-[#FFE4CC] rounded-tr-sm whitespace-pre-wrap font-medium"
+                            : "bg-white text-[#1F2937] border border-slate-200 rounded-tl-sm"
+                        )}
+                      >
+                        {msg.role === "user" ? (
+                          msg.text
+                        ) : (
+                          <ReactMarkdown components={markdownComponents}>
+                            {msg.text}
+                          </ReactMarkdown>
+                        )}
+                      </div>
+                    </motion.div>
+                  ))}
+                </AnimatePresence>
+
+                {/* Typing Indicator */}
+                {isLoading && <TypingIndicator />}
+
+                <div ref={messagesEndRef} />
+              </div>
+            </ScrollArea>
+          </CardContent>
+
+          {/* ── Input Area ─────────────────────────────────────────────── */}
+          <CardFooter className="px-5 py-4 bg-[#FAFAFA] border-t border-slate-200 shrink-0">
+            <form
+              className="flex w-full items-center gap-2"
+              onSubmit={(e) => {
+                e.preventDefault();
+                handleSend();
+              }}
+            >
+              <Input
+                placeholder="Tanyakan penjualan, stok, laba..."
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                onKeyDown={handleKeyDown}
+                disabled={isLoading}
+                className="flex-1 h-12 rounded-full border-slate-300 bg-white text-[14px] placeholder:text-[#9CA3AF] focus-visible:ring-2 focus-visible:ring-[#FF7A00]/20 focus-visible:border-[#FF7A00] px-5 shadow-sm transition-all"
+                aria-label="Ketik pertanyaan"
+              />
+              <motion.div
+                variants={pillVariants}
+                initial="rest"
+                whileHover="hover"
+                whileTap="tap"
+              >
+                <Button
+                  type="submit"
+                  size="icon"
+                  disabled={!input.trim() || isLoading}
+                  className="rounded-full h-12 w-12 bg-gradient-to-br from-[#FF7A00] to-[#FFA94D] hover:from-[#e66e00] hover:to-[#ff9933] shadow-md shadow-orange-200 disabled:opacity-50 disabled:shadow-none transition-all"
+                  aria-label="Kirim pesan"
+                >
+                  {isLoading ? (
+                    <Loader2 className="h-5 w-5 animate-spin text-white" />
+                  ) : (
+                    <ArrowUp className="h-5 w-5 text-white" />
+                  )}
+                </Button>
+              </motion.div>
+            </form>
+          </CardFooter>
+        </Card>
+      </motion.div>
+    </AnimatePresence>
   );
 }

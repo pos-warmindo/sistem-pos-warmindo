@@ -241,7 +241,7 @@ INSTRUKSI:
       contents,
       config: {
         systemInstruction,
-        maxOutputTokens: 1024,
+          maxOutputTokens: 1024,
         temperature: 0.3,
       },
     });

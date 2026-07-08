@@ -47,4 +47,11 @@ export {
   Sparkles,
   MessageSquare,
   MessageSquareText,
+  BarChart3,
+  BarChart,
+  Target,
+  ArrowUp,
+  Zap,
+  Brain,
 } from "lucide-react";
+
