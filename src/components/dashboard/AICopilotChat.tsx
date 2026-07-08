@@ -104,7 +104,7 @@ export function AICopilotChat() {
   }
 
   return (
-    <Card className="fixed bottom-20 right-4 md:bottom-8 md:right-8 w-[calc(100vw-2rem)] md:w-[400px] h-[500px] max-h-[calc(100vh-8rem)] shadow-2xl flex flex-col z-50 border-orange-200 overflow-hidden animate-in slide-in-from-bottom-5 fade-in duration-300 p-0">
+    <Card className="fixed bottom-20 right-4 md:bottom-8 md:right-8 w-[calc(100vw-2rem)] md:w-[400px] h-[500px] max-h-[calc(100vh-8rem)] shadow-2xl flex flex-col z-50 border-orange-200 overflow-hidden animate-in slide-in-from-bottom-5 fade-in duration-300 p-0 bg-slate-50">
       <CardHeader className="bg-gradient-to-r from-orange-500 to-orange-400 p-4 text-white flex flex-row items-center justify-between space-y-0 rounded-t-lg">
         <div className="flex items-center space-x-2">
           <div className="bg-white/20 p-2 rounded-full">
