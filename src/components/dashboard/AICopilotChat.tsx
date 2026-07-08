@@ -7,7 +7,7 @@ import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card"
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Bot, Send, Sparkles, User, X, Loader2 } from "@/lib/icons";
+import { Bot, Send, Sparkles, User, X, Loader2, MessageSquareText } from "@/lib/icons";
 import { cn } from "@/lib/utils";
 import { chatWithCopilot } from "@/app/actions/ai-chat";
 
@@ -15,6 +15,13 @@ interface Message {
   role: "user" | "model";
   text: string;
 }
+
+const TEMPLATE_QUESTIONS = [
+  { label: "Rekap Pendapatan Bulanan", prompt: "Berikan rekap pendapatan bulanan saya." },
+  { label: "Rekap Total Penjualan", prompt: "Berikan rekap total penjualan hari ini." },
+  { label: "Rekap Stok Bahan", prompt: "Berikan rekap stok bahan baku saat ini." },
+  { label: "Rencana Target Besok", prompt: "Buatkan rencana target penjualan untuk besok." },
+];
 
 export function AICopilotChat() {
   const [isOpen, setIsOpen] = useState(false);
@@ -33,14 +40,16 @@ export function AICopilotChat() {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, isLoading]);
 
-  const handleSend = async () => {
-    if (!input.trim() || isLoading) return;
+  // Check if template questions should be shown (only when there's just the initial greeting)
+  const showTemplates = messages.length === 1 && messages[0].role === "model" && !isLoading;
 
-    const userMessage = input.trim();
+  const handleSendMessage = async (messageText: string) => {
+    if (!messageText.trim() || isLoading) return;
+
     setInput("");
-    
+
     // Add user message to UI immediately
-    const updatedMessages: Message[] = [...messages, { role: "user", text: userMessage }];
+    const updatedMessages: Message[] = [...messages, { role: "user", text: messageText.trim() }];
     setMessages(updatedMessages);
     setIsLoading(true);
 
@@ -66,6 +75,14 @@ export function AICopilotChat() {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleSend = async () => {
+    await handleSendMessage(input);
+  };
+
+  const handleTemplateClick = (prompt: string) => {
+    handleSendMessage(prompt);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -189,6 +206,27 @@ export function AICopilotChat() {
                 </div>
               </div>
             ))}
+
+            {/* Template Quick Questions */}
+            {showTemplates && (
+              <div className="flex flex-col gap-2 mt-1 animate-in fade-in slide-in-from-bottom-2 duration-500">
+                <div className="flex items-center gap-1.5 text-xs text-slate-400 px-1">
+                  <MessageSquareText className="w-3.5 h-3.5" />
+                  <span>Pertanyaan yang sering ditanyakan</span>
+                </div>
+                <div className="grid grid-cols-1 gap-1.5">
+                  {TEMPLATE_QUESTIONS.map((tq, idx) => (
+                    <button
+                      key={idx}
+                      onClick={() => handleTemplateClick(tq.prompt)}
+                      className="text-left px-3 py-2.5 text-sm rounded-xl border border-orange-200 bg-white hover:bg-orange-50 hover:border-orange-300 text-slate-700 hover:text-orange-700 transition-all duration-200 shadow-sm hover:shadow cursor-pointer"
+                    >
+                      {tq.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
             
             {isLoading && (
               <div className="flex items-end space-x-2 max-w-[85%] self-start">

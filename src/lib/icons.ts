@@ -46,4 +46,5 @@ export {
   Send,
   Sparkles,
   MessageSquare,
+  MessageSquareText,
 } from "lucide-react";
