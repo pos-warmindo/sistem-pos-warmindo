@@ -210,16 +210,12 @@ export function AICopilotChat() {
             {/* Template Quick Questions */}
             {showTemplates && (
               <div className="flex flex-col gap-2 mt-1 animate-in fade-in slide-in-from-bottom-2 duration-500">
-                <div className="flex items-center gap-1.5 text-xs text-slate-400 px-1">
-                  <MessageSquareText className="w-3.5 h-3.5" />
-                  <span>Pertanyaan yang sering ditanyakan</span>
-                </div>
-                <div className="grid grid-cols-1 gap-1.5">
+                <div className="grid grid-cols-2 gap-1.5">
                   {TEMPLATE_QUESTIONS.map((tq, idx) => (
                     <button
                       key={idx}
                       onClick={() => handleTemplateClick(tq.prompt)}
-                      className="text-left px-3 py-2.5 text-sm rounded-xl border border-orange-200 bg-white hover:bg-orange-50 hover:border-orange-300 text-slate-700 hover:text-orange-700 transition-all duration-200 shadow-sm hover:shadow cursor-pointer"
+                      className="text-left px-3 py-2.5 text-xs rounded-xl border border-orange-200 bg-white hover:bg-orange-50 hover:border-orange-300 text-slate-700 hover:text-orange-700 transition-all duration-200 shadow-sm hover:shadow cursor-pointer"
                     >
                       {tq.label}
                     </button>
