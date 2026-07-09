@@ -57,8 +57,7 @@ export async function POST(request: NextRequest) {
     if (phone        !== undefined) profileUpdates.phone        = phone.trim()        || null;
 
     if (Object.keys(profileUpdates).length > 0) {
-      const { error: profileError } = await admin
-        .from("users")
+      const { error: profileError } = await (admin.from("users") as any)
         .update(profileUpdates)
         .eq("id", user_id);
 
@@ -72,8 +71,7 @@ export async function POST(request: NextRequest) {
 
     // 4. Update role if provided
     if (role) {
-      const { data: roleRow, error: roleErr } = await admin
-        .from("roles")
+      const { data: roleRow, error: roleErr } = await (admin.from("roles") as any)
         .select("id")
         .eq("name", role)
         .single();
@@ -83,10 +81,9 @@ export async function POST(request: NextRequest) {
       }
 
       // Upsert user_roles (delete old + insert new)
-      await admin.from("user_roles").delete().eq("user_id", user_id);
+      await (admin.from("user_roles") as any).delete().eq("user_id", user_id);
 
-      const { error: userRoleError } = await admin
-        .from("user_roles")
+      const { error: userRoleError } = await (admin.from("user_roles") as any)
         .insert({ user_id, role_id: roleRow.id });
 
       if (userRoleError) {
@@ -98,8 +95,7 @@ export async function POST(request: NextRequest) {
     }
 
     // 5. Return updated user data
-    const { data: updatedUser } = await admin
-      .from("users")
+    const { data: updatedUser } = await (admin.from("users") as any)
       .select("id, display_name, phone")
       .eq("id", user_id)
       .single();

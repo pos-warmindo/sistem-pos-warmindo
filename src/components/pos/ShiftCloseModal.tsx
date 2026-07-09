@@ -69,7 +69,7 @@ export default function ShiftCloseModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-lg">
+      <DialogContent className="sm:max-w-lg max-h-[90dvh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-heading text-xl font-bold">
             <Banknote className="size-6 text-primary" />

@@ -140,7 +140,7 @@ export function AppNavbar({
                 </SheetDescription>
               </SheetHeader>
 
-              <nav className="flex flex-col gap-2 py-4 flex-1 overflow-y-auto" aria-label="Navigasi mobile">
+              <nav className="flex flex-col gap-2 px-4 py-4 flex-1 overflow-y-auto" aria-label="Navigasi mobile">
                 {navigationItems.map((item) => {
                   const isActive = pathname === item.href
                   const Icon = item.icon
@@ -164,7 +164,7 @@ export function AppNavbar({
                 })}
               </nav>
 
-              <div className="mt-auto border-t border-border pt-4 space-y-4">
+              <div className="mt-auto border-t border-border p-4 space-y-4">
                 <div className="flex items-center gap-3">
                   <User className="size-5 text-muted-foreground" />
                   <div className="flex-1 min-w-0">

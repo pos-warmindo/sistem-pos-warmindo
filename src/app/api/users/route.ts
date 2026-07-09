@@ -60,7 +60,7 @@ export async function GET(request: NextRequest) {
     }
 
     // 4. Map emails and role names
-    const mappedUsers = publicUsers.map((pu) => {
+    const mappedUsers = (publicUsers as any[]).map((pu) => {
       const au = authUsers.find((u) => u.id === pu.id);
       
       const rolesArray = pu.user_roles as any;
