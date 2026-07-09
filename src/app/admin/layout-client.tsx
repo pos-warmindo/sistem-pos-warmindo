@@ -170,7 +170,7 @@ export default function AdminLayoutClient({
               href={item.href}
               className={cn(
                 "flex flex-col items-center justify-center flex-1 py-1 rounded-md transition-all duration-200",
-                isActive ? "text-blue-500" : "text-slate-500 hover:text-slate-900"
+                isActive ? "text-primary" : "text-slate-500 hover:text-slate-900"
               )}
             >
               <item.icon className="h-5 w-5 mb-1" />
