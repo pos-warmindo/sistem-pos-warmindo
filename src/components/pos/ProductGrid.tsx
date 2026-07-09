@@ -23,7 +23,7 @@ export default function ProductGrid({
 }: ProductGridProps) {
   if (isLoading) {
     return (
-      <div className="grid grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-3 p-4">
+      <div className="grid grid-cols-3 md:grid-cols-6 lg:grid-cols-8 gap-3 p-4 w-full max-w-full">
         {Array.from({ length: 12 }).map((_, i) => (
           <div key={i} className="flex flex-col gap-2">
             <Skeleton className="w-full aspect-square rounded-lg" />
@@ -53,7 +53,7 @@ export default function ProductGrid({
   }
 
   return (
-    <div className="grid grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-3 p-4">
+    <div className="grid grid-cols-3 md:grid-cols-6 lg:grid-cols-8 gap-3 p-4 w-full max-w-full">
       {filteredProducts
         .sort((a, b) => a.sort_order - b.sort_order)
         .map((product) => {

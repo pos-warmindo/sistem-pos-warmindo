@@ -67,9 +67,9 @@ export default function AdminLayoutClient({
   };
 
   const navItems: NavigationItem[] = [
-    { name: "Menu",    href: "/admin/menu",       icon: UtensilsCrossed },
-    { name: "Stok",    href: "/admin/stok",        icon: Package },
-    { name: "Kelola User", href: "/admin/users",   icon: Users },
+    { name: "Menu", href: "/admin/menu", icon: UtensilsCrossed },
+    { name: "Stok", href: "/admin/stok", icon: Package },
+    { name: "Kelola User", href: "/admin/users", icon: Users },
   ];
 
   return (

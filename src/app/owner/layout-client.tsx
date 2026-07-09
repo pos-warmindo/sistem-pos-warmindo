@@ -36,7 +36,7 @@ export default function OwnerLayoutClient({
 
   const [ownerName, setOwnerName] = useState<string>("Owner");
   const [ownerEmail, setOwnerEmail] = useState<string>("");
-  const [userRole, setUserRole]   = useState<string>("");
+  const [userRole, setUserRole] = useState<string>("");
 
   useEffect(() => {
     async function getOwnerProfile() {
@@ -77,11 +77,11 @@ export default function OwnerLayoutClient({
 
   // owner: semua nav | admin: hanya menu/stok/users
   const allNavItems: NavigationItem[] = [
-    { name: "Beranda",     href: "/owner/dashboard", icon: Home,           ownerOnly: true  },
-    { name: "Menu",        href: "/owner/menu",       icon: UtensilsCrossed, ownerOnly: false },
-    { name: "Stok",        href: "/owner/stok",       icon: Package,        ownerOnly: false },
-    { name: "Kelola User", href: "/owner/users",      icon: Users,          ownerOnly: false },
-    { name: "Laporan",     href: "/owner/laporan",    icon: FileText,       ownerOnly: true  },
+    { name: "Beranda", href: "/owner/dashboard", icon: Home, ownerOnly: true },
+    { name: "Menu", href: "/owner/menu", icon: UtensilsCrossed, ownerOnly: false },
+    { name: "Stok", href: "/owner/stok", icon: Package, ownerOnly: false },
+    { name: "Kelola User", href: "/owner/users", icon: Users, ownerOnly: false },
+    { name: "Laporan", href: "/owner/laporan", icon: FileText, ownerOnly: true },
   ];
 
   const navItems = allNavItems.filter(

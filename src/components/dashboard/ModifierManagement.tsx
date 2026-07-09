@@ -148,11 +148,11 @@ export default function ModifierManagement() {
   const openEditDialog = (m: Modifier) => {
     setEditingModifier(m);
     setForm({
-      product_id:     m.product_id,
+      product_id: m.product_id,
       modifier_group: m.modifier_group,
-      modifier_name:  m.modifier_name,
-      price_delta:    String(m.price_delta),
-      is_active:      m.is_active,
+      modifier_name: m.modifier_name,
+      price_delta: String(m.price_delta),
+      is_active: m.is_active,
     });
     setDialogOpen(true);
   };
@@ -327,7 +327,7 @@ export default function ModifierManagement() {
               >
                 <ChevronLeft className="size-5" />
               </button>
-              
+
               <div className="flex items-center gap-3">
                 <div className="relative size-12 bg-slate-50 rounded-lg overflow-hidden shrink-0 flex items-center justify-center border border-slate-100">
                   {selectedProduct.image_url ? (
