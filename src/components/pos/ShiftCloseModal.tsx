@@ -147,11 +147,10 @@ export default function ShiftCloseModal({
             {/* Variance indicator */}
             {cashCountedStr !== "" && (
               <div
-                className={`flex items-start gap-2.5 rounded-lg border p-3.5 text-sm ${
-                  variance >= 0
+                className={`flex items-start gap-2.5 rounded-lg border p-3.5 text-sm ${variance >= 0
                     ? "bg-emerald-50 border-emerald-100 text-emerald-800"
                     : "bg-rose-50 border-rose-100 text-rose-800"
-                }`}
+                  }`}
               >
                 {variance >= 0 ? (
                   <CheckCircle className="size-5 text-emerald-600 shrink-0 mt-0.5" />
@@ -163,15 +162,15 @@ export default function ShiftCloseModal({
                     {variance === 0
                       ? "Saldo sesuai (Ekspektasi Kas Cocok)"
                       : variance > 0
-                      ? `Kelebihan Kas: +${formatRupiah(variance)}`
-                      : `Selisih Kurang: ${formatRupiah(variance)}`}
+                        ? `Kelebihan Kas: +${formatRupiah(variance)}`
+                        : `Selisih Kurang: ${formatRupiah(variance)}`}
                   </p>
                   <p className={`text-xs mt-0.5 ${variance >= 0 ? "text-emerald-600/90" : "text-rose-600/90"}`}>
                     {variance === 0
                       ? "Jumlah fisik yang dihitung persis sama dengan ekspektasi sistem."
                       : variance > 0
-                      ? "Terdapat sisa uang kas lebih di laci kasir."
-                      : "Uang kas fisik kurang dari ekspektasi sistem. Pastikan alasan dicatat di bawah."}
+                        ? "Terdapat sisa uang kas lebih di laci kasir."
+                        : "Uang kas fisik kurang dari ekspektasi sistem. Pastikan alasan dicatat di bawah."}
                   </p>
                 </div>
               </div>

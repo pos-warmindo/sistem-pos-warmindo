@@ -259,53 +259,45 @@ export default function UserManagement() {
             Belum ada user terdaftar.
           </div>
         ) : (
-          <table className="w-full text-sm">
-            <thead className="bg-slate-50 border-b border-slate-100">
-              <tr>
-                <th className="text-left px-4 py-3 font-semibold text-slate-600">Nama</th>
-                <th className="text-left px-4 py-3 font-semibold text-slate-600">Email</th>
-                <th className="text-center px-4 py-3 font-semibold text-slate-600">No. Telepon</th>
-                <th className="text-center px-4 py-3 font-semibold text-slate-600">Role</th>
-                <th className="text-center px-4 py-3 font-semibold text-slate-600">Tanggal Dibuat</th>
-                <th className="text-right px-4 py-3 font-semibold text-slate-600">Aksi</th>
-              </tr>
-            </thead>
-            <tbody>
-              {users.map((user, idx) => (
-                <tr
-                  key={user.id}
-                  className={idx % 2 === 0 ? "bg-white" : "bg-slate-50/50"}
-                >
-                  <td className="px-4 py-3 font-medium text-slate-800">
-                    {user.display_name}
-                    {currentUser && user.id === currentUser.id && (
-                      <span className="text-[10px] bg-slate-100 text-slate-500 rounded-full px-2 py-0.5 ml-2 font-normal">
-                        Anda
-                      </span>
-                    )}
-                  </td>
-                  <td className="px-4 py-3 text-slate-500 font-mono text-xs">{user.email || "-"}</td>
-                  <td className="px-4 py-3 text-center text-slate-500 font-mono text-xs">{user.phone || "-"}</td>
-                  <td className="px-4 py-3 text-center">
-                    {user.role === "owner" ? (
-                      <Badge className="bg-orange-100 text-orange-700 hover:bg-orange-100 border-orange-200 font-semibold gap-1">
-                        Owner
-                      </Badge>
-                    ) : user.role === "admin" ? (
-                      <Badge className="bg-purple-100 text-purple-700 hover:bg-purple-100 border-purple-200 font-semibold">
-                        Admin
-                      </Badge>
-                    ) : (
-                      <Badge className="bg-blue-100 text-blue-700 hover:bg-blue-100 border-blue-200 font-semibold">
-                        Cashier
-                      </Badge>
-                    )}
-                  </td>
-                  <td className="px-4 py-3 text-center text-slate-500 text-xs">
-                    {formatDate(user.created_at)}
-                  </td>
-                  <td className="px-4 py-3 text-right">
-                    <div className="flex items-center justify-end gap-2">
+          <>
+            {/* Mobile Card View */}
+            <div className="md:hidden divide-y divide-slate-100">
+              {users.map((user) => (
+                <div key={user.id} className="p-4 space-y-3">
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="min-w-0">
+                      <p className="font-semibold text-slate-800 truncate">
+                        {user.display_name}
+                        {currentUser && user.id === currentUser.id && (
+                          <span className="text-[10px] bg-slate-100 text-slate-500 rounded-full px-2 py-0.5 ml-2 font-normal">
+                            Anda
+                          </span>
+                        )}
+                      </p>
+                      <p className="text-xs text-slate-500 font-mono truncate mt-0.5">{user.email || "-"}</p>
+                    </div>
+                    <div className="shrink-0">
+                      {user.role === "owner" ? (
+                        <Badge className="bg-orange-100 text-orange-700 hover:bg-orange-100 border-orange-200 font-semibold">
+                          Owner
+                        </Badge>
+                      ) : user.role === "admin" ? (
+                        <Badge className="bg-purple-100 text-purple-700 hover:bg-purple-100 border-purple-200 font-semibold">
+                          Admin
+                        </Badge>
+                      ) : (
+                        <Badge className="bg-blue-100 text-blue-700 hover:bg-blue-100 border-blue-200 font-semibold">
+                          Cashier
+                        </Badge>
+                      )}
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-between text-xs text-slate-500">
+                    <div className="space-y-0.5">
+                      <p> {user.phone || "-"}</p>
+                      <p> {formatDate(user.created_at)}</p>
+                    </div>
+                    <div className="flex items-center gap-2">
                       <Button
                         size="sm"
                         variant="outline"
@@ -326,11 +318,85 @@ export default function UserManagement() {
                         <Trash className="size-3.5" />
                       </Button>
                     </div>
-                  </td>
-                </tr>
+                  </div>
+                </div>
               ))}
-            </tbody>
-          </table>
+            </div>
+
+            {/* Desktop Table View */}
+            <table className="hidden md:table w-full text-sm">
+              <thead className="bg-slate-50 border-b border-slate-100">
+                <tr>
+                  <th className="text-left px-4 py-3 font-semibold text-slate-600">Nama</th>
+                  <th className="text-left px-4 py-3 font-semibold text-slate-600">Email</th>
+                  <th className="text-center px-4 py-3 font-semibold text-slate-600">No. Telepon</th>
+                  <th className="text-center px-4 py-3 font-semibold text-slate-600">Role</th>
+                  <th className="text-center px-4 py-3 font-semibold text-slate-600">Tanggal Dibuat</th>
+                  <th className="text-right px-4 py-3 font-semibold text-slate-600">Aksi</th>
+                </tr>
+              </thead>
+              <tbody>
+                {users.map((user, idx) => (
+                  <tr
+                    key={user.id}
+                    className={idx % 2 === 0 ? "bg-white" : "bg-slate-50/50"}
+                  >
+                    <td className="px-4 py-3 font-medium text-slate-800">
+                      {user.display_name}
+                      {currentUser && user.id === currentUser.id && (
+                        <span className="text-[10px] bg-slate-100 text-slate-500 rounded-full px-2 py-0.5 ml-2 font-normal">
+                          Anda
+                        </span>
+                      )}
+                    </td>
+                    <td className="px-4 py-3 text-slate-500 font-mono text-xs">{user.email || "-"}</td>
+                    <td className="px-4 py-3 text-center text-slate-500 font-mono text-xs">{user.phone || "-"}</td>
+                    <td className="px-4 py-3 text-center">
+                      {user.role === "owner" ? (
+                        <Badge className="bg-orange-100 text-orange-700 hover:bg-orange-100 border-orange-200 font-semibold gap-1">
+                          Owner
+                        </Badge>
+                      ) : user.role === "admin" ? (
+                        <Badge className="bg-purple-100 text-purple-700 hover:bg-purple-100 border-purple-200 font-semibold">
+                          Admin
+                        </Badge>
+                      ) : (
+                        <Badge className="bg-blue-100 text-blue-700 hover:bg-blue-100 border-blue-200 font-semibold">
+                          Cashier
+                        </Badge>
+                      )}
+                    </td>
+                    <td className="px-4 py-3 text-center text-slate-500 text-xs">
+                      {formatDate(user.created_at)}
+                    </td>
+                    <td className="px-4 py-3 text-right">
+                      <div className="flex items-center justify-end gap-2">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => openEditDialog(user)}
+                          className="h-8 w-8 p-0 rounded-lg border-slate-200"
+                          title="Edit User"
+                        >
+                          <Pencil className="size-3.5" />
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => openDeleteDialog(user)}
+                          disabled={currentUserRole === "admin" || (currentUser && user.id === currentUser.id)}
+                          className="h-8 w-8 p-0 rounded-lg border-red-200 text-red-500 hover:bg-red-50 hover:text-red-600 disabled:opacity-50"
+                          title={currentUserRole === "admin" ? "Role Admin tidak diizinkan menghapus user" : "Hapus User"}
+                        >
+                          <Trash className="size-3.5" />
+                        </Button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </>
         )}
       </div>
 
