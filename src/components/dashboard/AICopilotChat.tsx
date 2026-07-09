@@ -178,7 +178,6 @@ export function AICopilotChat() {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, isLoading]);
 
-  const showWelcome = messages.length === 0 && !isLoading;
 
   const handleSendMessage = async (messageText: string) => {
     if (!messageText.trim() || isLoading) return;
@@ -288,7 +287,7 @@ export function AICopilotChat() {
             <ScrollArea className="h-full w-full">
               <div className="flex flex-col gap-5 p-5 pb-4">
                 {/* ── Welcome Area ── */}
-                {showWelcome && (
+                {messages.length === 0 && (
                   <motion.div
                     variants={messageVariants}
                     initial="hidden"
@@ -306,7 +305,6 @@ export function AICopilotChat() {
                     <p className="text-[12px] text-slate-500 text-center leading-[1.6] max-w-[320px] mb-8">
                       Saya siap membantu menganalisis penjualan, stok, laba, pelanggan, dan performa bisnis Anda.
                     </p>
-
 
                     {/* Suggested Questions */}
                     <div className="w-full">
@@ -333,14 +331,13 @@ export function AICopilotChat() {
                 )}
 
                 {/* ── Messages ── */}
-                <AnimatePresence mode="popLayout">
+                <AnimatePresence>
                   {messages.map((msg, idx) => (
                     <motion.div
                       key={idx}
                       variants={messageVariants}
                       initial="hidden"
                       animate="visible"
-                      layout
                       className={cn(
                         "flex items-start gap-3 max-w-[75%]",
                         msg.role === "user"
@@ -382,6 +379,30 @@ export function AICopilotChat() {
 
                 {/* Typing Indicator */}
                 {isLoading && <TypingIndicator />}
+
+                {/* Suggested Questions below messages */}
+                {messages.length > 0 && (
+                  <div className="w-full pt-2">
+                    <p className="text-[12px] font-bold text-slate-400 mb-3 tracking-wider">
+                      Coba Tanyakan
+                    </p>
+                    <div className="flex flex-wrap gap-2">
+                      {SUGGESTED_QUESTIONS.map((question, idx) => (
+                        <motion.button
+                          key={idx}
+                          variants={pillVariants}
+                          initial="rest"
+                          whileHover="hover"
+                          whileTap="tap"
+                          onClick={() => handleSendMessage(question)}
+                          className="px-3.5 py-2 text-[12px] font-medium text-slate-600 bg-white border border-slate-200 rounded-full hover:border-[#FF7A00] hover:text-[#FF7A00] transition-colors shadow-sm"
+                        >
+                          {question}
+                        </motion.button>
+                      ))}
+                    </div>
+                  </div>
+                )}
 
                 <div ref={messagesEndRef} />
               </div>
