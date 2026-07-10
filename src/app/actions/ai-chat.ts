@@ -6,21 +6,57 @@ import { createClient } from "@/lib/supabase/server";
 import { formatRupiah } from "@/lib/utils/format";
 
 // ── Helper: format date to WIB ISO string ──────────────────────
-function toWIB(date: Date): string {
-  return date.toISOString();
+function getWIBDateString(date: Date): string {
+  const formatter = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Asia/Jakarta",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit"
+  });
+  return formatter.format(date);
 }
 
-function startOf(unit: "day" | "week" | "month", offsetDays = 0): string {
-  const d = new Date();
-  d.setHours(0, 0, 0, 0);
-  if (unit === "week") {
-    const day = d.getDay();
-    d.setDate(d.getDate() - day); // Sunday start
-  } else if (unit === "month") {
-    d.setDate(1);
+function getWIBRange(offsetDaysStart: number, offsetDaysEnd = 0): { fromTs: string; toTs: string } {
+  const now = new Date();
+  
+  const startDate = new Date(now);
+  startDate.setDate(startDate.getDate() - offsetDaysStart);
+  
+  const endDate = new Date(now);
+  endDate.setDate(endDate.getDate() - offsetDaysEnd);
+  
+  const fromDateStr = getWIBDateString(startDate);
+  const toDateStr = getWIBDateString(endDate);
+  
+  return {
+    fromTs: `${fromDateStr}T00:00:00+07:00`,
+    toTs: `${toDateStr}T23:59:59+07:00`
+  };
+}
+
+function getWIBMonthRange(offsetMonth = 0): { fromTs: string; toTs: string } {
+  const now = new Date();
+  
+  const wibStr = now.toLocaleString("en-US", { timeZone: "Asia/Jakarta" });
+  const wibDate = new Date(wibStr);
+  
+  const targetYear = wibDate.getMonth() - offsetMonth < 0 ? wibDate.getFullYear() - 1 : wibDate.getFullYear();
+  const targetMonth = wibDate.getMonth() - offsetMonth < 0 ? 12 + (wibDate.getMonth() - offsetMonth) : wibDate.getMonth() - offsetMonth;
+  
+  const fromDateStr = `${targetYear}-${String(targetMonth + 1).padStart(2, "0")}-01`;
+  
+  let toDateStr: string;
+  if (offsetMonth === 0) {
+    toDateStr = getWIBDateString(now);
+  } else {
+    const lastDay = new Date(targetYear, targetMonth + 1, 0).getDate();
+    toDateStr = `${targetYear}-${String(targetMonth + 1).padStart(2, "0")}-${String(lastDay).padStart(2, "0")}`;
   }
-  if (offsetDays) d.setDate(d.getDate() - offsetDays);
-  return toWIB(d);
+  
+  return {
+    fromTs: `${fromDateStr}T00:00:00+07:00`,
+    toTs: `${toDateStr}T23:59:59+07:00`
+  };
 }
 
 export async function chatWithCopilot(
@@ -36,6 +72,12 @@ export async function chatWithCopilot(
     const supabase = await createClient();
     const now = new Date();
 
+    // Calculate exact ranges
+    const todayRange = getWIBRange(0, 0);
+    const last7Range = getWIBRange(6, 0);
+    const thisMonthRange = getWIBMonthRange(0);
+    const lastMonthRange = getWIBMonthRange(1);
+
     // ── 2. Ambil data real-time dari Supabase ──────────────────
 
     // Pendapatan hari ini
@@ -43,7 +85,8 @@ export async function chatWithCopilot(
       .from("orders")
       .select("total_amount, payment_method, created_at")
       .eq("status", "PAID")
-      .gte("created_at", startOf("day"));
+      .gte("created_at", todayRange.fromTs)
+      .lte("created_at", todayRange.toTs);
 
     const todayRevenue = todayOrders?.reduce((s, o) => s + o.total_amount, 0) ?? 0;
     const todayCount   = todayOrders?.length ?? 0;
@@ -51,9 +94,10 @@ export async function chatWithCopilot(
     // Pendapatan 7 hari terakhir
     const { data: last7Orders } = await supabase
       .from("orders")
-      .select("total_amount, payment_method, created_at")
+      .select("id, total_amount, payment_method, created_at")
       .eq("status", "PAID")
-      .gte("created_at", startOf("day", 6));
+      .gte("created_at", last7Range.fromTs)
+      .lte("created_at", last7Range.toTs);
 
     const last7Revenue = last7Orders?.reduce((s, o) => s + o.total_amount, 0) ?? 0;
     const last7Count   = last7Orders?.length ?? 0;
@@ -64,22 +108,20 @@ export async function chatWithCopilot(
       .from("orders")
       .select("total_amount, payment_method, created_at")
       .eq("status", "PAID")
-      .gte("created_at", startOf("month"));
+      .gte("created_at", thisMonthRange.fromTs)
+      .lte("created_at", thisMonthRange.toTs);
 
     const monthRevenue = monthOrders?.reduce((s, o) => s + o.total_amount, 0) ?? 0;
     const monthCount   = monthOrders?.length ?? 0;
     const monthAvg     = monthCount > 0 ? Math.round(monthRevenue / monthCount) : 0;
 
     // Pendapatan bulan lalu
-    const lastMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-    const thisMonthStart = new Date(now.getFullYear(), now.getMonth(), 1);
-
     const { data: lastMonthOrders } = await supabase
       .from("orders")
       .select("total_amount")
       .eq("status", "PAID")
-      .gte("created_at", toWIB(lastMonthStart))
-      .lt("created_at", toWIB(thisMonthStart));
+      .gte("created_at", lastMonthRange.fromTs)
+      .lte("created_at", lastMonthRange.toTs);
 
     const lastMonthRevenue = lastMonthOrders?.reduce((s, o) => s + o.total_amount, 0) ?? 0;
     const lastMonthCount   = lastMonthOrders?.length ?? 0;
@@ -98,34 +140,37 @@ export async function chatWithCopilot(
 
     // Produk terlaris (7 hari) — join order_items
     const orderIds7 = last7Orders?.map((o: any) => o.id).filter(Boolean) ?? [];
-    let topProductsText = "Belum ada data";
+    let topProductsText = "Belum ada data mengenai produk terlaris untuk periode 7 hari terakhir.";
+    
     if (orderIds7.length > 0) {
-      // Ambil order IDs yang valid dari orders 7 hari
-      const { data: recentOrdersWithId } = await supabase
-        .from("orders")
-        .select("id")
-        .eq("status", "PAID")
-        .gte("created_at", startOf("day", 6));
+      const { data: items } = await supabase
+        .from("order_items")
+        .select("product_name, quantity")
+        .in("order_id", orderIds7);
 
-      const validIds = recentOrdersWithId?.map((o) => o.id) ?? [];
+      // Temporary Logging
+      console.log("Date Range:", last7Range.fromTs, "s/d", last7Range.toTs);
+      console.log("Top Product Query Result:", items);
+      console.log("Rows:", items?.length ?? 0);
 
-      if (validIds.length > 0) {
-        const { data: items } = await supabase
-          .from("order_items")
-          .select("product_name, quantity")
-          .in("order_id", validIds);
+      const qtyMap: Record<string, number> = {};
+      items?.forEach((item) => {
+        qtyMap[item.product_name] = (qtyMap[item.product_name] ?? 0) + item.quantity;
+      });
 
-        const qtyMap: Record<string, number> = {};
-        items?.forEach((item) => {
-          qtyMap[item.product_name] = (qtyMap[item.product_name] ?? 0) + item.quantity;
-        });
+      const sortedProducts = Object.entries(qtyMap)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 5);
 
-        topProductsText = Object.entries(qtyMap)
-          .sort((a, b) => b[1] - a[1])
-          .slice(0, 5)
-          .map(([name, qty], i) => `${i + 1}. ${name} (${qty} terjual)`)
-          .join("\n") || "Belum ada data";
+      if (sortedProducts.length > 0) {
+        topProductsText = sortedProducts
+          .map(([name, qty], i) => `${i + 1}. ${name} (${qty} penjualan)`)
+          .join("\n");
       }
+    } else {
+      console.log("Date Range:", last7Range.fromTs, "s/d", last7Range.toTs);
+      console.log("Top Product Query Result: No orders found");
+      console.log("Rows: 0");
     }
 
     // Jam transaksi paling ramai (hari ini)
