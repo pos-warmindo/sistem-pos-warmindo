@@ -10,7 +10,7 @@ interface CartLineItemProps {
 }
 
 export default function CartLineItem({ item }: CartLineItemProps) {
-  const { updateQuantity, removeItem } = useCart();
+  const { updateQuantity, setQuantity, removeItem } = useCart();
 
   const handleMinus = () => {
     updateQuantity(item.itemKey, -1);
@@ -55,9 +55,26 @@ export default function CartLineItem({ item }: CartLineItemProps) {
           >
             <Minus className="size-3.5" />
           </Button>
-          <span className="w-8 text-center text-sm font-semibold text-slate-900 select-none">
-            {item.quantity}
-          </span>
+          <input
+            type="number"
+            min="1"
+            value={item.quantity}
+            onChange={(e) => {
+              const val = parseInt(e.target.value, 10);
+              if (!isNaN(val)) {
+                setQuantity(item.itemKey, val);
+              } else {
+                setQuantity(item.itemKey, 0); // Temporary state for typing
+              }
+            }}
+            onBlur={(e) => {
+              const val = parseInt(e.target.value, 10);
+              if (isNaN(val) || val < 1) {
+                setQuantity(item.itemKey, 1);
+              }
+            }}
+            className="w-12 h-8 text-center text-sm font-semibold text-slate-900 border border-slate-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+          />
           <Button
             type="button"
             variant="outline"

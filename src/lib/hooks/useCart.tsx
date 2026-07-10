@@ -19,6 +19,7 @@ interface CartContextType {
   addItem: (product: Product, selectedModifiers: Modifier[]) => void;
   removeItem: (itemKey: string) => void;
   updateQuantity: (itemKey: string, delta: number) => void;
+  setQuantity: (itemKey: string, quantity: number) => void;
   clearCart: () => void;
   subtotal: number;
   total: number;
@@ -98,6 +99,23 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     });
   }, []);
 
+  const setQuantity = useCallback((itemKey: string, quantity: number) => {
+    setCartItems((prevItems) => {
+      return prevItems.map((item) => {
+        if (item.itemKey === itemKey) {
+          const newQuantity = Math.max(1, quantity);
+          const singlePrice = calculateItemPrice(item.product, item.modifiers);
+          return {
+            ...item,
+            quantity: newQuantity,
+            lineTotal: singlePrice * newQuantity,
+          };
+        }
+        return item;
+      });
+    });
+  }, []);
+
   const clearCart = useCallback(() => {
     setCartItems([]);
   }, []);
@@ -119,6 +137,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         addItem,
         removeItem,
         updateQuantity,
+        setQuantity,
         clearCart,
         subtotal,
         total,
