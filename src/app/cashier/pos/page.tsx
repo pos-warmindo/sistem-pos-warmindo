@@ -143,7 +143,7 @@ export default function CashierPosPage() {
                   setSearchQuery(""); // Reset search query when category changes
                 }}
               />
-              <div className="flex-1 overflow-y-auto min-w-0 w-full">
+              <div className="flex-1 overflow-y-auto min-w-0 w-full pb-24 lg:pb-0">
                 <ProductGrid
                   products={filteredProducts}
                   activeCategoryId={activeCategoryId}
