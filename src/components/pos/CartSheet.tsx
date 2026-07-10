@@ -66,7 +66,7 @@ export default function CartSheet() {
         <SheetContent
           side="bottom"
           showCloseButton={true}
-          className="h-[82vh] rounded-t-2xl flex flex-col p-0 overflow-hidden border-t border-slate-100 focus:outline-none"
+          className="h-[85vh] max-h-[85vh] rounded-t-2xl flex flex-col p-0 overflow-hidden border-t border-slate-100 focus:outline-none"
         >
           {/* Header */}
           <SheetHeader className="p-5 border-b border-slate-100 flex flex-row items-center justify-between shrink-0">
@@ -82,7 +82,7 @@ export default function CartSheet() {
           </SheetHeader>
 
           {/* Items list */}
-          <div className="flex-1 overflow-y-auto px-5 py-4">
+          <div className="flex-1 overflow-y-auto px-5 py-4 min-h-0">
             <div className="space-y-1">
               {cartItems.map((item) => (
                 <CartLineItem key={item.itemKey} item={item} />
