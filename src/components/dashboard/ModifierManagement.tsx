@@ -96,7 +96,7 @@ export default function ModifierManagement() {
       .select("id, product_id, modifier_group, modifier_name, price_delta, is_active, sort_order, products(name)")
       .order("product_id")
       .order("modifier_group")
-      .order("sort_order");
+      .order("modifier_name");
 
     if (error) {
       toast.error("Gagal memuat pilihan: " + error.message);
