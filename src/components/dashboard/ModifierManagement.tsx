@@ -265,7 +265,7 @@ export default function ModifierManagement() {
             </Button>
           </div>
 
-          <div className="grid grid-cols-4 md:grid-cols-6 lg:grid-cols-6 gap-3 mt-2">
+          <div className="grid grid-cols-2 md:grid-cols-6 lg:grid-cols-6 gap-3 mt-2">
             {isLoading ? (
               <div className="col-span-full p-8 text-center text-sm text-slate-400">
                 Memuat daftar menu...
