@@ -1,6 +1,6 @@
 "use server";
 
-import { ai } from "@/lib/gemini";
+import { ai } from "@/lib/groq";
 import { getRole } from "@/lib/auth/getRole";
 import { createClient } from "@/lib/supabase/server";
 import { formatRupiah } from "@/lib/utils/format";
@@ -258,9 +258,8 @@ INSTRUKSI:
 5. Bahasa: Indonesia. Nada: profesional tapi ramah.
 `;
 
-    // ── 4. Format chat history & panggil Gemini ────────────────
-    // Gemini API mensyaratkan: pertama harus "user", alternating user/model
-    // Filter: hapus pesan "model" di awal, pastikan dimulai dari "user"
+    // ── 4. Format chat history & panggil Groq ──────────────────
+    // Pastikan dimulai dari user, lalu petakan role "model" -> "assistant"
     const filteredHistory = chatHistory.filter((msg, idx) => {
       // Selalu include user messages
       if (msg.role === "user") return true;
@@ -271,29 +270,29 @@ INSTRUKSI:
 
     // Pastikan dimulai dari user
     const firstUserIdx = filteredHistory.findIndex((m) => m.role === "user");
-    const contents = (firstUserIdx >= 0 ? filteredHistory.slice(firstUserIdx) : filteredHistory)
+    const conversation = (firstUserIdx >= 0 ? filteredHistory.slice(firstUserIdx) : filteredHistory)
       .map((msg) => ({
-        role: msg.role,
-        parts: [{ text: msg.text }],
+        role: msg.role === "model" ? ("assistant" as const) : ("user" as const),
+        content: msg.text,
       }));
 
-    if (contents.length === 0) {
+    if (conversation.length === 0) {
       return { error: "Tidak ada pesan yang valid untuk diproses." };
     }
 
-    const response = await ai.models.generateContent({
-      model: "gemini-3.5-flash",
-      contents,
-      config: {
-        systemInstruction,
-          maxOutputTokens: 1024,
-        temperature: 0.3,
-      },
+    const response = await ai.chat.completions.create({
+      model: "llama-3.3-70b-versatile",
+      messages: [
+        { role: "system", content: systemInstruction },
+        ...conversation,
+      ],
+      max_tokens: 1024,
+      temperature: 0.3,
     });
 
     return {
       success: true,
-      text: response.text,
+      text: response.choices[0]?.message?.content ?? "",
     };
 
   } catch (error: any) {
