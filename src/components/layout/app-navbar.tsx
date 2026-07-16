@@ -178,8 +178,9 @@ export function AppNavbar({
                 </div>
                 {shiftActive && (
                   <Button
-                    variant="destructive"
-                    className="w-full bg-red-600 hover:bg-red-700 text-white font-medium"
+                    type="button"
+                    variant="outline"
+                    className="w-full bg-rose-50 border-rose-200 text-rose-700 hover:bg-rose-100 hover:border-rose-300 font-semibold rounded-lg transition-colors"
                     onClick={() => {
                       setIsMobileMenuOpen(false)
                       setIsCloseModalOpen(true)
@@ -233,20 +234,26 @@ export function AppNavbar({
         <div className="ml-auto flex items-center gap-2">
           {/* Shift status badge */}
           <Badge
-            variant={displayShiftStatus === "active" ? "default" : "destructive"}
-            className="hidden items-center gap-1.5 sm:inline-flex"
+            variant="outline"
+            className={cn(
+              "hidden items-center gap-1.5 sm:inline-flex font-semibold px-2.5 py-0.5 rounded-lg border",
+              displayShiftStatus === "active"
+                ? "bg-emerald-50 border-emerald-200 text-emerald-700 hover:bg-emerald-50 hover:text-emerald-700"
+                : "bg-rose-50 border-rose-200 text-rose-700 hover:bg-rose-50 hover:text-rose-700"
+            )}
             aria-label={`Status shift: ${displayShiftStatus === "active" ? "aktif" : "tutup"}`}
           >
-            <span className="size-1.5 rounded-full bg-current" aria-hidden="true" />
+            <span className={cn("size-1.5 rounded-full", displayShiftStatus === "active" ? "bg-emerald-500" : "bg-rose-500")} aria-hidden="true" />
             {displayShiftStatus === "active" ? "Shift Aktif" : "Shift Tutup"}
           </Badge>
 
           {/* Tutup Shift desktop button */}
           {shiftActive && (
             <Button
+              type="button"
               variant="outline"
               size="sm"
-              className="hidden sm:inline-flex border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700 h-9 font-medium"
+              className="hidden sm:inline-flex bg-rose-50/50 border-rose-200/80 text-rose-600 hover:bg-rose-50 hover:text-rose-700 hover:border-rose-300 h-9 font-semibold rounded-lg px-3 transition-colors"
               onClick={() => setIsCloseModalOpen(true)}
             >
               Tutup Shift
@@ -255,7 +262,7 @@ export function AppNavbar({
 
           {/* User menu button */}
           <div
-            className="flex items-center gap-2 rounded-lg border border-border bg-background px-3 py-1 text-sm font-medium text-foreground select-none"
+            className="flex items-center gap-2 rounded-lg border border-border bg-background px-3 py-1.5 text-sm font-medium text-foreground select-none hover:bg-slate-50 hover:border-slate-300 transition-colors cursor-pointer"
             aria-label={`Menu pengguna: ${displayName}`}
           >
             <User className="size-4 text-muted-foreground" aria-hidden="true" />
@@ -263,9 +270,6 @@ export function AppNavbar({
               <span className="max-w-28 truncate text-xs font-bold text-heading">
                 {displayName}
               </span>
-              {/* <span className="text-[9px] text-muted-foreground capitalize font-semibold mt-0.5">
-                {role === "owner" ? "Owner" : role === "cashier" ? "Kasir" : "Staff"}
-              </span> */}
             </div>
           </div>
 

@@ -550,8 +550,8 @@ export default function PaymentModal({ isOpen, onOpenChange }: PaymentModalProps
         {completedOrder ? (
           <div className="flex flex-col flex-1 overflow-hidden">
             <DialogHeader className="p-6 pb-4 border-b border-border flex flex-col items-center justify-center text-center">
-              <div className="size-12 rounded-full bg-green-50 flex items-center justify-center mb-2 border border-green-200">
-                <CheckCircle className="size-6 text-green-600 animate-bounce" />
+              <div className="size-12 rounded-lg bg-emerald-50 flex items-center justify-center mb-2 border border-emerald-200 animate-in fade-in-0 zoom-in-95 duration-300">
+                <CheckCircle className="size-6 text-emerald-600" />
               </div>
               <DialogTitle className="text-lg font-bold text-heading">
                 Transaksi Berhasil
@@ -568,7 +568,7 @@ export default function PaymentModal({ isOpen, onOpenChange }: PaymentModalProps
             <div className="p-6 border-t border-border bg-white print:hidden">
               <Button
                 onClick={handleNewTransaction}
-                className="w-full bg-primary hover:bg-primary-hover text-white font-bold py-6 rounded-xl shadow-lg shadow-primary/10"
+                className="w-full bg-primary hover:bg-primary-hover text-white font-bold py-5 rounded-lg shadow-sm"
               >
                 Transaksi Baru
               </Button>
@@ -583,11 +583,11 @@ export default function PaymentModal({ isOpen, onOpenChange }: PaymentModalProps
             </DialogHeader>
 
             {/* Total summary */}
-            <div className="bg-slate-50/50 p-6 flex flex-col items-center justify-center text-center border-b border-border">
-              <span className="text-xs text-muted-foreground font-semibold uppercase tracking-wider block mb-1">
+            <div className="bg-orange-50/20 p-6 flex flex-col items-center justify-center text-center border-b border-orange-100/50">
+              <span className="text-xs text-muted-foreground font-bold uppercase tracking-wider block mb-1">
                 Total Tagihan
               </span>
-              <span className="text-3xl font-extrabold text-heading">
+              <span className="text-3xl font-extrabold text-primary">
                 {formatRupiah(total)}
               </span>
             </div>
@@ -598,17 +598,17 @@ export default function PaymentModal({ isOpen, onOpenChange }: PaymentModalProps
               className="flex-1 flex flex-col overflow-hidden"
             >
               <div className="px-6 pt-4 shrink-0">
-                <TabsList className="flex w-full bg-slate-100/80 p-1.5 rounded-2xl">
+                <TabsList className="flex w-full bg-slate-100/80 p-1.5 rounded-xl">
                   <TabsTrigger
                     value="tunai"
-                    className="rounded-xl py-4 font-bold text-sm flex items-center justify-center gap-2"
+                    className="rounded-lg py-3.5 font-bold text-sm flex items-center justify-center gap-2"
                   >
                     <Banknote className="size-5" />
                     Tunai
                   </TabsTrigger>
                   <TabsTrigger
                     value="qris"
-                    className="rounded-xl py-4 font-bold text-sm flex items-center justify-center gap-2"
+                    className="rounded-lg py-3.5 font-bold text-sm flex items-center justify-center gap-2"
                   >
                     <CreditCard className="size-5" />
                     QRIS
@@ -630,7 +630,7 @@ export default function PaymentModal({ isOpen, onOpenChange }: PaymentModalProps
                       onChange={(e) => setAmountPaidInput(e.target.value)}
                       autoFocus
                       placeholder="Masukkan nominal uang"
-                      className="py-6 px-4 text-base font-bold rounded-xl border-slate-200 focus-visible:ring-primary"
+                      className="py-5 px-4 text-base font-bold rounded-lg border-slate-200 focus-visible:ring-primary"
                     />
                   </div>
 
@@ -645,7 +645,7 @@ export default function PaymentModal({ isOpen, onOpenChange }: PaymentModalProps
                           type="button"
                           variant="outline"
                           onClick={() => setAmountPaidInput(preset.toString())}
-                          className="py-5 font-bold text-xs rounded-xl border-slate-200 hover:bg-slate-50 text-slate-700"
+                          className="py-4.5 font-bold text-xs rounded-lg border-slate-200 text-slate-700 hover:border-primary/40 hover:text-primary hover:bg-orange-50/20 transition-all duration-150"
                         >
                           {preset === total ? "Uang Pas" : formatRupiah(preset)}
                         </Button>
@@ -655,7 +655,7 @@ export default function PaymentModal({ isOpen, onOpenChange }: PaymentModalProps
 
                   <Separator />
 
-                  <div className="flex items-center justify-between p-4 bg-slate-50 rounded-xl border border-slate-100">
+                  <div className="flex items-center justify-between p-4 bg-slate-50 rounded-lg border border-slate-100">
                     <span className="text-sm font-semibold text-slate-500">Uang Kembalian</span>
                     <span className="text-lg font-bold text-primary">{formatRupiah(changeAmount)}</span>
                   </div>
@@ -663,7 +663,7 @@ export default function PaymentModal({ isOpen, onOpenChange }: PaymentModalProps
                   <Button
                     onClick={handleConfirmTunai}
                     disabled={!isValidAmount || isSubmitting}
-                    className="w-full bg-primary hover:bg-primary-hover text-white font-bold py-6 rounded-xl shadow-lg shadow-primary/10 mt-2"
+                    className="w-full bg-primary hover:bg-primary-hover text-white font-bold py-5 rounded-lg shadow-sm mt-2 transition-all duration-150"
                   >
                     {isSubmitting
                       ? <div className="size-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
@@ -677,7 +677,7 @@ export default function PaymentModal({ isOpen, onOpenChange }: PaymentModalProps
                   {!qrData ? (
                     /* ── Generate button state ── */
                     <div className="flex flex-col items-center justify-center py-8 text-center space-y-4">
-                      <div className="size-16 rounded-full bg-slate-50 flex items-center justify-center border border-dashed border-slate-200">
+                      <div className="size-16 rounded-lg bg-slate-50 flex items-center justify-center border border-dashed border-slate-200">
                         <CreditCard className="size-8 text-slate-400" />
                       </div>
                       <div className="space-y-1">
@@ -689,7 +689,7 @@ export default function PaymentModal({ isOpen, onOpenChange }: PaymentModalProps
                       <Button
                         onClick={handleGenerateQRIS}
                         disabled={isSubmitting}
-                        className="bg-primary hover:bg-primary-hover text-white font-bold py-6 px-8 rounded-xl shadow-lg shadow-primary/10"
+                        className="bg-primary hover:bg-primary-hover text-white font-bold py-5 px-8 rounded-lg shadow-sm"
                       >
                         {isSubmitting
                           ? <div className="size-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
@@ -702,7 +702,7 @@ export default function PaymentModal({ isOpen, onOpenChange }: PaymentModalProps
                     <div className="space-y-4">
                       {/* QR Code */}
                       <div className="flex flex-col items-center justify-center py-2">
-                        <div className="bg-white p-4 rounded-2xl border-2 border-slate-200 shadow-md">
+                        <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
                           <QRCodeSVG
                             value={qrData.qr_string}
                             size={200}
@@ -722,7 +722,7 @@ export default function PaymentModal({ isOpen, onOpenChange }: PaymentModalProps
                       </div>
 
                       {/* Countdown */}
-                      <div className={`flex items-center justify-center gap-2 p-4 rounded-xl border ${
+                      <div className={`flex items-center justify-center gap-2 p-4 rounded-lg border ${
                         qrisTimeLeft <= 60
                           ? "bg-red-50 border-red-200"
                           : "bg-amber-50 border-amber-200"
@@ -735,7 +735,7 @@ export default function PaymentModal({ isOpen, onOpenChange }: PaymentModalProps
 
                       {/* Polling indicator */}
                       <div className="text-center">
-                        <div className="inline-flex items-center gap-2 px-4 py-2 bg-blue-50 rounded-full border border-blue-200">
+                        <div className="inline-flex items-center gap-2 px-4 py-2 bg-blue-50 rounded-lg border border-blue-200">
                           <div className="size-2 rounded-full bg-blue-500 animate-pulse" />
                           <span className="text-xs font-semibold text-blue-900">
                             Menunggu pembayaran...
@@ -749,7 +749,7 @@ export default function PaymentModal({ isOpen, onOpenChange }: PaymentModalProps
                       <Button
                         onClick={handleCancelQris}
                         variant="outline"
-                        className="w-full py-6 rounded-xl border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700 font-bold"
+                        className="w-full py-5 rounded-lg border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700 font-bold"
                       >
                         <X className="size-5 mr-2" />
                         Batalkan QRIS

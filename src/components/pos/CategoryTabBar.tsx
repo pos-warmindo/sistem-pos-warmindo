@@ -22,10 +22,10 @@ export default function CategoryTabBar({
           type="button"
           onClick={() => onSelectCategory(null)}
           className={cn(
-            "px-4 py-2 text-sm font-semibold rounded-full border transition-all duration-200 whitespace-nowrap",
+            "px-4 py-2.5 text-xs sm:text-sm font-semibold rounded-lg border transition-all duration-150 whitespace-nowrap",
             activeCategoryId === null
-              ? "bg-primary border-primary text-white shadow-sm shadow-primary/20 scale-[1.02]"
-              : "bg-white border-slate-200 text-slate-700 hover:bg-slate-50 hover:border-slate-300"
+              ? "bg-primary border-primary text-white"
+              : "bg-white border-slate-200 text-slate-600 hover:bg-slate-50 hover:border-slate-300"
           )}
         >
           Semua Menu
@@ -42,10 +42,10 @@ export default function CategoryTabBar({
                 type="button"
                 onClick={() => onSelectCategory(category.id)}
                 className={cn(
-                  "px-4 py-2 text-sm font-semibold rounded-full border transition-all duration-200 whitespace-nowrap",
+                  "px-4 py-2.5 text-xs sm:text-sm font-semibold rounded-lg border transition-all duration-150 whitespace-nowrap",
                   isActive
-                    ? "bg-primary border-primary text-white shadow-sm shadow-primary/20 scale-[1.02]"
-                    : "bg-white border-slate-200 text-slate-700 hover:bg-slate-50 hover:border-slate-300"
+                    ? "bg-primary border-primary text-white"
+                    : "bg-white border-slate-200 text-slate-600 hover:bg-slate-50 hover:border-slate-300"
                 )}
               >
                 {category.name}
