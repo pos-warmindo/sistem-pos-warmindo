@@ -278,14 +278,16 @@ export default function PaymentModal({ isOpen, onOpenChange }: PaymentModalProps
               .select("status")
               .eq("id", current.order_id)
               .single()
-              .then(({ data }) => {
-                if (data?.status === "QRIS_PENDING") {
-                  // Realtime missed it — do client-side expire as fallback
-                  handleQrisExpired(false);
-                }
-                // If already PAID/EXPIRED via Realtime, do nothing
-              })
-              .catch(() => handleQrisExpired(false));
+              .then(
+                ({ data }) => {
+                  if (data?.status === "QRIS_PENDING") {
+                    // Realtime missed it — do client-side expire as fallback
+                    handleQrisExpired(false);
+                  }
+                  // If already PAID/EXPIRED via Realtime, do nothing
+                },
+                () => handleQrisExpired(false)
+              );
           }
           return 0;
         }
