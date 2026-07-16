@@ -16,7 +16,14 @@ import {
   Users,
 } from "@/lib/icons";
 import { cn } from "@/lib/utils";
-import { AICopilotChat } from "@/components/dashboard/AICopilotChat";
+import dynamic from "next/dynamic";
+
+// Lazy-load: framer-motion + react-markdown hanya dimuat saat komponen ini dibutuhkan,
+// bukan saat setiap halaman owner pertama di-compile.
+const AICopilotChat = dynamic(
+  () => import("@/components/dashboard/AICopilotChat").then((m) => m.AICopilotChat),
+  { ssr: false }
+);
 
 interface NavigationItem {
   name: string;

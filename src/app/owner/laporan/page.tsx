@@ -12,7 +12,6 @@ import RevenueChart, { type DailyRevenue } from "@/components/dashboard/RevenueC
 import PaymentMethodChart, { type PaymentMethodData } from "@/components/dashboard/PaymentMethodChart";
 import TopProductsChart, { type TopProduct } from "@/components/dashboard/TopProductsChart";
 import TransactionTable, { type Transaction } from "@/components/dashboard/TransactionTable";
-import * as XLSX from "xlsx";
 
 // ── Types ──────────────────────────────────────────────────────
 interface KPI {
@@ -148,6 +147,10 @@ export default function LaporanPage() {
   const handleExport = async () => {
     setIsExporting(true);
     try {
+      // Lazy-load xlsx hanya saat user benar-benar export — keluarkan dari
+      // bundle awal halaman agar first-hit compile lebih ringan.
+      const XLSX = await import("xlsx");
+
       const range = getPeriodRange(period, period === "custom" ? custom : undefined);
       const wb = XLSX.utils.book_new();
 
