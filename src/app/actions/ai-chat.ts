@@ -206,8 +206,18 @@ export async function chatWithCopilot(
       .maybeSingle();
 
     const shiftInfo = activeShift
-      ? `Shift sedang berjalan sejak ${new Date(activeShift.opened_at).toLocaleTimeString("id-ID")}. Penjualan tunai: ${formatRupiah(activeShift.total_cash_sales)}, QRIS: ${formatRupiah(activeShift.total_qris_sales)}.`
+      ? `Shift sedang berjalan sejak ${new Date(activeShift.opened_at).toLocaleTimeString("id-ID")}. Modal awal: ${formatRupiah(activeShift.modal_awal)}. Penjualan tunai: ${formatRupiah(activeShift.total_cash_sales)}, QRIS: ${formatRupiah(activeShift.total_qris_sales)}.`
       : "Tidak ada shift yang sedang berjalan saat ini.";
+
+    // Estimasi profit shift berjalan (berbasis modal awal): total penjualan shift − modal awal
+    let profitInfo: string;
+    if (activeShift) {
+      const shiftSales = (activeShift.total_cash_sales ?? 0) + (activeShift.total_qris_sales ?? 0);
+      const shiftProfit = shiftSales - (activeShift.modal_awal ?? 0);
+      profitInfo = `Total penjualan shift berjalan: ${formatRupiah(shiftSales)} (tunai + QRIS). Modal awal: ${formatRupiah(activeShift.modal_awal ?? 0)}. Estimasi profit (penjualan − modal awal): ${formatRupiah(shiftProfit)}.`;
+    } else {
+      profitInfo = "Tidak ada shift berjalan, sehingga profit berbasis modal awal belum bisa dihitung.";
+    }
 
     // Tanggal & waktu sekarang
     const nowStr = now.toLocaleString("id-ID", {
@@ -249,13 +259,17 @@ ${lowestStockText}
 ─── STATUS SHIFT ───
 ${shiftInfo}
 
+─── ANALISIS PROFIT (BERBASIS MODAL AWAL) ───
+${profitInfo}
+
 INSTRUKSI:
 1. Jawab HANYA pertanyaan seputar penjualan, stok, produk, shift, dan operasional Warmindo WP 2.
 2. Jika ditanya di luar topik bisnis ini, tolak dengan sopan:
    "Maaf, saya hanya dapat membantu seputar performa penjualan dan operasional Warmindo WP 2."
 3. Gunakan data di atas sebagai referensi utama. Jawab dengan ringkas, akurat, dan gunakan format Rupiah (Rp X.XXX) yang benar.
 4. Jika data tidak tersedia untuk periode tertentu, sampaikan dengan jelas.
-5. Bahasa: Indonesia. Nada: profesional tapi ramah.
+5. Untuk ANALISIS PROFIT: hitung berdasarkan modal awal shift yang sedang berjalan, dengan rumus Profit = Total Penjualan Shift − Modal Awal (lihat bagian "STATUS SHIFT"). Jika tidak ada shift yang berjalan, sampaikan bahwa analisis profit hanya tersedia saat ada shift aktif.
+6. Bahasa: Indonesia. Nada: profesional tapi ramah.
 `;
 
     // ── 4. Format chat history & panggil Groq ──────────────────
