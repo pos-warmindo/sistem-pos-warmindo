@@ -54,12 +54,12 @@ const PRIMARY_ACTIONS = [
 ];
 
 const SUGGESTED_QUESTIONS = [
-  "Pendapatan Hari Ini",
-  "Produk Terlaris",
-  "Stok Menipis",
-  "Prediksi Besok",
-  "Laporan Mingguan",
-  "Analisis Profit",
+  { label: "Pendapatan Hari Ini", prompt: "Berapa total pendapatan hari ini dan dari berapa transaksi?" },
+  { label: "Produk Terlaris", prompt: "Apa saja produk terlaris dalam 7 hari terakhir?" },
+  { label: "Stok Menipis", prompt: "Bahan baku apa saja yang stoknya menipis atau kritis saat ini?" },
+  { label: "Prediksi Besok", prompt: "Buatkan prediksi pendapatan besok berdasarkan tren penjualan 7 hari terakhir, dan sertakan alasannya secara ringkas." },
+  { label: "Laporan Mingguan", prompt: "Buatkan ringkasan laporan penjualan 7 hari terakhir mencakup pendapatan, jumlah transaksi, dan metode pembayaran." },
+  { label: "Analisis Profit", prompt: "Berikan analisis profit shift yang sedang berjalan berdasarkan modal awal." },
 ];
 
 // ─── Animation Variants ──────────────────────────────────────────────────────
@@ -199,10 +199,17 @@ export function AICopilotChat() {
           ...prev,
           { role: "model", text: `[Error]: ${result.error}` },
         ]);
-      } else if (result.text) {
+      } else {
+        // Selalu tampilkan balasan; jika kosong beri fallback agar tidak
+        // ada pesan yang hilang tanpa jejak.
         setMessages((prev) => [
           ...prev,
-          { role: "model", text: result.text || "" },
+          {
+            role: "model",
+            text: result.text?.trim()
+              ? result.text
+              : "Maaf, saya belum bisa menyusun jawaban untuk permintaan itu. Coba perjelas pertanyaannya.",
+          },
         ]);
       }
     } catch {
@@ -319,10 +326,10 @@ export function AICopilotChat() {
                             initial="rest"
                             whileHover="hover"
                             whileTap="tap"
-                            onClick={() => handleSendMessage(question)}
+                            onClick={() => handleSendMessage(question.prompt)}
                             className="px-3.5 py-2 text-[12px] font-medium text-slate-600 bg-white border border-slate-200 rounded-full hover:border-[#FF7A00] hover:text-[#FF7A00] transition-colors shadow-sm"
                           >
-                            {question}
+                            {question.label}
                           </motion.button>
                         ))}
                       </div>
@@ -394,10 +401,10 @@ export function AICopilotChat() {
                           initial="rest"
                           whileHover="hover"
                           whileTap="tap"
-                          onClick={() => handleSendMessage(question)}
+                          onClick={() => handleSendMessage(question.prompt)}
                           className="px-3.5 py-2 text-[12px] font-medium text-slate-600 bg-white border border-slate-200 rounded-full hover:border-[#FF7A00] hover:text-[#FF7A00] transition-colors shadow-sm"
                         >
-                          {question}
+                          {question.label}
                         </motion.button>
                       ))}
                     </div>

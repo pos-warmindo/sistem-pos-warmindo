@@ -304,9 +304,20 @@ INSTRUKSI:
       temperature: 0.3,
     });
 
+    const replyText = response.choices[0]?.message?.content?.trim() ?? "";
+
+    // Groq sesekali mengembalikan konten kosong untuk prompt singkat/ambigu.
+    // Jangan kirim string kosong sebagai "sukses" — beri fallback yang jelas.
+    if (!replyText) {
+      return {
+        success: true,
+        text: "Maaf, saya belum bisa menyusun jawaban untuk permintaan itu. Coba perjelas pertanyaannya, misalnya \"Prediksi pendapatan besok berdasarkan tren 7 hari terakhir\".",
+      };
+    }
+
     return {
       success: true,
-      text: response.choices[0]?.message?.content ?? "",
+      text: replyText,
     };
 
   } catch (error: any) {
