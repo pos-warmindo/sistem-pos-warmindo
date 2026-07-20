@@ -236,7 +236,7 @@ export function AppNavbar({
           <Badge
             variant="outline"
             className={cn(
-              "hidden items-center gap-1.5 sm:inline-flex font-semibold px-2.5 py-0.5 rounded-lg border",
+              "hidden items-center gap-1.5 sm:inline-flex font-semibold px-3 h-9 rounded-lg border",
               displayShiftStatus === "active"
                 ? "bg-emerald-50 border-emerald-200 text-emerald-700 hover:bg-emerald-50 hover:text-emerald-700"
                 : "bg-rose-50 border-rose-200 text-rose-700 hover:bg-rose-50 hover:text-rose-700"
