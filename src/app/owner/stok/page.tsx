@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   Dialog,
   DialogContent,
@@ -14,7 +15,7 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
-import { Plus, Pencil, Trash, AlertTriangle, Package } from "@/lib/icons";
+import { Plus, Pencil, Trash, AlertTriangle, Package, ChevronDown, CheckCircle } from "@/lib/icons";
 import { formatRupiah } from "@/lib/utils/format";
 
 // ── Types ─────────────────────────────────────────────────────
@@ -213,29 +214,119 @@ export default function StokPage() {
       </div>
 
       {/* Status summary cards */}
-      <div className="grid grid-cols-3 gap-3">
-        <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-center">
-          <p className="text-2xl font-bold text-red-600">{emptyCount}</p>
-          <p className="text-xs font-semibold text-red-500 mt-1">Stok Habis</p>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        {/* Stok Habis */}
+        <div className="rounded-xl border border-slate-200/80 bg-white p-6 shadow-sm transition-all duration-200 hover:shadow-md">
+          <div className="flex items-center justify-between">
+            <span className="text-sm font-medium text-slate-500">Stok Habis</span>
+            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-red-50 text-red-500">
+              <AlertTriangle className="h-5 w-5" />
+            </div>
+          </div>
+          <div className="mt-4">
+            <h3 className="text-2xl font-bold tracking-tight text-slate-900 md:text-3xl">
+              {emptyCount}
+            </h3>
+            <div className="mt-2 text-xs text-slate-400 font-medium">Bahan baku kosong</div>
+          </div>
         </div>
-        <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-center">
-          <p className="text-2xl font-bold text-amber-600">{lowCount}</p>
-          <p className="text-xs font-semibold text-amber-500 mt-1">Stok Rendah</p>
+
+        {/* Stok Rendah */}
+        <div className="rounded-xl border border-slate-200/80 bg-white p-6 shadow-sm transition-all duration-200 hover:shadow-md">
+          <div className="flex items-center justify-between">
+            <span className="text-sm font-medium text-slate-500">Stok Rendah</span>
+            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-amber-50 text-amber-500">
+              <AlertTriangle className="h-5 w-5" />
+            </div>
+          </div>
+          <div className="mt-4">
+            <h3 className="text-2xl font-bold tracking-tight text-slate-900 md:text-3xl">
+              {lowCount}
+            </h3>
+            <div className="mt-2 text-xs text-slate-400 font-medium">Perlu segera di-restock</div>
+          </div>
         </div>
-        <div className="rounded-xl border border-green-200 bg-green-50 p-4 text-center">
-          <p className="text-2xl font-bold text-green-600">{okCount}</p>
-          <p className="text-xs font-semibold text-green-500 mt-1">Stok Aman</p>
+
+        {/* Stok Aman */}
+        <div className="rounded-xl border border-slate-200/80 bg-white p-6 shadow-sm transition-all duration-200 hover:shadow-md">
+          <div className="flex items-center justify-between">
+            <span className="text-sm font-medium text-slate-500">Stok Aman</span>
+            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-green-50 text-green-500">
+              <CheckCircle className="h-5 w-5" />
+            </div>
+          </div>
+          <div className="mt-4">
+            <h3 className="text-2xl font-bold tracking-tight text-slate-900 md:text-3xl">
+              {okCount}
+            </h3>
+            <div className="mt-2 text-xs text-slate-400 font-medium">Bahan baku dalam kondisi aman</div>
+          </div>
         </div>
       </div>
 
       {/* Table & Cards Container */}
       <div className="rounded-xl border border-slate-200 overflow-hidden bg-white">
         {isLoading ? (
-          <div className="p-8 text-center text-sm text-slate-400">Memuat data stok...</div>
+          <div className="p-6 space-y-4">
+            {/* Mobile Loading Skeleton */}
+            <div className="md:hidden space-y-3">
+              {[...Array(3)].map((_, i) => (
+                <div key={i} className="flex flex-col gap-3 p-4 border border-slate-100 rounded-xl bg-white">
+                  <div className="flex justify-between items-start">
+                    <div className="space-y-2 flex-1">
+                      <Skeleton className="h-4 w-1/2" />
+                      <Skeleton className="h-3 w-1/3" />
+                      <Skeleton className="h-3 w-1/4" />
+                    </div>
+                    <div className="flex flex-col items-end gap-2">
+                      <Skeleton className="h-4 w-16" />
+                      <Skeleton className="h-4 w-12" />
+                    </div>
+                  </div>
+                  <Skeleton className="h-8 w-full rounded-lg" />
+                </div>
+              ))}
+            </div>
+            {/* Desktop Loading Skeleton */}
+            <div className="hidden md:block space-y-3">
+              <div className="flex gap-4 pb-2 border-b border-slate-100">
+                <Skeleton className="h-4 w-1/4" />
+                <Skeleton className="h-4 w-16 text-center mx-auto" />
+                <Skeleton className="h-4 w-16 text-center" />
+                <Skeleton className="h-4 w-12 text-center" />
+                <Skeleton className="h-4 w-20 ml-auto" />
+                <Skeleton className="h-4 w-20 text-center" />
+                <Skeleton className="h-4 w-24 ml-auto" />
+              </div>
+              {[...Array(4)].map((_, i) => (
+                <div key={i} className="flex gap-4 items-center py-3.5 border-b border-slate-50 last:border-0">
+                  <Skeleton className="h-4 w-1/4" />
+                  <Skeleton className="h-4 w-12 mx-auto" />
+                  <Skeleton className="h-4 w-12 mx-auto" />
+                  <Skeleton className="h-4 w-10 mx-auto" />
+                  <Skeleton className="h-4 w-20 ml-auto" />
+                  <Skeleton className="h-6 w-16 rounded-full mx-auto" />
+                  <Skeleton className="h-8 w-24 ml-auto" />
+                </div>
+              ))}
+            </div>
+          </div>
         ) : materials.length === 0 ? (
-          <div className="p-8 text-center space-y-2">
-            <Package className="size-8 text-slate-300 mx-auto" />
-            <p className="text-sm text-slate-400">Belum ada bahan baku. Tambahkan bahan baku pertama.</p>
+          <div className="flex flex-col items-center justify-center text-center p-12 bg-white rounded-xl">
+            <div className="size-16 rounded-full bg-slate-50 flex items-center justify-center border border-dashed border-slate-200 mb-4 animate-pulse">
+              <Package className="size-8 text-slate-300 stroke-[1.5]" />
+            </div>
+            <h3 className="text-base font-bold text-heading">Belum Ada Bahan Baku</h3>
+            <p className="text-xs text-muted-foreground max-w-[280px] mt-1 leading-relaxed">
+              Data inventori bahan baku Anda masih kosong. Daftarkan bahan baku resep Anda sekarang.
+            </p>
+            <Button
+              onClick={openAddDialog}
+              className="mt-5 bg-primary hover:bg-primary-hover text-white font-semibold rounded-lg gap-2 text-xs py-2 px-4 shadow-md shadow-primary/10 transition-all hover:scale-[1.02]"
+            >
+              <Plus className="size-3.5" />
+              Tambah Bahan Baku Pertama
+            </Button>
           </div>
         ) : (
           <>
@@ -310,7 +401,7 @@ export default function StokPage() {
                   {materials.map((m, idx) => {
                     const status = getStockStatus(m);
                     return (
-                      <tr key={m.id} className={idx % 2 === 0 ? "bg-white" : "bg-slate-50/40"}>
+                      <tr key={m.id} className={`border-b border-slate-100/60 last:border-0 hover:bg-slate-50/70 transition-colors duration-150 ${idx % 2 === 0 ? "bg-white" : "bg-slate-50/30"}`}>
                         <td className="px-4 py-3 font-medium text-slate-800">{m.name}</td>
                         <td className={`px-4 py-3 text-center font-bold ${
                           status === "empty" ? "text-red-600" :
@@ -378,10 +469,22 @@ export default function StokPage() {
                 <Label className="text-xs font-bold uppercase tracking-wider text-slate-500">
                   Satuan <span className="text-red-500">*</span>
                 </Label>
-                <select value={form.unit} onChange={(e) => setForm((f) => ({ ...f, unit: e.target.value }))}
-                  className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-400">
-                  {UNIT_OPTIONS.map((u) => <option key={u} value={u}>{u}</option>)}
-                </select>
+                <div className="relative">
+                  <select
+                    value={form.unit}
+                    onChange={(e) => setForm((f) => ({ ...f, unit: e.target.value }))}
+                    className="w-full appearance-none rounded-xl border border-slate-200 bg-white px-3 pr-9 py-2.5 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary shadow-sm transition-all"
+                  >
+                    {UNIT_OPTIONS.map((u) => (
+                      <option key={u} value={u}>
+                        {u}
+                      </option>
+                    ))}
+                  </select>
+                  <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
+                    <ChevronDown className="size-4" />
+                  </div>
+                </div>
               </div>
               <div className="space-y-1.5">
                 <Label className="text-xs font-bold uppercase tracking-wider text-slate-500">Biaya/Unit (Rp)</Label>
