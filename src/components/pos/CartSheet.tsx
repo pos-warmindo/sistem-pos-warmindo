@@ -39,12 +39,12 @@ export default function CartSheet() {
     <div className="lg:hidden">
       <Sheet>
         {/* Floating bottom bar acting as the trigger */}
-        <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 p-4 shadow-[0_-8px_30px_rgb(0,0,0,0.06)] flex items-center justify-between z-40 animate-in slide-in-from-bottom duration-300">
-          <div className="flex flex-col text-left">
-            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block leading-none mb-1">
+        <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 px-4 py-3 shadow-[0_-8px_30px_rgb(0,0,0,0.06)] flex items-center justify-between z-40 animate-in slide-in-from-bottom duration-300 gap-3" style={{paddingBottom: 'max(12px, env(safe-area-inset-bottom))'}}>
+          <div className="flex flex-col text-left min-w-0 flex-1">
+            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block leading-none mb-1 truncate">
               Total Pesanan ({itemCount} Menu)
             </span>
-            <span className="text-lg font-bold text-slate-900 leading-tight">
+            <span className="text-base font-bold text-slate-900 leading-tight truncate">
               {formatRupiah(subtotal)}
             </span>
           </div>
@@ -53,9 +53,9 @@ export default function CartSheet() {
             render={
               <Button
                 type="button"
-                className="bg-primary hover:bg-primary-hover text-white font-semibold px-5 py-2.5 flex items-center gap-2 text-xs shadow-md shadow-primary/10 rounded-xl"
+                className="bg-primary hover:bg-primary-hover text-white font-semibold px-4 py-2.5 flex items-center gap-2 text-xs shadow-md shadow-primary/10 rounded-xl shrink-0 whitespace-nowrap"
               >
-                <ShoppingCart className="size-4" />
+                <ShoppingCart className="size-4 shrink-0" />
                 Lihat Keranjang
               </Button>
             }
@@ -66,7 +66,7 @@ export default function CartSheet() {
         <SheetContent
           side="bottom"
           showCloseButton={true}
-          className="h-[82vh] rounded-t-2xl flex flex-col p-0 overflow-hidden border-t border-slate-100 focus:outline-none"
+          className="h-[85vh] max-h-[85vh] rounded-t-2xl flex flex-col p-0 overflow-hidden border-t border-slate-100 focus:outline-none"
         >
           {/* Header */}
           <SheetHeader className="p-5 border-b border-slate-100 flex flex-row items-center justify-between shrink-0">
@@ -82,7 +82,7 @@ export default function CartSheet() {
           </SheetHeader>
 
           {/* Items list */}
-          <div className="flex-1 overflow-y-auto px-5 py-4">
+          <div className="flex-1 overflow-y-auto px-5 py-4 min-h-0">
             <div className="space-y-1">
               {cartItems.map((item) => (
                 <CartLineItem key={item.itemKey} item={item} />

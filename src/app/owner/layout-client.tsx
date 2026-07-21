@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { toast } from "sonner";
@@ -15,6 +16,14 @@ import {
   Users,
 } from "@/lib/icons";
 import { cn } from "@/lib/utils";
+import dynamic from "next/dynamic";
+
+// Lazy-load: framer-motion + react-markdown hanya dimuat saat komponen ini dibutuhkan,
+// bukan saat setiap halaman owner pertama di-compile.
+const AICopilotChat = dynamic(
+  () => import("@/components/dashboard/AICopilotChat").then((m) => m.AICopilotChat),
+  { ssr: false }
+);
 
 interface NavigationItem {
   name: string;
@@ -34,7 +43,7 @@ export default function OwnerLayoutClient({
 
   const [ownerName, setOwnerName] = useState<string>("Owner");
   const [ownerEmail, setOwnerEmail] = useState<string>("");
-  const [userRole, setUserRole]   = useState<string>("");
+  const [userRole, setUserRole] = useState<string>("");
 
   useEffect(() => {
     async function getOwnerProfile() {
@@ -75,11 +84,11 @@ export default function OwnerLayoutClient({
 
   // owner: semua nav | admin: hanya menu/stok/users
   const allNavItems: NavigationItem[] = [
-    { name: "Beranda",     href: "/owner/dashboard", icon: Home,           ownerOnly: true  },
-    { name: "Menu",        href: "/owner/menu",       icon: UtensilsCrossed, ownerOnly: false },
-    { name: "Stok",        href: "/owner/stok",       icon: Package,        ownerOnly: false },
-    { name: "Kelola User", href: "/owner/users",      icon: Users,          ownerOnly: false },
-    { name: "Laporan",     href: "/owner/laporan",    icon: FileText,       ownerOnly: true  },
+    { name: "Beranda", href: "/owner/dashboard", icon: Home, ownerOnly: true },
+    { name: "Menu", href: "/owner/menu", icon: UtensilsCrossed, ownerOnly: false },
+    { name: "Stok", href: "/owner/stok", icon: Package, ownerOnly: false },
+    { name: "Kelola User", href: "/owner/users", icon: Users, ownerOnly: false },
+    { name: "Laporan", href: "/owner/laporan", icon: FileText, ownerOnly: true },
   ];
 
   const navItems = allNavItems.filter(
@@ -93,7 +102,10 @@ export default function OwnerLayoutClient({
         {/* Logo */}
         <div className="flex h-16 items-center px-6 border-b border-slate-100">
           <Link href="/owner/dashboard" className="flex items-center space-x-2">
-            <span className="text-xl font-bold text-primary">WP2 POS Owner</span>
+            <div className="w-6 h-6 rounded-full overflow-hidden border border-slate-200 relative bg-white">
+              <Image src="/logo.png" alt="WP2 Logo" fill sizes="32px" className="object-cover" />
+            </div>
+            <span className="text-md font-bold text-primary">WP2 POS Owner</span>
           </Link>
         </div>
 
@@ -153,10 +165,13 @@ export default function OwnerLayoutClient({
       </aside>
 
       {/* ── Main Content ── */}
-      <div className="flex flex-col flex-1 md:pl-60 pb-20 md:pb-0 min-h-screen">
+      <div className="flex flex-col flex-1 md:pl-60 pb-20 md:pb-0 min-h-screen min-w-0">
         {/* Mobile Header */}
         <header className="md:hidden flex h-16 items-center justify-between px-4 border-b border-slate-200 bg-white sticky top-0 z-10">
-          <Link href="/owner/dashboard">
+          <Link href="/owner/dashboard" className="flex items-center space-x-2">
+            <div className="w-6 h-6 rounded-full overflow-hidden border border-slate-200 relative bg-white">
+              <Image src="/logo.png" alt="WP2 Logo" fill sizes="32px" className="object-cover" />
+            </div>
             <span className="text-lg font-bold text-primary">WP2 POS Owner</span>
           </Link>
           <div className="flex items-center space-x-2 text-slate-800 text-sm font-medium">
@@ -196,6 +211,9 @@ export default function OwnerLayoutClient({
           <span className="text-[10px] font-semibold tracking-wider">Keluar</span>
         </button>
       </nav>
+
+      {/* ── AI Copilot Chatbot ── */}
+      {userRole === "owner" && <AICopilotChat />}
     </div>
   );
 }

@@ -14,7 +14,7 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
-import { Plus, Pencil, Trash, AlertTriangle, Package } from "@/lib/icons";
+import { Plus, Pencil, Trash, AlertTriangle, Package, CheckCircle } from "@/lib/icons";
 import { formatRupiah } from "@/lib/utils/format";
 
 // ── Types ─────────────────────────────────────────────────────
@@ -200,35 +200,55 @@ export default function StokPage() {
   return (
     <main className="p-6 space-y-6">
       {/* Header */}
-      <div className="flex items-start justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-heading">Kelola Stok Bahan Baku</h1>
           <p className="text-sm text-muted-foreground mt-1">
             Monitor stok dan lakukan restock bahan baku.
           </p>
         </div>
-        <Button onClick={openAddDialog} className="bg-primary hover:bg-primary-hover text-white font-semibold rounded-xl gap-2">
+        <Button onClick={openAddDialog} className="bg-primary hover:bg-primary-hover text-white font-semibold rounded-xl gap-2 w-full sm:w-auto justify-center">
           <Plus className="size-4" /> Tambah Bahan Baku
         </Button>
       </div>
 
       {/* Status summary cards */}
-      <div className="grid grid-cols-3 gap-3">
-        <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-center">
-          <p className="text-2xl font-bold text-red-600">{emptyCount}</p>
-          <p className="text-xs font-semibold text-red-500 mt-1">Stok Habis</p>
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        {/* Card Stok Habis */}
+        <div className="rounded-xl border border-slate-100 bg-white p-4.5 flex items-center gap-4 shadow-sm shadow-slate-100/50">
+          <div className="size-11 rounded-lg bg-rose-50 border border-rose-100 flex items-center justify-center shrink-0">
+            <Package className="size-5 text-rose-600" />
+          </div>
+          <div>
+            <p className="text-2xl font-bold text-slate-800 leading-tight">{emptyCount}</p>
+            <p className="text-xs font-semibold text-rose-600 mt-0.5">Stok Habis</p>
+          </div>
         </div>
-        <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-center">
-          <p className="text-2xl font-bold text-amber-600">{lowCount}</p>
-          <p className="text-xs font-semibold text-amber-500 mt-1">Stok Rendah</p>
+
+        {/* Card Stok Rendah */}
+        <div className="rounded-xl border border-slate-100 bg-white p-4.5 flex items-center gap-4 shadow-sm shadow-slate-100/50">
+          <div className="size-11 rounded-lg bg-amber-50 border border-amber-100 flex items-center justify-center shrink-0">
+            <AlertTriangle className="size-5 text-amber-600" />
+          </div>
+          <div>
+            <p className="text-2xl font-bold text-slate-800 leading-tight">{lowCount}</p>
+            <p className="text-xs font-semibold text-amber-600 mt-0.5">Stok Rendah</p>
+          </div>
         </div>
-        <div className="rounded-xl border border-green-200 bg-green-50 p-4 text-center">
-          <p className="text-2xl font-bold text-green-600">{okCount}</p>
-          <p className="text-xs font-semibold text-green-500 mt-1">Stok Aman</p>
+
+        {/* Card Stok Aman */}
+        <div className="rounded-xl border border-slate-100 bg-white p-4.5 flex items-center gap-4 shadow-sm shadow-slate-100/50">
+          <div className="size-11 rounded-lg bg-emerald-50 border border-emerald-100 flex items-center justify-center shrink-0">
+            <CheckCircle className="size-5 text-emerald-600" />
+          </div>
+          <div>
+            <p className="text-2xl font-bold text-slate-800 leading-tight">{okCount}</p>
+            <p className="text-xs font-semibold text-emerald-600 mt-0.5">Stok Aman</p>
+          </div>
         </div>
       </div>
 
-      {/* Table */}
+      {/* Table & Cards Container */}
       <div className="rounded-xl border border-slate-200 overflow-hidden bg-white">
         {isLoading ? (
           <div className="p-8 text-center text-sm text-slate-400">Memuat data stok...</div>
@@ -238,66 +258,122 @@ export default function StokPage() {
             <p className="text-sm text-slate-400">Belum ada bahan baku. Tambahkan bahan baku pertama.</p>
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead className="bg-slate-50 border-b border-slate-100">
-                <tr>
-                  <th className="text-left px-4 py-3 font-semibold text-slate-600">Nama</th>
-                  <th className="text-center px-4 py-3 font-semibold text-slate-600">Stok</th>
-                  <th className="text-center px-4 py-3 font-semibold text-slate-600">Min</th>
-                  <th className="text-center px-4 py-3 font-semibold text-slate-600">Satuan</th>
-                  <th className="text-right px-4 py-3 font-semibold text-slate-600">Biaya/Unit</th>
-                  <th className="text-center px-4 py-3 font-semibold text-slate-600">Status</th>
-                  <th className="text-right px-4 py-3 font-semibold text-slate-600">Aksi</th>
-                </tr>
-              </thead>
-              <tbody>
-                {materials.map((m, idx) => {
-                  const status = getStockStatus(m);
-                  return (
-                    <tr key={m.id} className={idx % 2 === 0 ? "bg-white" : "bg-slate-50/40"}>
-                      <td className="px-4 py-3 font-medium text-slate-800">{m.name}</td>
-                      <td className={`px-4 py-3 text-center font-bold ${
-                        status === "empty" ? "text-red-600" :
-                        status === "low"   ? "text-amber-600" : "text-green-600"
-                      }`}>
-                        {m.current_stock}
-                      </td>
-                      <td className="px-4 py-3 text-center text-slate-500">{m.min_stock_threshold}</td>
-                      <td className="px-4 py-3 text-center text-slate-500">{m.unit}</td>
-                      <td className="px-4 py-3 text-right text-slate-600">{formatRupiah(m.cost_per_unit)}</td>
-                      <td className="px-4 py-3 text-center">
+          <>
+            {/* ── Mobile Layout (Cards) ── */}
+            <div className="md:hidden divide-y divide-slate-100">
+              {materials.map((m) => {
+                const status = getStockStatus(m);
+                return (
+                  <div key={m.id} className="p-4 flex flex-col gap-3">
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <h4 className="font-semibold text-slate-800 text-sm">{m.name}</h4>
+                        <p className="text-xs text-slate-500 mt-1">
+                          Threshold Min: {m.min_stock_threshold} {m.unit}
+                        </p>
+                        <p className="text-xs text-slate-500 mt-0.5">
+                          Biaya/Unit: {formatRupiah(m.cost_per_unit)}
+                        </p>
+                      </div>
+                      <div className="flex flex-col items-end gap-1.5">
+                        <span className={`text-sm font-bold ${
+                          status === "empty" ? "text-rose-600" :
+                          status === "low"   ? "text-amber-600" : "text-emerald-600"
+                        }`}>
+                          {m.current_stock} <span className="text-[10px] font-normal text-slate-400">{m.unit}</span>
+                        </span>
                         {status === "empty" ? (
-                          <Badge className="bg-red-100 text-red-700 border-red-200 font-semibold text-[10px]">Habis</Badge>
+                          <Badge variant="outline" className="bg-rose-50 text-rose-700 border-rose-200 font-bold text-[9px] px-2 py-0.5 rounded-md">Habis</Badge>
                         ) : status === "low" ? (
-                          <Badge className="bg-amber-100 text-amber-700 border-amber-200 font-semibold text-[10px]">Rendah</Badge>
+                          <Badge variant="outline" className="bg-amber-50 text-amber-700 border-amber-200 font-bold text-[9px] px-2 py-0.5 rounded-md">Rendah</Badge>
                         ) : (
-                          <Badge className="bg-green-100 text-green-700 border-green-200 font-semibold text-[10px]">Aman</Badge>
+                          <Badge variant="outline" className="bg-emerald-50 text-emerald-700 border-emerald-200 font-bold text-[9px] px-2 py-0.5 rounded-md">Aman</Badge>
                         )}
-                      </td>
-                      <td className="px-4 py-3 text-right">
-                        <div className="flex items-center justify-end gap-2">
-                          <Button size="sm" variant="outline" onClick={() => openRestockDialog(m)}
-                            className="h-8 px-2.5 rounded-lg text-xs font-semibold text-blue-600 border-blue-200 hover:bg-blue-50"
-                            title="Restock">
-                            Restock
-                          </Button>
-                          <Button size="sm" variant="outline" onClick={() => openEditDialog(m)}
-                            className="h-8 w-8 p-0 rounded-lg border-slate-200" title="Edit">
-                            <Pencil className="size-3.5" />
-                          </Button>
-                          <Button size="sm" variant="outline" onClick={() => { setDeletingMaterial(m); setDeleteDialogOpen(true); }}
-                            className="h-8 w-8 p-0 rounded-lg border-red-200 text-red-500 hover:bg-red-50" title="Hapus">
-                            <Trash className="size-3.5" />
-                          </Button>
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
+                      </div>
+                    </div>
+
+                    {/* Actions */}
+                    <div className="flex items-center justify-end gap-2 border-t border-slate-50 pt-2">
+                      <Button size="sm" variant="outline" onClick={() => openRestockDialog(m)}
+                        className="h-8 px-3 rounded-lg text-xs font-semibold text-primary border-primary/20 hover:bg-orange-50/50 hover:border-primary/45 transition-colors">
+                        Restock
+                      </Button>
+                      <Button size="sm" variant="outline" onClick={() => openEditDialog(m)}
+                        className="h-8 w-8 p-0 rounded-lg border-slate-200 text-slate-500 hover:text-slate-800 hover:bg-slate-50 transition-colors" title="Edit">
+                        <Pencil className="size-3.5" />
+                      </Button>
+                      <Button size="sm" variant="outline" onClick={() => { setDeletingMaterial(m); setDeleteDialogOpen(true); }}
+                        className="h-8 w-8 p-0 rounded-lg border-rose-100 text-rose-500 hover:text-rose-700 hover:bg-rose-50 transition-colors" title="Hapus">
+                        <Trash className="size-3.5" />
+                      </Button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* ── Desktop Layout (Table) ── */}
+            <div className="hidden md:block overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead className="bg-slate-50 border-b border-slate-100">
+                  <tr>
+                    <th className="text-left px-4 py-3 font-semibold text-slate-600">Nama</th>
+                    <th className="text-center px-4 py-3 font-semibold text-slate-600">Stok</th>
+                    <th className="text-center px-4 py-3 font-semibold text-slate-600">Min</th>
+                    <th className="text-center px-4 py-3 font-semibold text-slate-600">Satuan</th>
+                    <th className="text-right px-4 py-3 font-semibold text-slate-600">Biaya/Unit</th>
+                    <th className="text-center px-4 py-3 font-semibold text-slate-600">Status</th>
+                    <th className="text-right px-4 py-3 font-semibold text-slate-600">Aksi</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {materials.map((m, idx) => {
+                    const status = getStockStatus(m);
+                    return (
+                      <tr key={m.id} className={idx % 2 === 0 ? "bg-white" : "bg-slate-50/40"}>
+                        <td className="px-4 py-3 font-medium text-slate-800">{m.name}</td>
+                        <td className={`px-4 py-3 text-center font-bold ${
+                          status === "empty" ? "text-rose-600" :
+                          status === "low"   ? "text-amber-600" : "text-emerald-600"
+                        }`}>
+                          {m.current_stock}
+                        </td>
+                        <td className="px-4 py-3 text-center text-slate-500">{m.min_stock_threshold}</td>
+                        <td className="px-4 py-3 text-center text-slate-500">{m.unit}</td>
+                        <td className="px-4 py-3 text-right text-slate-600">{formatRupiah(m.cost_per_unit)}</td>
+                        <td className="px-4 py-3 text-center">
+                          {status === "empty" ? (
+                            <Badge variant="outline" className="bg-rose-50 text-rose-700 border-rose-200 font-bold text-[9px] px-2 py-0.5 rounded-md">Habis</Badge>
+                          ) : status === "low" ? (
+                            <Badge variant="outline" className="bg-amber-50 text-amber-700 border-amber-200 font-bold text-[9px] px-2 py-0.5 rounded-md">Rendah</Badge>
+                          ) : (
+                            <Badge variant="outline" className="bg-emerald-50 text-emerald-700 border-emerald-200 font-bold text-[9px] px-2 py-0.5 rounded-md">Aman</Badge>
+                          )}
+                        </td>
+                        <td className="px-4 py-3 text-right">
+                          <div className="flex items-center justify-end gap-2">
+                            <Button size="sm" variant="outline" onClick={() => openRestockDialog(m)}
+                              className="h-8 px-2.5 rounded-lg text-xs font-semibold text-primary border-primary/20 hover:bg-orange-50/50 hover:border-primary/45 transition-colors"
+                              title="Restock">
+                              Restock
+                            </Button>
+                            <Button size="sm" variant="outline" onClick={() => openEditDialog(m)}
+                              className="h-8 w-8 p-0 rounded-lg border-slate-200 text-slate-500 hover:text-slate-800 hover:bg-slate-50 transition-colors" title="Edit">
+                              <Pencil className="size-3.5" />
+                            </Button>
+                            <Button size="sm" variant="outline" onClick={() => { setDeletingMaterial(m); setDeleteDialogOpen(true); }}
+                              className="h-8 w-8 p-0 rounded-lg border-rose-100 text-rose-500 hover:text-rose-700 hover:bg-rose-50 transition-colors" title="Hapus">
+                              <Trash className="size-3.5" />
+                            </Button>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </>
         )}
       </div>
 
@@ -315,7 +391,7 @@ export default function StokPage() {
                 Nama <span className="text-red-500">*</span>
               </Label>
               <Input value={form.name} onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
-                placeholder="contoh: Tepung Terigu" className="rounded-xl" autoFocus />
+                placeholder="contoh: Tepung Terigu" className="rounded-lg" autoFocus />
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1.5">
@@ -323,7 +399,7 @@ export default function StokPage() {
                   Satuan <span className="text-red-500">*</span>
                 </Label>
                 <select value={form.unit} onChange={(e) => setForm((f) => ({ ...f, unit: e.target.value }))}
-                  className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-400">
+                  className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-400">
                   {UNIT_OPTIONS.map((u) => <option key={u} value={u}>{u}</option>)}
                 </select>
               </div>
@@ -331,7 +407,7 @@ export default function StokPage() {
                 <Label className="text-xs font-bold uppercase tracking-wider text-slate-500">Biaya/Unit (Rp)</Label>
                 <Input type="number" value={form.cost_per_unit} min={0}
                   onChange={(e) => setForm((f) => ({ ...f, cost_per_unit: e.target.value }))}
-                  className="rounded-xl" />
+                  className="rounded-lg" />
               </div>
             </div>
             <div className="grid grid-cols-2 gap-3">
@@ -339,17 +415,17 @@ export default function StokPage() {
                 <Label className="text-xs font-bold uppercase tracking-wider text-slate-500">Stok Awal</Label>
                 <Input type="number" value={form.current_stock} min={0}
                   onChange={(e) => setForm((f) => ({ ...f, current_stock: e.target.value }))}
-                  className="rounded-xl" />
+                  className="rounded-lg" />
               </div>
               <div className="space-y-1.5">
                 <Label className="text-xs font-bold uppercase tracking-wider text-slate-500">Batas Minimum</Label>
                 <Input type="number" value={form.min_stock_threshold} min={0}
                   onChange={(e) => setForm((f) => ({ ...f, min_stock_threshold: e.target.value }))}
-                  className="rounded-xl" />
+                  className="rounded-lg" />
                 <p className="text-[11px] text-slate-400">Alert muncul jika stok ≤ nilai ini.</p>
               </div>
             </div>
-            <div className="flex items-center justify-between rounded-xl border border-slate-200 px-4 py-3">
+            <div className="flex items-center justify-between rounded-lg border border-slate-200 px-4 py-3">
               <div>
                 <p className="text-sm font-semibold text-slate-700">Status Aktif</p>
                 <p className="text-xs text-slate-400">Bahan baku digunakan dalam resep</p>
@@ -362,8 +438,8 @@ export default function StokPage() {
             </div>
           </div>
           <DialogFooter className="gap-2">
-            <Button variant="outline" onClick={() => setDialogOpen(false)} className="rounded-xl">Batal</Button>
-            <Button onClick={handleSave} disabled={isSaving} className="bg-primary hover:bg-primary-hover text-white rounded-xl">
+            <Button variant="outline" onClick={() => setDialogOpen(false)} className="rounded-lg">Batal</Button>
+            <Button onClick={handleSave} disabled={isSaving} className="bg-primary hover:bg-primary-hover text-white rounded-lg">
               {isSaving ? <div className="size-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> : editingMaterial ? "Simpan Perubahan" : "Tambah Bahan Baku"}
             </Button>
           </DialogFooter>
@@ -378,7 +454,7 @@ export default function StokPage() {
             <p className="text-sm text-slate-600">
               Bahan baku <span className="font-semibold">"{deletingMaterial?.name}"</span> akan dinonaktifkan.
             </p>
-            <div className="flex items-start gap-2 rounded-xl bg-amber-50 border border-amber-200 p-3">
+            <div className="flex items-start gap-2 rounded-lg bg-amber-50 border border-amber-200 p-3">
               <AlertTriangle className="size-4 text-amber-600 mt-0.5 shrink-0" />
               <p className="text-xs text-amber-800 font-medium">
                 Data tidak dihapus permanen agar resep dan riwayat stok tetap terjaga.
@@ -386,8 +462,8 @@ export default function StokPage() {
             </div>
           </div>
           <DialogFooter className="gap-2">
-            <Button variant="outline" onClick={() => setDeleteDialogOpen(false)} className="rounded-xl">Batal</Button>
-            <Button onClick={handleDelete} disabled={isDeleting} className="bg-red-500 hover:bg-red-600 text-white rounded-xl">
+            <Button variant="outline" onClick={() => setDeleteDialogOpen(false)} className="rounded-lg">Batal</Button>
+            <Button onClick={handleDelete} disabled={isDeleting} className="bg-rose-600 hover:bg-rose-700 text-white rounded-lg transition-colors">
               {isDeleting ? <div className="size-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> : "Ya, Nonaktifkan"}
             </Button>
           </DialogFooter>
@@ -400,7 +476,7 @@ export default function StokPage() {
           <DialogHeader><DialogTitle className="font-bold text-heading">Restock Bahan Baku</DialogTitle></DialogHeader>
           <div className="space-y-4 py-2">
             {restockTarget && (
-              <div className="rounded-xl bg-slate-50 border border-slate-200 px-4 py-3">
+              <div className="rounded-lg bg-slate-50 border border-slate-200 px-4 py-3">
                 <p className="text-xs text-slate-500 font-semibold uppercase tracking-wider">Bahan</p>
                 <p className="font-bold text-slate-800 mt-0.5">{restockTarget.name}</p>
                 <p className="text-sm text-slate-500 mt-1">
@@ -417,7 +493,7 @@ export default function StokPage() {
               </Label>
               <Input type="number" value={restockForm.quantity} min={0.01} step="0.01" autoFocus
                 onChange={(e) => setRestockForm((f) => ({ ...f, quantity: e.target.value }))}
-                placeholder={`contoh: 500`} className="rounded-xl" />
+                placeholder={`contoh: 500`} className="rounded-lg" />
             </div>
             <div className="space-y-1.5">
               <Label className="text-xs font-bold uppercase tracking-wider text-slate-500">
@@ -425,12 +501,12 @@ export default function StokPage() {
               </Label>
               <Input type="number" value={restockForm.cost_per_unit} min={0}
                 onChange={(e) => setRestockForm((f) => ({ ...f, cost_per_unit: e.target.value }))}
-                placeholder="0" className="rounded-xl" />
+                placeholder="0" className="rounded-lg" />
             </div>
           </div>
           <DialogFooter className="gap-2">
-            <Button variant="outline" onClick={() => setRestockDialogOpen(false)} className="rounded-xl">Batal</Button>
-            <Button onClick={handleRestock} disabled={isRestocking} className="bg-blue-600 hover:bg-blue-700 text-white rounded-xl">
+            <Button variant="outline" onClick={() => setRestockDialogOpen(false)} className="rounded-lg">Batal</Button>
+            <Button onClick={handleRestock} disabled={isRestocking} className="bg-primary hover:bg-primary-hover text-white rounded-lg transition-colors">
               {isRestocking ? <div className="size-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> : "Konfirmasi Restock"}
             </Button>
           </DialogFooter>

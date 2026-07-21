@@ -29,7 +29,7 @@ export default function TransactionTable({ data }: Props) {
   );
 
   const totalPages = Math.ceil(sorted.length / PAGE_SIZE);
-  const paginated  = sorted.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+  const paginated = sorted.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
   if (!data.length) {
     return (
@@ -76,8 +76,8 @@ export default function TransactionTable({ data }: Props) {
                       t.status === "PAID"
                         ? "bg-green-100 text-green-700 border-green-200 text-[10px] font-bold"
                         : t.status === "VOIDED"
-                        ? "bg-red-100 text-red-600 border-red-200 text-[10px] font-bold"
-                        : "bg-slate-100 text-slate-500 border-slate-200 text-[10px] font-bold"
+                          ? "bg-red-100 text-red-600 border-red-200 text-[10px] font-bold"
+                          : "bg-slate-100 text-slate-500 border-slate-200 text-[10px] font-bold"
                     }>
                       {t.status}
                     </Badge>

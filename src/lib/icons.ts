@@ -42,4 +42,18 @@ export {
   Upload,
   Loader2,
   Search,
+  Bot,
+  Send,
+  Sparkles,
+  MessageSquare,
+  MessageSquareText,
+  BarChart3,
+  BarChart,
+  Target,
+  ArrowUp,
+  Zap,
+  Brain,
+  FolderOpen,
+  Inbox,
 } from "lucide-react";
+

@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   Dialog,
   DialogContent,
@@ -14,7 +15,7 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
-import { Plus, Pencil, Trash, AlertTriangle, Image, Upload, Loader2, X } from "@/lib/icons";
+import { Plus, Pencil, Trash, AlertTriangle, Image, Upload, Loader2, X, ChevronDown } from "@/lib/icons";
 import { formatRupiah } from "@/lib/utils/format";
 
 // ── Types ─────────────────────────────────────────────────────
@@ -78,7 +79,10 @@ export default function ProductManagement() {
       .select("id, name")
       .eq("is_active", true)
       .order("sort_order");
-    setCategories(data ?? []);
+    const filtered = (data ?? []).filter(
+      (cat) => cat.name.toLowerCase() !== "topping"
+    );
+    setCategories(filtered);
   }, [supabase]);
 
   const fetchProducts = useCallback(async () => {
@@ -300,10 +304,10 @@ export default function ProductManagement() {
       {/* Header + filter */}
       <div className="flex flex-col sm:flex-row sm:items-center gap-3 justify-between">
         {/* Category filter pills */}
-        <div className="flex items-center gap-2 flex-wrap">
+        <div className="flex items-center gap-3 flex-wrap">
           <button
             onClick={() => setFilterCategoryId("all")}
-            className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition-colors ${
+            className={`px-3 py-1.5 rounded-lg text-sm font-semibold border transition-colors ${
               filterCategoryId === "all"
                 ? "bg-orange-500 text-white border-orange-500"
                 : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50"
@@ -315,7 +319,7 @@ export default function ProductManagement() {
             <button
               key={cat.id}
               onClick={() => setFilterCategoryId(cat.id)}
-              className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition-colors ${
+              className={`px-3 py-1.5 rounded-lg text-sm font-semibold border transition-colors ${
                 filterCategoryId === cat.id
                   ? "bg-orange-500 text-white border-orange-500"
                   : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50"
@@ -359,140 +363,294 @@ export default function ProductManagement() {
         {filterCategoryId !== "all" && ` dalam kategori ini`}
       </p>
 
-      {/* Table */}
+      {/* Table & Cards Container */}
       <div className="rounded-xl border border-slate-200 overflow-hidden bg-white">
         {isLoading ? (
-          <div className="p-8 text-center text-sm text-slate-400">
-            Memuat produk...
+          <div className="p-6 space-y-4">
+            {/* Mobile Loading Skeleton */}
+            <div className="md:hidden space-y-3">
+              {[...Array(3)].map((_, i) => (
+                <div key={i} className="flex flex-col gap-3 p-4 border border-slate-100 rounded-xl">
+                  <div className="flex gap-3">
+                    <Skeleton className="size-14 rounded-xl shrink-0" />
+                    <div className="flex-1 space-y-2">
+                      <Skeleton className="h-4 w-1/2" />
+                      <Skeleton className="h-3 w-1/3" />
+                    </div>
+                    <Skeleton className="h-4 w-16" />
+                  </div>
+                  <Skeleton className="h-8 w-full rounded-lg" />
+                </div>
+              ))}
+            </div>
+            {/* Desktop Loading Skeleton */}
+            <div className="hidden md:block space-y-3">
+              <div className="flex gap-4 pb-2 border-b border-slate-100">
+                <Skeleton className="h-4 w-12" />
+                <Skeleton className="h-4 w-1/3" />
+                <Skeleton className="h-4 w-24" />
+                <Skeleton className="h-4 w-20 ml-auto" />
+                <Skeleton className="h-4 w-24" />
+              </div>
+              {[...Array(4)].map((_, i) => (
+                <div key={i} className="flex gap-4 items-center py-3 border-b border-slate-50 last:border-0">
+                  <Skeleton className="size-10 rounded-lg shrink-0" />
+                  <Skeleton className="h-4 w-1/4" />
+                  <Skeleton className="h-3 w-20" />
+                  <Skeleton className="h-4 w-20 ml-auto" />
+                  <Skeleton className="h-6 w-16 rounded-full" />
+                  <Skeleton className="h-8 w-20" />
+                </div>
+              ))}
+            </div>
           </div>
         ) : filteredProducts.length === 0 ? (
-          <div className="p-8 text-center text-sm text-slate-400">
-            Belum ada produk. Tambahkan produk pertama.
+          <div className="flex flex-col items-center justify-center text-center p-12 bg-white rounded-xl">
+            <div className="size-16 rounded-full bg-slate-50 flex items-center justify-center border border-dashed border-slate-200 mb-4 animate-pulse">
+              <Image className="size-8 text-slate-300 stroke-[1.5]" />
+            </div>
+            <h3 className="text-base font-bold text-heading">Belum Ada Produk</h3>
+            <p className="text-xs text-muted-foreground max-w-[280px] mt-1 leading-relaxed">
+              {filterCategoryId !== "all" 
+                ? "Kategori ini belum memiliki produk terdaftar." 
+                : "Menu POS Anda masih kosong. Daftarkan hidangan lezat Anda sekarang."
+              }
+            </p>
+            <Button
+              onClick={openAddDialog}
+              className="mt-5 bg-primary hover:bg-primary-hover text-white font-semibold rounded-lg gap-2 text-xs py-2 px-4 shadow-md shadow-primary/10 transition-all hover:scale-[1.02]"
+            >
+              <Plus className="size-3.5" />
+              Tambah Produk Pertama
+            </Button>
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead className="bg-slate-50 border-b border-slate-100">
-                <tr>
-                  <th className="text-left px-4 py-3 font-semibold text-slate-600 w-16">Foto</th>
-                  <th className="text-left px-4 py-3 font-semibold text-slate-600">Nama</th>
-                  <th className="text-left px-4 py-3 font-semibold text-slate-600">Kategori</th>
-                  <th className="text-right px-4 py-3 font-semibold text-slate-600">Harga</th>
-                  <th className="text-center px-4 py-3 font-semibold text-slate-600">Status</th>
-                  <th className="text-right px-4 py-3 font-semibold text-slate-600">Aksi</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredProducts.map((p, idx) => (
-                  <tr
-                    key={p.id}
-                    className={idx % 2 === 0 ? "bg-white" : "bg-slate-50/50"}
-                  >
+          <>
+            {/* ── Mobile Layout (Cards) ── */}
+            <div className="md:hidden divide-y divide-slate-100">
+              {filteredProducts.map((p) => (
+                <div key={p.id} className="p-4 flex flex-col gap-3">
+                  <div className="flex gap-3">
                     {/* Foto */}
-                    <td className="px-4 py-3">
-                      {p.image_url ? (
-                        <div className="size-10 rounded-lg overflow-hidden border border-slate-100 shadow-sm shrink-0">
-                          <img
-                            src={p.image_url}
-                            alt={p.name}
-                            className="size-full object-cover"
-                          />
-                        </div>
-                      ) : (
-                        <div className="size-10 rounded-lg bg-slate-100 flex items-center justify-center text-slate-400 border border-slate-100 shrink-0">
-                          <Image className="size-5 stroke-[1.5]" />
-                        </div>
-                      )}
-                    </td>
-
-                    {/* Nama */}
-                    <td className="px-4 py-3">
-                      <p className="font-medium text-slate-800">{p.name}</p>
+                    {p.image_url ? (
+                      <div className="size-14 rounded-xl overflow-hidden border border-slate-100 shadow-sm shrink-0">
+                        <img
+                          src={p.image_url}
+                          alt={p.name}
+                          className="size-full object-cover"
+                        />
+                      </div>
+                    ) : (
+                      <div className="size-14 rounded-xl bg-slate-100 flex items-center justify-center text-slate-400 border border-slate-100 shrink-0">
+                        <Image className="size-5 stroke-[1.5]" />
+                      </div>
+                    )}
+                    {/* Detail */}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-start justify-between gap-2">
+                        <h4 className="font-semibold text-slate-800 text-sm truncate">{p.name}</h4>
+                        <span className="font-bold text-slate-900 text-sm shrink-0">
+                          {formatRupiah(p.base_price)}
+                        </span>
+                      </div>
                       {p.description && (
-                        <p className="text-xs text-slate-400 mt-0.5 line-clamp-1">
+                        <p className="text-xs text-slate-400 mt-1 line-clamp-2">
                           {p.description}
                         </p>
                       )}
-                    </td>
+                      <span className="inline-block mt-2 px-2 py-0.5 rounded bg-slate-100 text-slate-500 text-[10px] font-semibold">
+                        {p.categories?.name ?? "Tanpa Kategori"}
+                      </span>
+                    </div>
+                  </div>
 
-                    {/* Kategori */}
-                    <td className="px-4 py-3 text-slate-500 text-xs">
-                      {p.categories?.name ?? (
-                        <span className="italic text-slate-300">—</span>
-                      )}
-                    </td>
-
-                    {/* Harga */}
-                    <td className="px-4 py-3 text-right font-semibold text-slate-800">
-                      {formatRupiah(p.base_price)}
-                    </td>
-
-                    {/* Status badge */}
-                    <td className="px-4 py-3 text-center">
+                  {/* Actions & Status */}
+                  <div className="flex items-center justify-between border-t border-slate-50 pt-2 mt-1">
+                    <div>
                       {p.is_active ? (
-                        <Badge className="bg-green-100 text-green-700 border-green-200 font-semibold">
+                        <Badge className="bg-green-100 text-green-700 border-green-200 font-semibold text-[10px] px-2 py-0.5">
                           Aktif
                         </Badge>
                       ) : (
                         <Badge
                           variant="outline"
-                          className="text-slate-400 border-slate-200 font-semibold"
+                          className="text-slate-400 border-slate-200 font-semibold text-[10px] px-2 py-0.5"
                         >
                           Nonaktif
                         </Badge>
                       )}
-                    </td>
-
-                    {/* Aksi */}
-                    <td className="px-4 py-3 text-right">
-                      <div className="flex items-center justify-end gap-2">
-                        {/* Toggle aktif/nonaktif */}
-                        <button
-                          onClick={() => handleToggleActive(p)}
-                          disabled={togglingId === p.id}
-                          title={p.is_active ? "Nonaktifkan" : "Aktifkan"}
-                          aria-label={p.is_active ? "Nonaktifkan produk" : "Aktifkan produk"}
-                          className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors disabled:opacity-50 ${
-                            p.is_active ? "bg-orange-500" : "bg-slate-200"
+                    </div>
+                    <div className="flex items-center gap-3">
+                      {/* Toggle */}
+                      <button
+                        onClick={() => handleToggleActive(p)}
+                        disabled={togglingId === p.id}
+                        title={p.is_active ? "Nonaktifkan" : "Aktifkan"}
+                        aria-label={p.is_active ? "Nonaktifkan produk" : "Aktifkan produk"}
+                        className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors disabled:opacity-50 ${
+                          p.is_active ? "bg-orange-500" : "bg-slate-200"
+                        }`}
+                      >
+                        <span
+                          className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white shadow transition-transform ${
+                            p.is_active ? "translate-x-[18px]" : "translate-x-0.5"
                           }`}
-                        >
-                          <span
-                            className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white shadow transition-transform ${
-                              p.is_active ? "translate-x-[18px]" : "translate-x-0.5"
-                            }`}
-                          />
-                        </button>
+                        />
+                      </button>
 
-                        {/* Edit */}
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => openEditDialog(p)}
-                          className="h-8 w-8 p-0 rounded-lg border-slate-200"
-                          title="Edit produk"
-                          aria-label="Edit produk"
-                        >
-                          <Pencil className="size-3.5" />
-                        </Button>
+                      {/* Edit */}
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => openEditDialog(p)}
+                        className="h-8 w-8 p-0 rounded-lg border-slate-200"
+                        title="Edit produk"
+                        aria-label="Edit produk"
+                      >
+                        <Pencil className="size-3.5" />
+                      </Button>
 
-                        {/* Hapus */}
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => openDeleteDialog(p)}
-                          className="h-8 w-8 p-0 rounded-lg border-red-200 text-red-500 hover:bg-red-50 hover:text-red-600"
-                          title="Nonaktifkan/hapus produk"
-                          aria-label="Hapus produk"
-                        >
-                          <Trash className="size-3.5" />
-                        </Button>
-                      </div>
-                    </td>
+                      {/* Hapus */}
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => openDeleteDialog(p)}
+                        className="h-8 w-8 p-0 rounded-lg border-red-200 text-red-500 hover:bg-red-50 hover:text-red-600"
+                        title="Nonaktifkan/hapus produk"
+                        aria-label="Hapus produk"
+                      >
+                        <Trash className="size-3.5" />
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* ── Desktop Layout (Traditional Table) ── */}
+            <div className="hidden md:block overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead className="bg-slate-50 border-b border-slate-100">
+                  <tr>
+                    <th className="text-left px-4 py-3 font-semibold text-slate-600 w-16">Foto</th>
+                    <th className="text-left px-4 py-3 font-semibold text-slate-600">Nama</th>
+                    <th className="text-left px-4 py-3 font-semibold text-slate-600">Kategori</th>
+                    <th className="text-right px-4 py-3 font-semibold text-slate-600">Harga</th>
+                    <th className="text-center px-4 py-3 font-semibold text-slate-600">Status</th>
+                    <th className="text-right px-4 py-3 font-semibold text-slate-600">Aksi</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody>
+                  {filteredProducts.map((p, idx) => (
+                    <tr
+                      key={p.id}
+                      className={`border-b border-slate-100/60 last:border-0 hover:bg-slate-50/70 transition-colors duration-150 ${
+                        idx % 2 === 0 ? "bg-white" : "bg-slate-50/30"
+                      }`}
+                    >
+                      {/* Foto */}
+                      <td className="px-4 py-3">
+                        {p.image_url ? (
+                          <div className="size-10 rounded-lg overflow-hidden border border-slate-100 shadow-sm shrink-0">
+                            <img
+                              src={p.image_url}
+                              alt={p.name}
+                              className="size-full object-cover"
+                            />
+                          </div>
+                        ) : (
+                          <div className="size-10 rounded-lg bg-slate-100 flex items-center justify-center text-slate-400 border border-slate-100 shrink-0">
+                            <Image className="size-5 stroke-[1.5]" />
+                          </div>
+                        )}
+                      </td>
+
+                      {/* Nama */}
+                      <td className="px-4 py-3">
+                        <p className="font-medium text-slate-800">{p.name}</p>
+                        {p.description && (
+                          <p className="text-xs text-slate-400 mt-0.5 line-clamp-1">
+                            {p.description}
+                          </p>
+                        )}
+                      </td>
+
+                      {/* Kategori */}
+                      <td className="px-4 py-3 text-slate-500 text-xs">
+                        {p.categories?.name ?? (
+                          <span className="italic text-slate-300">—</span>
+                        )}
+                      </td>
+
+                      {/* Harga */}
+                      <td className="px-4 py-3 text-right font-semibold text-slate-800">
+                        {formatRupiah(p.base_price)}
+                      </td>
+
+                      {/* Status badge */}
+                      <td className="px-4 py-3 text-center">
+                        {p.is_active ? (
+                          <Badge className="bg-green-100 text-green-700 border-green-200 font-semibold">
+                            Aktif
+                          </Badge>
+                        ) : (
+                          <Badge
+                            variant="outline"
+                            className="text-slate-400 border-slate-200 font-semibold"
+                          >
+                            Nonaktif
+                          </Badge>
+                        )}
+                      </td>
+
+                      {/* Aksi */}
+                      <td className="px-4 py-3 text-right">
+                        <div className="flex items-center justify-end gap-2">
+                          <button
+                            onClick={() => handleToggleActive(p)}
+                            disabled={togglingId === p.id}
+                            title={p.is_active ? "Nonaktifkan" : "Aktifkan"}
+                            aria-label={p.is_active ? "Nonaktifkan produk" : "Aktifkan produk"}
+                            className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors disabled:opacity-50 ${
+                              p.is_active ? "bg-orange-500" : "bg-slate-200"
+                            }`}
+                          >
+                            <span
+                              className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white shadow transition-transform ${
+                                p.is_active ? "translate-x-[18px]" : "translate-x-0.5"
+                              }`}
+                            />
+                          </button>
+
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => openEditDialog(p)}
+                            className="h-8 w-8 p-0 rounded-lg border-slate-200"
+                            title="Edit produk"
+                            aria-label="Edit produk"
+                          >
+                            <Pencil className="size-3.5" />
+                          </Button>
+
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => openDeleteDialog(p)}
+                            className="h-8 w-8 p-0 rounded-lg border-red-200 text-red-500 hover:bg-red-50 hover:text-red-600"
+                            title="Nonaktifkan/hapus produk"
+                            aria-label="Hapus produk"
+                          >
+                            <Trash className="size-3.5" />
+                          </Button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </>
         )}
       </div>
 
@@ -543,19 +701,24 @@ export default function ProductManagement() {
                 Kategori
               </Label>
               <div className="flex gap-2">
-                <select
-                  id="prod-cat"
-                  value={form.category_id}
-                  onChange={(e) => setForm((f) => ({ ...f, category_id: e.target.value }))}
-                  className="flex-1 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-orange-400"
-                >
-                  <option value="">— Tanpa Kategori —</option>
-                  {categories.map((cat) => (
-                    <option key={cat.id} value={cat.id}>
-                      {cat.name}
-                    </option>
-                  ))}
-                </select>
+                <div className="relative flex-1">
+                  <select
+                    id="prod-cat"
+                    value={form.category_id}
+                    onChange={(e) => setForm((f) => ({ ...f, category_id: e.target.value }))}
+                    className="w-full appearance-none rounded-xl border border-slate-200 bg-white px-3 pr-9 py-2.5 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary shadow-sm transition-all"
+                  >
+                    <option value="">— Tanpa Kategori —</option>
+                    {categories.map((cat) => (
+                      <option key={cat.id} value={cat.id}>
+                        {cat.name}
+                      </option>
+                    ))}
+                  </select>
+                  <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
+                    <ChevronDown className="size-4" />
+                  </div>
+                </div>
                 {form.category_id && (
                   <button
                     type="button"

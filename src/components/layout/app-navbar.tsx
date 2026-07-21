@@ -1,6 +1,7 @@
 "use client"
 
 import Link from "next/link"
+import Image from "next/image"
 import { usePathname } from "next/navigation"
 import { useState, useEffect } from "react"
 import { useShift } from "@/lib/hooks/useShift"
@@ -129,7 +130,9 @@ export function AppNavbar({
             <SheetContent side="left" className="w-80 flex flex-col h-full">
               <SheetHeader className="space-y-2 border-b border-border pb-4">
                 <SheetTitle className="flex items-center gap-2 text-left text-lg">
-                  <Package className="size-5 text-primary" />
+                  <div className="w-6 h-6 rounded-full overflow-hidden border border-slate-200 relative bg-white">
+                    <Image src="/logo.png" alt="WP2 Logo" fill sizes="32px" className="object-cover" />
+                  </div>
                   WP2 POS
                 </SheetTitle>
                 <SheetDescription className="text-left">
@@ -137,7 +140,7 @@ export function AppNavbar({
                 </SheetDescription>
               </SheetHeader>
 
-              <nav className="flex flex-col gap-2 py-4 flex-1 overflow-y-auto" aria-label="Navigasi mobile">
+              <nav className="flex flex-col gap-2 px-4 py-4 flex-1 overflow-y-auto" aria-label="Navigasi mobile">
                 {navigationItems.map((item) => {
                   const isActive = pathname === item.href
                   const Icon = item.icon
@@ -161,7 +164,7 @@ export function AppNavbar({
                 })}
               </nav>
 
-              <div className="mt-auto border-t border-border pt-4 space-y-4">
+              <div className="mt-auto border-t border-border p-4 space-y-4">
                 <div className="flex items-center gap-3">
                   <User className="size-5 text-muted-foreground" />
                   <div className="flex-1 min-w-0">
@@ -175,8 +178,9 @@ export function AppNavbar({
                 </div>
                 {shiftActive && (
                   <Button
-                    variant="destructive"
-                    className="w-full bg-red-600 hover:bg-red-700 text-white font-medium"
+                    type="button"
+                    variant="outline"
+                    className="w-full bg-rose-50 border-rose-200 text-rose-700 hover:bg-rose-100 hover:border-rose-300 font-semibold rounded-lg transition-colors"
                     onClick={() => {
                       setIsMobileMenuOpen(false)
                       setIsCloseModalOpen(true)
@@ -195,7 +199,9 @@ export function AppNavbar({
             className="flex items-center gap-2 font-semibold text-foreground"
             aria-label="Beranda WP2 POS"
           >
-            <Package className="size-5 text-primary" />
+            <div className="w-7 h-7 rounded-full overflow-hidden border border-slate-200 relative bg-white">
+              <Image src="/logo.png" alt="WP2 Logo" fill sizes="32px" className="object-cover" />
+            </div>
             <span>WP2 POS</span>
           </Link>
         </div>
@@ -228,20 +234,26 @@ export function AppNavbar({
         <div className="ml-auto flex items-center gap-2">
           {/* Shift status badge */}
           <Badge
-            variant={displayShiftStatus === "active" ? "default" : "destructive"}
-            className="hidden items-center gap-1.5 sm:inline-flex"
+            variant="outline"
+            className={cn(
+              "hidden items-center gap-1.5 sm:inline-flex font-semibold px-3 h-9 rounded-lg border",
+              displayShiftStatus === "active"
+                ? "bg-emerald-50 border-emerald-200 text-emerald-700 hover:bg-emerald-50 hover:text-emerald-700"
+                : "bg-rose-50 border-rose-200 text-rose-700 hover:bg-rose-50 hover:text-rose-700"
+            )}
             aria-label={`Status shift: ${displayShiftStatus === "active" ? "aktif" : "tutup"}`}
           >
-            <span className="size-1.5 rounded-full bg-current" aria-hidden="true" />
+            <span className={cn("size-1.5 rounded-full", displayShiftStatus === "active" ? "bg-emerald-500" : "bg-rose-500")} aria-hidden="true" />
             {displayShiftStatus === "active" ? "Shift Aktif" : "Shift Tutup"}
           </Badge>
 
           {/* Tutup Shift desktop button */}
           {shiftActive && (
             <Button
+              type="button"
               variant="outline"
               size="sm"
-              className="hidden sm:inline-flex border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700 h-9 font-medium"
+              className="hidden sm:inline-flex bg-rose-50/50 border-rose-200/80 text-rose-600 hover:bg-rose-50 hover:text-rose-700 hover:border-rose-300 h-9 font-semibold rounded-lg px-3 transition-colors"
               onClick={() => setIsCloseModalOpen(true)}
             >
               Tutup Shift
@@ -250,7 +262,7 @@ export function AppNavbar({
 
           {/* User menu button */}
           <div
-            className="flex items-center gap-2 rounded-lg border border-border bg-background px-3 py-1 text-sm font-medium text-foreground select-none"
+            className="flex items-center gap-2 rounded-lg border border-border bg-background px-3 py-1.5 text-sm font-medium text-foreground select-none hover:bg-slate-50 hover:border-slate-300 transition-colors cursor-pointer"
             aria-label={`Menu pengguna: ${displayName}`}
           >
             <User className="size-4 text-muted-foreground" aria-hidden="true" />
@@ -258,9 +270,6 @@ export function AppNavbar({
               <span className="max-w-28 truncate text-xs font-bold text-heading">
                 {displayName}
               </span>
-              {/* <span className="text-[9px] text-muted-foreground capitalize font-semibold mt-0.5">
-                {role === "owner" ? "Owner" : role === "cashier" ? "Kasir" : "Staff"}
-              </span> */}
             </div>
           </div>
 

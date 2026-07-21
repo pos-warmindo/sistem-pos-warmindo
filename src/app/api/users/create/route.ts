@@ -59,8 +59,7 @@ export async function POST(request: NextRequest) {
     const newUserId = newAuthUser.user.id;
 
     // 4. INSERT into public.users
-    const { error: profileError } = await admin
-      .from("users")
+    const { error: profileError } = await (admin.from("users") as any)
       .insert({
         id:           newUserId,
         display_name: display_name.trim(),
@@ -77,8 +76,7 @@ export async function POST(request: NextRequest) {
     }
 
     // 5. Lookup role_id
-    const { data: roleRow, error: roleErr } = await admin
-      .from("roles")
+    const { data: roleRow, error: roleErr } = await (admin.from("roles") as any)
       .select("id")
       .eq("name", role)
       .single();
@@ -89,8 +87,7 @@ export async function POST(request: NextRequest) {
     }
 
     // 6. INSERT into user_roles
-    const { error: userRoleError } = await admin
-      .from("user_roles")
+    const { error: userRoleError } = await (admin.from("user_roles") as any)
       .insert({ user_id: newUserId, role_id: roleRow.id });
 
     if (userRoleError) {

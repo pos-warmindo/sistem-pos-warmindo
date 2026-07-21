@@ -2,6 +2,9 @@
 
 Aplikasi **Point of Sale (POS)** khusus untuk bisnis F&B (Warmindo). Aplikasi ini dibangun dengan teknologi modern untuk memastikan performa yang cepat, antarmuka yang ramah pengguna, serta manajemen data yang aman menggunakan Supabase.
 
+# Frontend Developer : Rasyid Nafsyarie
+# Backend Developer : Fattah Rizqy Adhipratama
+
 ## Tech Stack
 
 - **Framework**: Next.js 16 (App Router)

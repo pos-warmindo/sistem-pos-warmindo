@@ -16,6 +16,46 @@ import { formatRupiah } from "@/lib/utils/format";
 import { CheckCircle, Plus } from "@/lib/icons";
 import { cn } from "@/lib/utils";
 
+const getModifierWeight = (name: string) => {
+  const lowerName = name.toLowerCase();
+  
+  if (
+    lowerName.includes("tidak pedas") || 
+    lowerName.includes("no spicy") || 
+    lowerName.includes("tidak") ||
+    lowerName.includes("tanpa")
+  ) {
+    return -1;
+  }
+  
+  const match = lowerName.match(/\d+/);
+  if (match) {
+    return parseInt(match[0], 10);
+  }
+  
+  return 999; 
+};
+
+const sortModifiers = (a: ProductModifier, b: ProductModifier) => {
+  const weightA = getModifierWeight(a.modifier_name);
+  const weightB = getModifierWeight(b.modifier_name);
+  
+  if (weightA !== weightB) {
+    return weightA - weightB;
+  }
+
+  const orderA = a.sort_order === null || a.sort_order === undefined ? 999999 : a.sort_order;
+  const orderB = b.sort_order === null || b.sort_order === undefined ? 999999 : b.sort_order;
+
+  if (orderA !== orderB) {
+    return orderA - orderB;
+  }
+  return a.modifier_name.localeCompare(b.modifier_name, undefined, {
+    numeric: true,
+    sensitivity: "base",
+  });
+};
+
 interface ModifierSelectionModalProps {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
@@ -67,9 +107,7 @@ export default function ModifierSelectionModal({
         const groupItems = groupedModifiers[groupName];
         if (isSingleSelectGroup(groupName)) {
           // Select first item by sort order
-          const sorted = [...groupItems].sort(
-            (a, b) => a.sort_order - b.sort_order
-          );
+          const sorted = [...groupItems].sort(sortModifiers);
           initial[groupName] = [sorted[0]];
         } else {
           initial[groupName] = [];
@@ -167,8 +205,9 @@ export default function ModifierSelectionModal({
                   </div>
 
                   <div className="grid grid-cols-2 gap-3">
-                    {groupItems
+                    {[...groupItems]
                       .filter((m) => m.is_active)
+                      .sort(sortModifiers)
                       .map((item) => {
                         const isSelected = getIsSelected(groupName, item.id);
                         return (
