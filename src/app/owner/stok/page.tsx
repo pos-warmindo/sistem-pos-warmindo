@@ -214,52 +214,37 @@ export default function StokPage() {
       </div>
 
       {/* Status summary cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        {/* Stok Habis */}
-        <div className="rounded-xl border border-slate-200/80 bg-white py-4 px-5 shadow-sm transition-all duration-200 hover:shadow-md">
-          <div className="flex items-center justify-between">
-            <span className="text-sm font-medium text-slate-500">Stok Habis</span>
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-red-50 text-red-500">
-              <AlertTriangle className="h-5 w-5" />
-            </div>
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        {/* Card Stok Habis */}
+        <div className="rounded-xl border border-slate-100 bg-white p-4.5 flex items-center gap-4 shadow-sm shadow-slate-100/50">
+          <div className="size-11 rounded-lg bg-rose-50 border border-rose-100 flex items-center justify-center shrink-0">
+            <Package className="size-5 text-rose-600" />
           </div>
-          <div className="mt-2">
-            <h3 className="text-2xl font-bold tracking-tight text-slate-900 md:text-3xl">
-              {emptyCount}
-            </h3>
-            <div className="mt-1 text-xs text-slate-400 font-medium">Bahan baku kosong</div>
+          <div>
+            <p className="text-2xl font-bold text-slate-800 leading-tight">{emptyCount}</p>
+            <p className="text-xs font-semibold text-rose-600 mt-0.5">Stok Habis</p>
           </div>
         </div>
 
-        {/* Stok Rendah */}
-        <div className="rounded-xl border border-slate-200/80 bg-white py-4 px-5 shadow-sm transition-all duration-200 hover:shadow-md">
-          <div className="flex items-center justify-between">
-            <span className="text-sm font-medium text-slate-500">Stok Rendah</span>
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-amber-50 text-amber-500">
-              <AlertTriangle className="h-5 w-5" />
-            </div>
+        {/* Card Stok Rendah */}
+        <div className="rounded-xl border border-slate-100 bg-white p-4.5 flex items-center gap-4 shadow-sm shadow-slate-100/50">
+          <div className="size-11 rounded-lg bg-amber-50 border border-amber-100 flex items-center justify-center shrink-0">
+            <AlertTriangle className="size-5 text-amber-600" />
           </div>
-          <div className="mt-2">
-            <h3 className="text-2xl font-bold tracking-tight text-slate-900 md:text-3xl">
-              {lowCount}
-            </h3>
-            <div className="mt-1 text-xs text-slate-400 font-medium">Perlu segera di-restock</div>
+          <div>
+            <p className="text-2xl font-bold text-slate-800 leading-tight">{lowCount}</p>
+            <p className="text-xs font-semibold text-amber-600 mt-0.5">Stok Rendah</p>
           </div>
         </div>
 
-        {/* Stok Aman */}
-        <div className="rounded-xl border border-slate-200/80 bg-white py-4 px-5 shadow-sm transition-all duration-200 hover:shadow-md">
-          <div className="flex items-center justify-between">
-            <span className="text-sm font-medium text-slate-500">Stok Aman</span>
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-green-50 text-green-500">
-              <CheckCircle className="h-5 w-5" />
-            </div>
+        {/* Card Stok Aman */}
+        <div className="rounded-xl border border-slate-100 bg-white p-4.5 flex items-center gap-4 shadow-sm shadow-slate-100/50">
+          <div className="size-11 rounded-lg bg-emerald-50 border border-emerald-100 flex items-center justify-center shrink-0">
+            <CheckCircle className="size-5 text-emerald-600" />
           </div>
-          <div className="mt-2">
-            <h3 className="text-2xl font-bold tracking-tight text-slate-900 md:text-3xl">
-              {okCount}
-            </h3>
-            <div className="mt-1 text-xs text-slate-400 font-medium">Bahan baku dalam kondisi aman</div>
+          <div>
+            <p className="text-2xl font-bold text-slate-800 leading-tight">{okCount}</p>
+            <p className="text-xs font-semibold text-emerald-600 mt-0.5">Stok Aman</p>
           </div>
         </div>
       </div>
