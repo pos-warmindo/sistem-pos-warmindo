@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   Dialog,
   DialogContent,
@@ -78,7 +79,10 @@ export default function ProductManagement() {
       .select("id, name")
       .eq("is_active", true)
       .order("sort_order");
-    setCategories(data ?? []);
+    const filtered = (data ?? []).filter(
+      (cat) => cat.name.toLowerCase() !== "topping"
+    );
+    setCategories(filtered);
   }, [supabase]);
 
   const fetchProducts = useCallback(async () => {
@@ -362,12 +366,63 @@ export default function ProductManagement() {
       {/* Table & Cards Container */}
       <div className="rounded-xl border border-slate-200 overflow-hidden bg-white">
         {isLoading ? (
-          <div className="p-8 text-center text-sm text-slate-400">
-            Memuat produk...
+          <div className="p-6 space-y-4">
+            {/* Mobile Loading Skeleton */}
+            <div className="md:hidden space-y-3">
+              {[...Array(3)].map((_, i) => (
+                <div key={i} className="flex flex-col gap-3 p-4 border border-slate-100 rounded-xl">
+                  <div className="flex gap-3">
+                    <Skeleton className="size-14 rounded-xl shrink-0" />
+                    <div className="flex-1 space-y-2">
+                      <Skeleton className="h-4 w-1/2" />
+                      <Skeleton className="h-3 w-1/3" />
+                    </div>
+                    <Skeleton className="h-4 w-16" />
+                  </div>
+                  <Skeleton className="h-8 w-full rounded-lg" />
+                </div>
+              ))}
+            </div>
+            {/* Desktop Loading Skeleton */}
+            <div className="hidden md:block space-y-3">
+              <div className="flex gap-4 pb-2 border-b border-slate-100">
+                <Skeleton className="h-4 w-12" />
+                <Skeleton className="h-4 w-1/3" />
+                <Skeleton className="h-4 w-24" />
+                <Skeleton className="h-4 w-20 ml-auto" />
+                <Skeleton className="h-4 w-24" />
+              </div>
+              {[...Array(4)].map((_, i) => (
+                <div key={i} className="flex gap-4 items-center py-3 border-b border-slate-50 last:border-0">
+                  <Skeleton className="size-10 rounded-lg shrink-0" />
+                  <Skeleton className="h-4 w-1/4" />
+                  <Skeleton className="h-3 w-20" />
+                  <Skeleton className="h-4 w-20 ml-auto" />
+                  <Skeleton className="h-6 w-16 rounded-full" />
+                  <Skeleton className="h-8 w-20" />
+                </div>
+              ))}
+            </div>
           </div>
         ) : filteredProducts.length === 0 ? (
-          <div className="p-8 text-center text-sm text-slate-400">
-            Belum ada produk. Tambahkan produk pertama.
+          <div className="flex flex-col items-center justify-center text-center p-12 bg-white rounded-xl">
+            <div className="size-16 rounded-full bg-slate-50 flex items-center justify-center border border-dashed border-slate-200 mb-4 animate-pulse">
+              <Image className="size-8 text-slate-300 stroke-[1.5]" />
+            </div>
+            <h3 className="text-base font-bold text-heading">Belum Ada Produk</h3>
+            <p className="text-xs text-muted-foreground max-w-[280px] mt-1 leading-relaxed">
+              {filterCategoryId !== "all" 
+                ? "Kategori ini belum memiliki produk terdaftar." 
+                : "Menu POS Anda masih kosong. Daftarkan hidangan lezat Anda sekarang."
+              }
+            </p>
+            <Button
+              onClick={openAddDialog}
+              className="mt-5 bg-primary hover:bg-primary-hover text-white font-semibold rounded-lg gap-2 text-xs py-2 px-4 shadow-md shadow-primary/10 transition-all hover:scale-[1.02]"
+            >
+              <Plus className="size-3.5" />
+              Tambah Produk Pertama
+            </Button>
           </div>
         ) : (
           <>
@@ -489,7 +544,9 @@ export default function ProductManagement() {
                   {filteredProducts.map((p, idx) => (
                     <tr
                       key={p.id}
-                      className={idx % 2 === 0 ? "bg-white" : "bg-slate-50/50"}
+                      className={`border-b border-slate-100/60 last:border-0 hover:bg-slate-50/70 transition-colors duration-150 ${
+                        idx % 2 === 0 ? "bg-white" : "bg-slate-50/30"
+                      }`}
                     >
                       {/* Foto */}
                       <td className="px-4 py-3">
@@ -648,7 +705,7 @@ export default function ProductManagement() {
                   id="prod-cat"
                   value={form.category_id}
                   onChange={(e) => setForm((f) => ({ ...f, category_id: e.target.value }))}
-                  className="flex-1 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-orange-400"
+                  className="flex-1 rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary shadow-sm transition-all"
                 >
                   <option value="">— Tanpa Kategori —</option>
                   {categories.map((cat) => (

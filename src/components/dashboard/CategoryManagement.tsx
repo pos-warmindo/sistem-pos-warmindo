@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   Dialog,
   DialogContent,
@@ -14,7 +15,7 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
-import { Plus, Pencil, Trash, AlertTriangle } from "@/lib/icons";
+import { Plus, Pencil, Trash, AlertTriangle, FolderOpen } from "@/lib/icons";
 
 type Category = {
   id: string;
@@ -188,12 +189,56 @@ export default function CategoryManagement() {
       {/* Table */}
       <div className="rounded-xl border border-slate-200 overflow-hidden bg-white">
         {isLoading ? (
-          <div className="p-8 text-center text-sm text-slate-400">
-            Memuat kategori...
+          <div className="p-6 space-y-4">
+            {/* Mobile Loading Skeleton */}
+            <div className="md:hidden space-y-3">
+              {[...Array(3)].map((_, i) => (
+                <div key={i} className="flex flex-col gap-3 p-4 border border-slate-100 rounded-xl">
+                  <div className="flex justify-between items-center">
+                    <div className="space-y-2 flex-1">
+                      <Skeleton className="h-4 w-1/2" />
+                      <Skeleton className="h-3 w-20" />
+                    </div>
+                    <Skeleton className="h-4 w-16" />
+                  </div>
+                  <Skeleton className="h-8 w-full rounded-lg" />
+                </div>
+              ))}
+            </div>
+            {/* Desktop Loading Skeleton */}
+            <div className="hidden md:block space-y-3">
+              <div className="flex gap-4 pb-2 border-b border-slate-100">
+                <Skeleton className="h-4 w-1/3" />
+                <Skeleton className="h-4 w-20 text-center mx-auto" />
+                <Skeleton className="h-4 w-20 text-center" />
+                <Skeleton className="h-4 w-24 ml-auto" />
+              </div>
+              {[...Array(4)].map((_, i) => (
+                <div key={i} className="flex gap-4 items-center py-3 border-b border-slate-50 last:border-0">
+                  <Skeleton className="h-4 w-1/3" />
+                  <Skeleton className="h-4 w-12 mx-auto" />
+                  <Skeleton className="h-6 w-16 rounded-full mx-auto" />
+                  <Skeleton className="h-8 w-20 ml-auto" />
+                </div>
+              ))}
+            </div>
           </div>
         ) : categories.length === 0 ? (
-          <div className="p-8 text-center text-sm text-slate-400">
-            Belum ada kategori. Tambahkan kategori pertama.
+          <div className="flex flex-col items-center justify-center text-center p-12 bg-white rounded-xl">
+            <div className="size-16 rounded-full bg-slate-50 flex items-center justify-center border border-dashed border-slate-200 mb-4 animate-pulse">
+              <FolderOpen className="size-8 text-slate-300 stroke-[1.5]" />
+            </div>
+            <h3 className="text-base font-bold text-heading">Belum Ada Kategori</h3>
+            <p className="text-xs text-muted-foreground max-w-[280px] mt-1 leading-relaxed">
+              Anda belum menambahkan kategori menu. Buat kategori sekarang untuk mengelompokkan hidangan Anda.
+            </p>
+            <Button
+              onClick={openAddDialog}
+              className="mt-5 bg-primary hover:bg-primary-hover text-white font-semibold rounded-lg gap-2 text-xs py-2 px-4 shadow-md shadow-primary/10 transition-all hover:scale-[1.02]"
+            >
+              <Plus className="size-3.5" />
+              Tambah Kategori Pertama
+            </Button>
           </div>
         ) : (
           <>
@@ -262,7 +307,9 @@ export default function CategoryManagement() {
                   {categories.map((cat, idx) => (
                     <tr
                       key={cat.id}
-                      className={idx % 2 === 0 ? "bg-white" : "bg-slate-50/50"}
+                      className={`border-b border-slate-100/60 last:border-0 hover:bg-slate-50/70 transition-colors duration-150 ${
+                        idx % 2 === 0 ? "bg-white" : "bg-slate-50/30"
+                      }`}
                     >
                       <td className="px-4 py-3 font-medium text-slate-800">{cat.name}</td>
                       <td className="px-4 py-3 text-center text-slate-500">{cat.sort_order}</td>

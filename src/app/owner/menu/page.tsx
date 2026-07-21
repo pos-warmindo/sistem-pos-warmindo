@@ -14,14 +14,23 @@ export default function MenuPage() {
       </div>
 
       <Tabs defaultValue="produk" className="w-full">
-        <TabsList className="bg-slate-100/80 p-2 md:py-6 rounded-xl mb-4 flex w-full overflow-x-auto justify-start md:justify-center [&::-webkit-scrollbar]:hidden">
-          <TabsTrigger value="produk" className="rounded-lg font-semibold text-base px-4 py-3 md:px-5 md:py-4 whitespace-nowrap shrink-0">
+        <TabsList variant="line" className="w-full justify-start md:justify-center border-b border-slate-200/60 pb-0 rounded-none h-auto gap-8 px-2 bg-transparent mb-6">
+          <TabsTrigger
+            value="produk"
+            className="pb-3 pt-2 px-1 text-sm font-bold text-slate-500 hover:text-slate-800 transition-all rounded-none bg-transparent data-active:!bg-transparent data-active:!text-primary data-active:after:!bg-primary data-active:shadow-none"
+          >
             Produk
           </TabsTrigger>
-          <TabsTrigger value="modifier" className="rounded-lg font-semibold text-base px-4 py-3 md:px-5 md:py-4 whitespace-nowrap shrink-0">
+          <TabsTrigger
+            value="modifier"
+            className="pb-3 pt-2 px-1 text-sm font-bold text-slate-500 hover:text-slate-800 transition-all rounded-none bg-transparent data-active:!bg-transparent data-active:!text-primary data-active:after:!bg-primary data-active:shadow-none"
+          >
             Varian / Topping
           </TabsTrigger>
-          <TabsTrigger value="kategori" className="rounded-lg font-semibold text-base px-4 py-3 md:px-5 md:py-4 whitespace-nowrap shrink-0">
+          <TabsTrigger
+            value="kategori"
+            className="pb-3 pt-2 px-1 text-sm font-bold text-slate-500 hover:text-slate-800 transition-all rounded-none bg-transparent data-active:!bg-transparent data-active:!text-primary data-active:after:!bg-primary data-active:shadow-none"
+          >
             Kategori
           </TabsTrigger>
         </TabsList>

@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   Dialog,
   DialogContent,
@@ -14,7 +15,7 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
-import { Plus, Pencil, Trash, X, ChevronLeft, Image as ImageIcon } from "@/lib/icons";
+import { Plus, Pencil, Trash, X, ChevronLeft, Image as ImageIcon, Inbox } from "@/lib/icons";
 import { formatRupiah } from "@/lib/utils/format";
 
 // ── Types ─────────────────────────────────────────────────────
@@ -267,12 +268,22 @@ export default function ModifierManagement() {
 
           <div className="grid grid-cols-2 md:grid-cols-6 lg:grid-cols-6 gap-3 mt-2">
             {isLoading ? (
-              <div className="col-span-full p-8 text-center text-sm text-slate-400">
-                Memuat daftar menu...
-              </div>
+              [...Array(6)].map((_, i) => (
+                <div key={i} className="flex flex-col gap-2 p-2.5 border border-slate-100 rounded-xl bg-white">
+                  <Skeleton className="w-full aspect-square rounded-lg mb-2" />
+                  <Skeleton className="h-4 w-3/4 animate-pulse" />
+                  <Skeleton className="h-3 w-1/2 animate-pulse" />
+                </div>
+              ))
             ) : productStats.length === 0 ? (
-              <div className="col-span-full p-8 text-center text-sm text-slate-400 rounded-xl border border-dashed border-slate-200 bg-white">
-                Belum ada menu makanan.
+              <div className="col-span-full flex flex-col items-center justify-center text-center p-12 bg-white rounded-xl border border-dashed border-slate-200">
+                <div className="size-16 rounded-full bg-slate-50 flex items-center justify-center border border-dashed border-slate-200 mb-4 animate-pulse">
+                  <Inbox className="size-8 text-slate-300 stroke-[1.5]" />
+                </div>
+                <h3 className="text-base font-bold text-heading">Belum Ada Menu</h3>
+                <p className="text-xs text-muted-foreground max-w-[280px] mt-1 leading-relaxed">
+                  Tidak ada menu makanan atau produk terdaftar di sistem POS Anda saat ini.
+                </p>
               </div>
             ) : (
               productStats.map((p) => (
@@ -357,8 +368,21 @@ export default function ModifierManagement() {
 
           <div className="space-y-4">
             {Object.keys(grouped).length === 0 ? (
-              <div className="p-8 text-center text-sm text-slate-400 rounded-xl border border-dashed border-slate-200 bg-white shadow-sm">
-                Belum ada pilihan varian & topping untuk produk ini.
+              <div className="flex flex-col items-center justify-center text-center p-12 bg-white rounded-xl border border-dashed border-slate-200 shadow-sm">
+                <div className="size-16 rounded-full bg-slate-50 flex items-center justify-center border border-dashed border-slate-200 mb-4 animate-pulse">
+                  <Inbox className="size-8 text-slate-300 stroke-[1.5]" />
+                </div>
+                <h3 className="text-base font-bold text-heading">Belum Ada Varian & Topping</h3>
+                <p className="text-xs text-muted-foreground max-w-[280px] mt-1 leading-relaxed">
+                  Belum ada pilihan varian & topping untuk produk ini. Tambahkan grup atau opsi baru sekarang.
+                </p>
+                <Button
+                  onClick={openAddDialog}
+                  className="mt-5 bg-primary hover:bg-primary-hover text-white font-semibold rounded-lg gap-2 text-xs py-2 px-4 shadow-md shadow-primary/10 transition-all hover:scale-[1.02]"
+                >
+                  <Plus className="size-3.5" />
+                  Tambah Opsi Pertama
+                </Button>
               </div>
             ) : (
               Object.entries(grouped).map(([groupName, items]) => (
@@ -502,7 +526,7 @@ export default function ModifierManagement() {
                 value={form.product_id}
                 onChange={(e) => setForm((f) => ({ ...f, product_id: e.target.value }))}
                 disabled={!!selectedProduct}
-                className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-orange-400 disabled:opacity-50 disabled:bg-slate-50"
+                className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary shadow-sm transition-all disabled:opacity-50 disabled:bg-slate-50"
               >
                 <option value="">— Pilih Produk —</option>
                 {products.map((p) => (

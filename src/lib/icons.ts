@@ -53,5 +53,7 @@ export {
   ArrowUp,
   Zap,
   Brain,
+  FolderOpen,
+  Inbox,
 } from "lucide-react";
 
