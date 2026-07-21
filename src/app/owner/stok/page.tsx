@@ -216,50 +216,50 @@ export default function StokPage() {
       {/* Status summary cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {/* Stok Habis */}
-        <div className="rounded-xl border border-slate-200/80 bg-white p-6 shadow-sm transition-all duration-200 hover:shadow-md">
+        <div className="rounded-xl border border-slate-200/80 bg-white py-4 px-5 shadow-sm transition-all duration-200 hover:shadow-md">
           <div className="flex items-center justify-between">
             <span className="text-sm font-medium text-slate-500">Stok Habis</span>
             <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-red-50 text-red-500">
               <AlertTriangle className="h-5 w-5" />
             </div>
           </div>
-          <div className="mt-4">
+          <div className="mt-2">
             <h3 className="text-2xl font-bold tracking-tight text-slate-900 md:text-3xl">
               {emptyCount}
             </h3>
-            <div className="mt-2 text-xs text-slate-400 font-medium">Bahan baku kosong</div>
+            <div className="mt-1 text-xs text-slate-400 font-medium">Bahan baku kosong</div>
           </div>
         </div>
 
         {/* Stok Rendah */}
-        <div className="rounded-xl border border-slate-200/80 bg-white p-6 shadow-sm transition-all duration-200 hover:shadow-md">
+        <div className="rounded-xl border border-slate-200/80 bg-white py-4 px-5 shadow-sm transition-all duration-200 hover:shadow-md">
           <div className="flex items-center justify-between">
             <span className="text-sm font-medium text-slate-500">Stok Rendah</span>
             <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-amber-50 text-amber-500">
               <AlertTriangle className="h-5 w-5" />
             </div>
           </div>
-          <div className="mt-4">
+          <div className="mt-2">
             <h3 className="text-2xl font-bold tracking-tight text-slate-900 md:text-3xl">
               {lowCount}
             </h3>
-            <div className="mt-2 text-xs text-slate-400 font-medium">Perlu segera di-restock</div>
+            <div className="mt-1 text-xs text-slate-400 font-medium">Perlu segera di-restock</div>
           </div>
         </div>
 
         {/* Stok Aman */}
-        <div className="rounded-xl border border-slate-200/80 bg-white p-6 shadow-sm transition-all duration-200 hover:shadow-md">
+        <div className="rounded-xl border border-slate-200/80 bg-white py-4 px-5 shadow-sm transition-all duration-200 hover:shadow-md">
           <div className="flex items-center justify-between">
             <span className="text-sm font-medium text-slate-500">Stok Aman</span>
             <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-green-50 text-green-500">
               <CheckCircle className="h-5 w-5" />
             </div>
           </div>
-          <div className="mt-4">
+          <div className="mt-2">
             <h3 className="text-2xl font-bold tracking-tight text-slate-900 md:text-3xl">
               {okCount}
             </h3>
-            <div className="mt-2 text-xs text-slate-400 font-medium">Bahan baku dalam kondisi aman</div>
+            <div className="mt-1 text-xs text-slate-400 font-medium">Bahan baku dalam kondisi aman</div>
           </div>
         </div>
       </div>
