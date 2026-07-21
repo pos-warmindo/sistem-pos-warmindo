@@ -27,11 +27,25 @@ export default function ShiftOpenModal({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const handleInputChange = (val: string) => {
+    setModalAwal(val);
+    if (val === "") {
+      setError(null);
+      return;
+    }
+    const amount = parseFloat(val);
+    if (isNaN(amount) || amount < 50000) {
+      setError("Modal awal minimal harus Rp 50.000.");
+    } else {
+      setError(null);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const amount = parseFloat(modalAwal);
-    if (isNaN(amount) || amount < 0) {
-      setError("Modal awal harus berupa angka positif.");
+    if (isNaN(amount) || amount < 50000) {
+      setError("Modal awal minimal harus Rp 50.000.");
       return;
     }
 
@@ -59,17 +73,17 @@ export default function ShiftOpenModal({
           <div className="space-y-2">
             <Label htmlFor="modal_awal">Modal Awal (Rp)</Label>
             <div className="relative">
-              <span className="absolute left-3 top-2.5 text-sm font-semibold text-muted">
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm font-bold text-slate-500">
                 Rp
               </span>
               <Input
                 id="modal_awal"
                 type="number"
-                min="0"
-                placeholder="0"
+                min="50000"
+                placeholder="50000"
                 className="pl-9"
                 value={modalAwal}
-                onChange={(e) => setModalAwal(e.target.value)}
+                onChange={(e) => handleInputChange(e.target.value)}
                 required
                 disabled={isSubmitting}
                 autoFocus
@@ -80,7 +94,7 @@ export default function ShiftOpenModal({
           <Button
             type="submit"
             className="w-full bg-primary hover:bg-primary-hover text-white"
-            disabled={isSubmitting}
+            disabled={isSubmitting || !!error || !modalAwal || parseFloat(modalAwal) < 50000}
           >
             {isSubmitting ? "Membuka Shift..." : "Buka Shift"}
           </Button>

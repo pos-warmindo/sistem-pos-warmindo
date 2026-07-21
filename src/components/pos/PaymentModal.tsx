@@ -40,7 +40,7 @@ type QrData = {
 
 export default function PaymentModal({ isOpen, onOpenChange }: PaymentModalProps) {
   const { cartItems, total, subtotal, clearCart } = useCart();
-  const { activeShift } = useShift();
+  const { activeShift, refreshShift } = useShift();
   const supabase = createClient();
 
   const [completedOrder, setCompletedOrder] = useState<ReceiptOrder | null>(null);
@@ -75,6 +75,8 @@ export default function PaymentModal({ isOpen, onOpenChange }: PaymentModalProps
   const numericPaid = Number(amountPaidInput) || 0;
   const changeAmount = Math.max(0, numericPaid - total);
   const isValidAmount = numericPaid >= total;
+  const cashInDrawer = activeShift ? (Number(activeShift.modal_awal) + Number(activeShift.total_cash_sales)) : 0;
+  const isCashInDrawerInsufficient = changeAmount > 0 && changeAmount > cashInDrawer;
 
   // ── Interval helpers ─────────────────────────────────────────
   const stopAllTimers = useCallback(() => {
@@ -339,6 +341,12 @@ export default function PaymentModal({ isOpen, onOpenChange }: PaymentModalProps
       return;
     }
 
+    const cashInDrawer = activeShift ? (Number(activeShift.modal_awal) + Number(activeShift.total_cash_sales)) : 0;
+    if (changeAmount > 0 && changeAmount > cashInDrawer) {
+      toast.error(`Transaksi ditolak. Uang di laci kasir tidak mencukupi untuk memberikan kembalian (Tersedia: ${formatRupiah(cashInDrawer)}).`);
+      return;
+    }
+
     setIsSubmitting(true);
     try {
       const { data: { user }, error: authError } = await supabase.auth.getUser();
@@ -440,6 +448,7 @@ export default function PaymentModal({ isOpen, onOpenChange }: PaymentModalProps
       });
 
       toast.success("Transaksi Tunai Berhasil!");
+      await refreshShift();
       clearCart();
     } catch (error: any) {
       console.error("[Tunai] Transaction failed:", error);
@@ -660,9 +669,15 @@ export default function PaymentModal({ isOpen, onOpenChange }: PaymentModalProps
                     <span className="text-lg font-bold text-primary">{formatRupiah(changeAmount)}</span>
                   </div>
 
+                  {isCashInDrawerInsufficient && (
+                    <p className="text-xs text-red-500 font-semibold text-center mt-1">
+                      Peringatan: Uang di laci kasir tidak mencukupi untuk kembalian (Tersedia: {formatRupiah(cashInDrawer)}).
+                    </p>
+                  )}
+
                   <Button
                     onClick={handleConfirmTunai}
-                    disabled={!isValidAmount || isSubmitting}
+                    disabled={!isValidAmount || isSubmitting || isCashInDrawerInsufficient}
                     className="w-full bg-primary hover:bg-primary-hover text-white font-bold py-5 rounded-lg shadow-sm mt-2 transition-all duration-150"
                   >
                     {isSubmitting
