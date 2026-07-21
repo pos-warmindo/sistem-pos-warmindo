@@ -15,7 +15,7 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
-import { Plus, Pencil, Trash, AlertTriangle, Image, Upload, Loader2, X } from "@/lib/icons";
+import { Plus, Pencil, Trash, AlertTriangle, Image, Upload, Loader2, X, ChevronDown } from "@/lib/icons";
 import { formatRupiah } from "@/lib/utils/format";
 
 // ── Types ─────────────────────────────────────────────────────
@@ -701,19 +701,24 @@ export default function ProductManagement() {
                 Kategori
               </Label>
               <div className="flex gap-2">
-                <select
-                  id="prod-cat"
-                  value={form.category_id}
-                  onChange={(e) => setForm((f) => ({ ...f, category_id: e.target.value }))}
-                  className="flex-1 rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary shadow-sm transition-all"
-                >
-                  <option value="">— Tanpa Kategori —</option>
-                  {categories.map((cat) => (
-                    <option key={cat.id} value={cat.id}>
-                      {cat.name}
-                    </option>
-                  ))}
-                </select>
+                <div className="relative flex-1">
+                  <select
+                    id="prod-cat"
+                    value={form.category_id}
+                    onChange={(e) => setForm((f) => ({ ...f, category_id: e.target.value }))}
+                    className="w-full appearance-none rounded-xl border border-slate-200 bg-white px-3 pr-9 py-2.5 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary shadow-sm transition-all"
+                  >
+                    <option value="">— Tanpa Kategori —</option>
+                    {categories.map((cat) => (
+                      <option key={cat.id} value={cat.id}>
+                        {cat.name}
+                      </option>
+                    ))}
+                  </select>
+                  <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
+                    <ChevronDown className="size-4" />
+                  </div>
+                </div>
                 {form.category_id && (
                   <button
                     type="button"

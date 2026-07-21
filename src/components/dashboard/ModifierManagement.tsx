@@ -15,11 +15,11 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
-import { Plus, Pencil, Trash, X, ChevronLeft, Image as ImageIcon, Inbox } from "@/lib/icons";
+import { Plus, Pencil, Trash, X, ChevronLeft, ChevronDown, Image as ImageIcon, Inbox } from "@/lib/icons";
 import { formatRupiah } from "@/lib/utils/format";
 
 // ── Types ─────────────────────────────────────────────────────
-type Product = { id: string; name: string; image_url: string | null; is_active: boolean };
+type Product = { id: string; name: string; image_url: string | null; is_active: boolean; category_name?: string };
 
 type Modifier = {
   id: string;
@@ -75,6 +75,7 @@ export default function ModifierManagement() {
   const [isSaving, setIsSaving] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [showGroupSuggestions, setShowGroupSuggestions] = useState(false);
+  const [showProductDropdown, setShowProductDropdown] = useState(false);
 
   // ── Fetch ────────────────────────────────────────────────────
   const fetchProducts = useCallback(async () => {
@@ -84,8 +85,13 @@ export default function ModifierManagement() {
       .order("name");
 
     const filtered = (data ?? [])
-      .filter((p: any) => p.categories?.name?.toLowerCase() !== "minuman")
-      .map((p: any) => ({ id: p.id, name: p.name, image_url: p.image_url, is_active: p.is_active }));
+      .map((p: any) => ({
+        id: p.id,
+        name: p.name,
+        image_url: p.image_url,
+        is_active: p.is_active,
+        category_name: p.categories?.name ?? ""
+      }));
 
     setProducts(filtered);
   }, [supabase]);
@@ -506,6 +512,7 @@ export default function ModifierManagement() {
           setEditingModifier(null);
           setForm(EMPTY_FORM);
           setShowGroupSuggestions(false);
+          setShowProductDropdown(false);
         }
       }}>
         <DialogContent className="sm:max-w-md">
@@ -521,80 +528,118 @@ export default function ModifierManagement() {
               <Label htmlFor="mod-product" className="text-xs font-bold uppercase tracking-wider text-slate-500">
                 Produk <span className="text-red-500">*</span>
               </Label>
-              <select
-                id="mod-product"
-                value={form.product_id}
-                onChange={(e) => setForm((f) => ({ ...f, product_id: e.target.value }))}
-                disabled={!!selectedProduct}
-                className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary shadow-sm transition-all disabled:opacity-50 disabled:bg-slate-50"
-              >
-                <option value="">— Pilih Produk —</option>
-                {products.map((p) => (
-                  <option key={p.id} value={p.id}>
-                    {p.name}
-                  </option>
-                ))}
-              </select>
+              <div className="relative">
+                <button
+                  type="button"
+                  onClick={() => setShowProductDropdown(!showProductDropdown)}
+                  onBlur={() => setTimeout(() => setShowProductDropdown(false), 150)}
+                  disabled={!!selectedProduct}
+                  className="w-full flex items-center justify-between rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary shadow-sm transition-all disabled:opacity-50 disabled:bg-slate-50"
+                >
+                  <span className={form.product_id ? "text-slate-800" : "text-slate-400"}>
+                    {form.product_id 
+                      ? products.find((p) => p.id === form.product_id)?.name 
+                      : "— Pilih Produk —"}
+                  </span>
+                  <ChevronDown className="size-4 text-slate-400 shrink-0" />
+                </button>
+                {showProductDropdown && !selectedProduct && (
+                  <div className="absolute z-20 mt-1 w-full rounded-xl border border-slate-200 bg-white shadow-lg overflow-hidden max-h-56 overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+                    {products.length === 0 ? (
+                      <div className="px-4 py-3 text-center text-xs text-slate-400 italic bg-white">
+                        Belum ada produk terdaftar
+                      </div>
+                    ) : (
+                      products.map((p) => (
+                        <button
+                          key={p.id}
+                          type="button"
+                          onClick={() => {
+                            setForm((f) => ({ ...f, product_id: p.id }));
+                            setShowProductDropdown(false);
+                          }}
+                          className="w-full px-4 py-2.5 text-left text-sm hover:bg-orange-50 hover:text-orange-700 transition-colors text-slate-700 border-b border-slate-100 last:border-0"
+                        >
+                          {p.name}
+                        </button>
+                      ))
+                    )}
+                  </div>
+                )}
+              </div>
             </div>
 
             {/* Modifier Group */}
-            <div className="space-y-1.5">
-              <Label htmlFor="mod-group" className="text-xs font-bold uppercase tracking-wider text-slate-500">
-                Kategori Pilihan (Grup) <span className="text-red-500">*</span>
-              </Label>
-              <div className="relative flex gap-2">
-                <div className="relative flex-1">
-                  <Input
-                    id="mod-group"
-                    value={form.modifier_group}
-                    onChange={(e) => {
-                      setForm((f) => ({ ...f, modifier_group: e.target.value }));
-                      setShowGroupSuggestions(true); // hanya buka saat user mengetik
-                    }}
-                    onFocus={() => {
-                      // Hanya tampilkan suggestions jika user sudah pernah mengetik
-                      // (modifier_group tidak kosong → user sedang mencari)
-                      // Tidak auto-open saat dialog baru dibuka
-                    }}
-                    onBlur={() => setTimeout(() => setShowGroupSuggestions(false), 150)}
-                    placeholder="contoh: Tingkat Pedas"
-                    className="rounded-xl"
-                    autoComplete="off"
-                  />
-                  {/* Suggestions dropdown */}
-                  {showGroupSuggestions && (
-                    <div className="absolute z-10 mt-1 w-full rounded-xl border border-slate-200 bg-white shadow-lg overflow-hidden">
-                      {GROUP_SUGGESTIONS.filter((s) =>
-                        s.toLowerCase().includes(form.modifier_group.toLowerCase())
-                      ).map((s) => (
-                        <button
-                          key={s}
-                          type="button"
-                          onMouseDown={() => setForm((f) => ({ ...f, modifier_group: s }))}
-                          className="w-full px-4 py-2 text-left text-sm hover:bg-orange-50 hover:text-orange-700 transition-colors"
-                        >
-                          {s}
-                        </button>
-                      ))}
+            {(() => {
+              const currentProduct = products.find((p) => p.id === form.product_id);
+              const isMinuman = currentProduct?.category_name?.toLowerCase() === "minuman";
+              const groupSuggestionsForProduct = isMinuman
+                ? ["Tingkat Manis", "Topping Tambahan", "Ukuran Porsi"]
+                : ["Tingkat Pedas", "Topping Tambahan", "Ukuran Porsi", "Pilihan Mie"];
+
+              return (
+                <div className="space-y-1.5">
+                  <Label htmlFor="mod-group" className="text-xs font-bold uppercase tracking-wider text-slate-500">
+                    Kategori Pilihan (Grup) <span className="text-red-500">*</span>
+                  </Label>
+                  <div className="relative flex gap-2">
+                    <div className="relative flex-1">
+                      <Input
+                        id="mod-group"
+                        value={form.modifier_group}
+                        onChange={(e) => {
+                          setForm((f) => ({ ...f, modifier_group: e.target.value }));
+                          setShowGroupSuggestions(true); // hanya buka saat user mengetik
+                        }}
+                        onFocus={() => {
+                          setShowGroupSuggestions(true);
+                        }}
+                        onBlur={() => setTimeout(() => setShowGroupSuggestions(false), 150)}
+                        placeholder={isMinuman ? "contoh: Tingkat Manis" : "contoh: Tingkat Pedas"}
+                        className="rounded-xl pr-9"
+                        autoComplete="off"
+                      />
+                      <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
+                        <ChevronDown className="size-4 text-slate-400" />
+                      </div>
+                      {/* Suggestions dropdown */}
+                      {showGroupSuggestions && (
+                        <div className="absolute z-10 mt-1 w-full rounded-xl border border-slate-200 bg-white shadow-lg overflow-hidden">
+                          {groupSuggestionsForProduct
+                            .filter((s) =>
+                              s.toLowerCase().includes(form.modifier_group.toLowerCase())
+                            )
+                            .map((s) => (
+                              <button
+                                key={s}
+                                type="button"
+                                onMouseDown={() => setForm((f) => ({ ...f, modifier_group: s }))}
+                                className="w-full px-4 py-2 text-left text-sm hover:bg-orange-50 hover:text-orange-700 transition-colors"
+                              >
+                                {s}
+                              </button>
+                            ))}
+                        </div>
+                      )}
                     </div>
-                  )}
+                    {/* Reset/Batal button */}
+                    {form.modifier_group && (
+                      <button
+                        type="button"
+                        onClick={() => setForm((f) => ({ ...f, modifier_group: "" }))}
+                        title="Batal / Kosongkan kategori"
+                        className="px-3 rounded-xl border border-slate-200 text-slate-400 hover:text-red-500 hover:border-red-200 transition-colors shrink-0"
+                      >
+                        <X className="size-4" />
+                      </button>
+                    )}
+                  </div>
+                  <p className="text-[11px] text-slate-400">
+                    Pilihan dalam kategori yang sama akan tampil sebagai opsi pilihan radio.
+                  </p>
                 </div>
-                {/* Reset/Batal button */}
-                {form.modifier_group && (
-                  <button
-                    type="button"
-                    onClick={() => setForm((f) => ({ ...f, modifier_group: "" }))}
-                    title="Batal / Kosongkan kategori"
-                    className="px-3 rounded-xl border border-slate-200 text-slate-400 hover:text-red-500 hover:border-red-200 transition-colors shrink-0"
-                  >
-                    <X className="size-4" />
-                  </button>
-                )}
-              </div>
-              <p className="text-[11px] text-slate-400">
-                Pilihan dalam kategori yang sama akan tampil sebagai opsi pilihan radio.
-              </p>
-            </div>
+              );
+            })()}
 
             {/* Modifier Name */}
             <div className="space-y-1.5">
