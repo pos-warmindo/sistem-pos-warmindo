@@ -68,16 +68,10 @@ export function AppNavbar({
           setDisplayName(user.email.split("@")[0])
         }
 
-        // Fetch role
-        const { data: roleData } = await supabase
-          .from("user_roles")
-          .select("roles ( name )")
-          .eq("user_id", user.id)
-          .maybeSingle()
-
-        const rel = roleData?.roles as any
-        if (rel?.name) {
-          setRole(rel.name)
+        // Fetch role via RPC to avoid client-side RLS policy dependency
+        const { data: roleName } = await supabase.rpc("get_my_role");
+        if (roleName) {
+          setRole(roleName);
         }
       } else {
         setDisplayName(defaultUserName)

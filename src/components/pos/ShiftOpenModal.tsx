@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Banknote } from "@/lib/icons";
+import { getErrorMessage } from "@/lib/utils/error";
 
 interface ShiftOpenModalProps {
   isOpen: boolean;
@@ -53,8 +54,8 @@ export default function ShiftOpenModal({
     setError(null);
     try {
       await onOpenShift(amount);
-    } catch (err: any) {
-      setError(err.message || "Gagal membuka shift.");
+    } catch (err: unknown) {
+      setError(getErrorMessage(err));
     } finally {
       setIsSubmitting(false);
     }

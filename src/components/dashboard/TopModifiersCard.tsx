@@ -23,8 +23,17 @@ export default async function TopModifiersCard() {
   // Agregasi jumlah pemakaian per modifikator
   const modifierCounts: Record<string, number> = {};
 
+interface ModifierItemWithRelation {
+    modifier_name: string;
+    order_items: {
+      orders: {
+        status: string;
+      } | null;
+    } | null;
+  }
+
   if (modifierItems) {
-    modifierItems.forEach((item: any) => {
+    (modifierItems as unknown as ModifierItemWithRelation[]).forEach((item) => {
       const name = item.modifier_name;
       modifierCounts[name] = (modifierCounts[name] || 0) + 1;
     });

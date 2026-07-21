@@ -22,6 +22,7 @@ import { useShift } from "@/lib/hooks/useShift";
 import { formatRupiah } from "@/lib/utils/format";
 import { createClient } from "@/lib/supabase/client";
 import { toast } from "sonner";
+import { getErrorMessage } from "@/lib/utils/error";
 import { Banknote, CreditCard, Clock, X, CheckCircle } from "@/lib/icons";
 import { QRCodeSVG } from "qrcode.react";
 import ReceiptView, { ReceiptOrder, ReceiptItem } from "@/components/receipt/ReceiptView";
@@ -29,6 +30,14 @@ import ReceiptView, { ReceiptOrder, ReceiptItem } from "@/components/receipt/Rec
 interface PaymentModalProps {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
+}
+
+interface OrderModifierInsert {
+  order_item_id: string;
+  modifier_id: string;
+  modifier_name: string;
+  modifier_group: string;
+  price_delta: number;
 }
 
 type QrData = {
@@ -249,7 +258,7 @@ export default function PaymentModal({ isOpen, onOpenChange }: PaymentModalProps
           filter: `id=eq.${qrData.order_id}`,
         },
         (payload) => {
-          const newStatus: string = (payload.new as any)?.status ?? "";
+          const newStatus: string = (payload.new as { status?: string })?.status ?? "";
           console.log(`[QRIS Realtime] Order status: ${newStatus}`);
 
           if (newStatus === "PAID") {
@@ -383,7 +392,7 @@ export default function PaymentModal({ isOpen, onOpenChange }: PaymentModalProps
       if (itemsError) throw itemsError;
 
       // INSERT order_item_modifiers
-      const modifiersData: any[] = [];
+      const modifiersData: OrderModifierInsert[] = [];
       cartItems.forEach((item) => {
         const matchedItem = insertedItems.find((ii) => ii.product_id === item.product.id);
         if (matchedItem && item.modifiers.length > 0) {
@@ -450,11 +459,11 @@ export default function PaymentModal({ isOpen, onOpenChange }: PaymentModalProps
       toast.success("Transaksi Tunai Berhasil!");
       await refreshShift();
       clearCart();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("[Tunai] Transaction failed:", error);
-      const msg: string = error?.message ?? "";
-      if (msg.includes("P0001") || msg.includes("insufficient") || error?.code === "P0001") {
-        toast.error(msg.replace(/internal error: |exception: /g, "") || "Stok bahan baku tidak mencukupi!");
+      const msg: string = getErrorMessage(error);
+      if (msg.includes("P0001") || msg.includes("insufficient") || (typeof error === "object" && error !== null && "code" in error && (error as { code: string }).code === "P0001")) {
+        toast.error("Stok bahan baku tidak mencukupi!");
       } else {
         toast.error("Gagal memproses pembayaran: " + msg);
       }
@@ -499,9 +508,9 @@ export default function PaymentModal({ isOpen, onOpenChange }: PaymentModalProps
       setQrisTimeLeft(secsLeft || 300);
 
       toast.success("QR Code berhasil dibuat. Silakan scan untuk membayar.");
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("[QRIS] Generate error:", error);
-      toast.error("Gagal membuat QR Code: " + (error?.message ?? ""));
+      toast.error("Gagal membuat QR Code: " + getErrorMessage(error));
     } finally {
       setIsSubmitting(false);
     }

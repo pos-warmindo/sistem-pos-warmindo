@@ -22,8 +22,16 @@ export default async function TopProductsCard() {
   // Agregasi jumlah terjual per produk
   const productSales: Record<string, number> = {};
 
+interface OrderItemWithRelation {
+    product_name: string;
+    quantity: number;
+    orders: {
+      status: string;
+    } | null;
+  }
+
   if (orderItems) {
-    orderItems.forEach((item: any) => {
+    (orderItems as unknown as OrderItemWithRelation[]).forEach((item) => {
       const name = item.product_name;
       const qty = item.quantity || 0;
       productSales[name] = (productSales[name] || 0) + qty;

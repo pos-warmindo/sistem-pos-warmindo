@@ -1,6 +1,7 @@
 import { createClient }      from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { NextRequest, NextResponse } from "next/server";
+import { getErrorMessage } from "@/lib/utils/error";
 
 /**
  * POST /api/users/delete
@@ -32,6 +33,11 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "user_id wajib diisi." }, { status: 400 });
     }
 
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    if (!uuidRegex.test(user_id)) {
+      return NextResponse.json({ error: "Format user_id tidak valid." }, { status: 400 });
+    }
+
     // 3. Guard: cannot delete self
     if (user_id === user.id) {
       return NextResponse.json(
@@ -52,10 +58,10 @@ export async function POST(request: NextRequest) {
     }
 
     return NextResponse.json({ success: true, deleted_user_id: user_id });
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error("[/api/users/delete] Unexpected error:", err);
     return NextResponse.json(
-      { error: err.message ?? "Internal server error" },
+      { error: getErrorMessage(err) },
       { status: 500 }
     );
   }

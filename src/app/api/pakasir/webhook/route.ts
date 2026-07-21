@@ -160,7 +160,7 @@ export async function POST(request: NextRequest) {
     }
 
     return NextResponse.json({ received: true });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("[Webhook] Unexpected error:", error);
     // Always return 200 — prevent Pakasir from retrying indefinitely
     return NextResponse.json({ received: true });

@@ -4,6 +4,7 @@ import { ai } from "@/lib/groq";
 import { getRole } from "@/lib/auth/getRole";
 import { createClient } from "@/lib/supabase/server";
 import { formatRupiah } from "@/lib/utils/format";
+import { getErrorMessage } from "@/lib/utils/error";
 
 // ── Helper: format date to WIB ISO string ──────────────────────
 function getWIBDateString(date: Date): string {
@@ -139,7 +140,7 @@ export async function chatWithCopilot(
       .join(", ") || "Belum ada data";
 
     // Produk terlaris (7 hari) — join order_items
-    const orderIds7 = last7Orders?.map((o: any) => o.id).filter(Boolean) ?? [];
+    const orderIds7 = last7Orders?.map((o) => o.id).filter(Boolean) ?? [];
     let topProductsText = "Belum ada data mengenai produk terlaris untuk periode 7 hari terakhir.";
     
     if (orderIds7.length > 0) {
@@ -320,12 +321,13 @@ INSTRUKSI:
       text: replyText,
     };
 
-  } catch (error: any) {
-    console.error("[AI Copilot] Error:", error?.message ?? error);
-    console.error("[AI Copilot] Error status:", error?.status);
+  } catch (error: unknown) {
+    const errorStatus = typeof error === "object" && error !== null && "status" in error ? (error as { status: number }).status : undefined;
+    console.error("[AI Copilot] Error:", getErrorMessage(error));
+    console.error("[AI Copilot] Error status:", errorStatus);
     console.error("[AI Copilot] Error details:", JSON.stringify(error, null, 2));
-
-    if (error?.status === 429) {
+ 
+    if (errorStatus === 429) {
       return { error: "Batas penggunaan AI tercapai. Silakan tunggu beberapa saat lalu coba lagi." };
     }
     return { error: "Terjadi kesalahan saat menghubungi AI Copilot. Silakan coba lagi." };

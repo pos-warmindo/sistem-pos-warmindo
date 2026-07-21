@@ -11,8 +11,16 @@ export type DailyRevenue = { date: string; total: number };
 
 interface Props { data: DailyRevenue[] }
 
-function CustomTooltip({ active, payload, label }: any) {
-  if (!active || !payload?.length) return null;
+interface CustomTooltipProps {
+  active?: boolean;
+  payload?: {
+    value: number;
+  }[];
+  label?: string;
+}
+
+function CustomTooltip({ active, payload, label }: CustomTooltipProps) {
+  if (!active || !payload?.length || !label) return null;
   return (
     <div className="rounded-xl border border-slate-200 bg-white px-4 py-3 shadow-lg text-sm">
       <p className="font-semibold text-slate-700 mb-1">{formatDateLabel(label)}</p>

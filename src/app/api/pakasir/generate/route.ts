@@ -1,5 +1,34 @@
 import { createClient } from "@/lib/supabase/server";
 import { NextRequest, NextResponse } from "next/server";
+import { getErrorMessage } from "@/lib/utils/error";
+
+interface CartModifier {
+  id: string;
+  modifier_name: string;
+  modifier_group: string;
+  price_delta: number;
+}
+
+interface CartProduct {
+  id: string;
+  name: string;
+  base_price: number;
+}
+
+interface CartItemInput {
+  product: CartProduct;
+  quantity: number;
+  lineTotal: number;
+  modifiers?: CartModifier[];
+}
+
+interface OrderModifierInsert {
+  order_item_id: string;
+  modifier_id: string;
+  modifier_name: string;
+  modifier_group: string;
+  price_delta: number;
+}
 
 /**
  * POST /api/pakasir/generate
@@ -26,13 +55,42 @@ export async function POST(request: NextRequest) {
 
     // 2. Parse request body
     const body = await request.json();
-    const { shift_id, total_amount, subtotal, cart_items } = body;
+    const { shift_id, total_amount, subtotal, cart_items } = body as {
+      shift_id: string;
+      total_amount: number;
+      subtotal: number;
+      cart_items: CartItemInput[];
+    };
 
     if (!shift_id || !total_amount || !cart_items) {
       return NextResponse.json(
         { error: "Missing required fields: shift_id, total_amount, cart_items" },
         { status: 400 }
       );
+    }
+
+    if (typeof total_amount !== "number" || total_amount <= 0) {
+      return NextResponse.json(
+        { error: "total_amount harus berupa angka positif." },
+        { status: 400 }
+      );
+    }
+
+    if (!Array.isArray(cart_items) || cart_items.length === 0) {
+      return NextResponse.json(
+        { error: "cart_items harus berupa list menu yang tidak kosong." },
+        { status: 400 }
+      );
+    }
+
+    for (let i = 0; i < cart_items.length; i++) {
+      const item = cart_items[i];
+      if (!item.product?.id || typeof item.quantity !== "number" || item.quantity <= 0) {
+        return NextResponse.json(
+          { error: `Item keranjang pada index ${i} tidak valid (id produk atau kuantitas tidak valid).` },
+          { status: 400 }
+        );
+      }
     }
 
     // 3. Validate active shift
@@ -154,7 +212,7 @@ export async function POST(request: NextRequest) {
     }
 
     // 8. Insert order items
-    const orderItemsData = cart_items.map((item: any) => ({
+    const orderItemsData = cart_items.map((item) => ({
       order_id: orderData.id,
       product_id: item.product.id,
       product_name: item.product.name,
@@ -178,15 +236,15 @@ export async function POST(request: NextRequest) {
     }
 
     // 9. Insert modifier snapshots (if any)
-    const modifiersData: any[] = [];
-    cart_items.forEach((item: any) => {
+    const modifiersData: OrderModifierInsert[] = [];
+    cart_items.forEach((item) => {
       // Match by product_id — note: multiple same products in cart may share product_id
       // In a real multi-item scenario this could mis-match, but for POS it's acceptable
       const matchedItem = insertedItems.find(
         (ii) => ii.product_id === item.product.id
       );
-      if (matchedItem && item.modifiers?.length > 0) {
-        item.modifiers.forEach((mod: any) => {
+      if (matchedItem && item.modifiers && item.modifiers.length > 0) {
+        item.modifiers.forEach((mod) => {
           modifiersData.push({
             order_item_id: matchedItem.id,
             modifier_id: mod.id,
@@ -216,10 +274,10 @@ export async function POST(request: NextRequest) {
       order_id: orderData.id,
       expires_at: expiresAt,
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("[Pakasir Generate] Unexpected error:", error);
     return NextResponse.json(
-      { error: error.message ?? "Internal server error" },
+      { error: getErrorMessage(error) },
       { status: 500 }
     );
   }

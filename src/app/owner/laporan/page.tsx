@@ -3,14 +3,20 @@
 import { useEffect, useState, useCallback } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { toast } from "sonner";
+import { getErrorMessage } from "@/lib/utils/error";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Download, TrendingUp, DollarSign, CreditCard, FileText } from "@/lib/icons";
 import { formatRupiah } from "@/lib/utils/format";
 import { getPeriodRange, type PeriodKey, type DateRange } from "@/lib/utils/dateRange";
-import RevenueChart, { type DailyRevenue } from "@/components/dashboard/RevenueChart";
-import PaymentMethodChart, { type PaymentMethodData } from "@/components/dashboard/PaymentMethodChart";
-import TopProductsChart, { type TopProduct } from "@/components/dashboard/TopProductsChart";
+import { type DailyRevenue } from "@/components/dashboard/RevenueChart";
+import { type PaymentMethodData } from "@/components/dashboard/PaymentMethodChart";
+import { type TopProduct } from "@/components/dashboard/TopProductsChart";
+import dynamic from "next/dynamic";
+
+const RevenueChart = dynamic(() => import("@/components/dashboard/RevenueChart"), { ssr: false });
+const PaymentMethodChart = dynamic(() => import("@/components/dashboard/PaymentMethodChart"), { ssr: false });
+const TopProductsChart = dynamic(() => import("@/components/dashboard/TopProductsChart"), { ssr: false });
 import TransactionTable, { type Transaction } from "@/components/dashboard/TransactionTable";
 
 // ── Types ──────────────────────────────────────────────────────
@@ -63,7 +69,18 @@ export default function LaporanPage() {
         .order("created_at", { ascending: false });
 
       if (ordersErr) throw ordersErr;
-      const ordersData = (orders ?? []) as any[];
+      interface LaporanOrder {
+        id: string;
+        created_at: string;
+        total_amount: number;
+        payment_method: "TUNAI" | "QRIS" | null;
+        status: "PENDING" | "QRIS_PENDING" | "PAID" | "VOIDED" | "EXPIRED";
+        cashier_id: string;
+        users: {
+          display_name: string;
+        } | null;
+      }
+      const ordersData = (orders ?? []) as unknown as LaporanOrder[];
 
       // KPI
       const totalRevenue = ordersData.reduce((s, o) => s + (o.total_amount ?? 0), 0);
@@ -109,7 +126,7 @@ export default function LaporanPage() {
           total_amount: o.total_amount,
           payment_method: o.payment_method,
           status: o.status,
-          cashier_name: (o.users as any)?.display_name ?? "—",
+          cashier_name: o.users?.display_name ?? "—",
         }))
       );
 
@@ -133,9 +150,9 @@ export default function LaporanPage() {
       } else {
         setTopProducts([]);
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("[Laporan] fetchData error:", err);
-      toast.error("Gagal memuat data laporan: " + err.message);
+      toast.error("Gagal memuat data laporan: " + getErrorMessage(err));
     } finally {
       setIsLoading(false);
     }
@@ -182,8 +199,8 @@ export default function LaporanPage() {
       const fileName = `Laporan_WP2POS_${range.from}_${range.to}.xlsx`;
       XLSX.writeFile(wb, fileName);
       toast.success("Export berhasil: " + fileName);
-    } catch (err: any) {
-      toast.error("Gagal export: " + err.message);
+    } catch (err: unknown) {
+      toast.error("Gagal export: " + getErrorMessage(err));
     } finally {
       setIsExporting(false);
     }

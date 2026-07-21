@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { toast } from "sonner";
+import { getErrorMessage } from "@/lib/utils/error";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -136,8 +137,8 @@ export default function StokPage() {
       }
       setDialogOpen(false);
       await fetchMaterials();
-    } catch (err: any) {
-      toast.error("Gagal menyimpan: " + err.message);
+    } catch (err: unknown) {
+      toast.error("Gagal menyimpan: " + getErrorMessage(err));
     } finally { setIsSaving(false); }
   };
 
@@ -151,8 +152,8 @@ export default function StokPage() {
       toast.success(`"${deletingMaterial.name}" dinonaktifkan.`);
       setDeleteDialogOpen(false);
       await fetchMaterials();
-    } catch (err: any) {
-      toast.error("Gagal menghapus: " + err.message);
+    } catch (err: unknown) {
+      toast.error("Gagal menghapus: " + getErrorMessage(err));
     } finally { setIsDeleting(false); }
   };
 
@@ -179,16 +180,20 @@ export default function StokPage() {
         p_cost_per_unit: costPerUnit ?? null,
         p_owner_id:      null,
       });
-      if (error) throw error;
-      const result = data as any;
+      interface RestockResult {
+        material_name: string;
+        stock_before: number;
+        stock_after: number;
+      }
+      const result = data as unknown as RestockResult;
       toast.success(
         `Restock berhasil! Stok ${result.material_name}: ${result.stock_before} → ${result.stock_after} ${restockTarget.unit}`
       );
       setRestockDialogOpen(false);
       await fetchMaterials();
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("[Restock] Error:", err);
-      toast.error("Gagal restock: " + (err.message ?? "Terjadi kesalahan."));
+      toast.error("Gagal restock: " + getErrorMessage(err));
     } finally { setIsRestocking(false); }
   };
 

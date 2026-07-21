@@ -1,6 +1,7 @@
 import { createClient }      from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { NextRequest, NextResponse } from "next/server";
+import { getErrorMessage } from "@/lib/utils/error";
 
 /**
  * POST /api/users/update
@@ -35,6 +36,11 @@ export async function POST(request: NextRequest) {
     };
 
     if (!user_id) return NextResponse.json({ error: "User ID wajib diisi." }, { status: 400 });
+    
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    if (!uuidRegex.test(user_id)) {
+      return NextResponse.json({ error: "Format User ID tidak valid." }, { status: 400 });
+    }
     if (!display_name?.trim()) return NextResponse.json({ error: "Nama wajib diisi." }, { status: 400 });
 
     if (role && !["cashier", "owner", "admin"].includes(role)) {
@@ -57,7 +63,7 @@ export async function POST(request: NextRequest) {
     if (phone        !== undefined) profileUpdates.phone        = phone.trim()        || null;
 
     if (Object.keys(profileUpdates).length > 0) {
-      const { error: profileError } = await (admin.from("users") as any)
+      const { error: profileError } = await admin.from("users")
         .update(profileUpdates)
         .eq("id", user_id);
 
@@ -69,11 +75,10 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // 4. Update role if provided
     if (role) {
-      const { data: roleRow, error: roleErr } = await (admin.from("roles") as any)
+      const { data: roleRow, error: roleErr } = await admin.from("roles")
         .select("id")
-        .eq("name", role)
+        .eq("name", role as "cashier" | "owner")
         .single();
 
       if (roleErr || !roleRow) {
@@ -81,9 +86,9 @@ export async function POST(request: NextRequest) {
       }
 
       // Upsert user_roles (delete old + insert new)
-      await (admin.from("user_roles") as any).delete().eq("user_id", user_id);
+      await admin.from("user_roles").delete().eq("user_id", user_id);
 
-      const { error: userRoleError } = await (admin.from("user_roles") as any)
+      const { error: userRoleError } = await admin.from("user_roles")
         .insert({ user_id, role_id: roleRow.id });
 
       if (userRoleError) {
@@ -95,16 +100,16 @@ export async function POST(request: NextRequest) {
     }
 
     // 5. Return updated user data
-    const { data: updatedUser } = await (admin.from("users") as any)
+    const { data: updatedUser } = await admin.from("users")
       .select("id, display_name, phone")
       .eq("id", user_id)
       .single();
 
     return NextResponse.json({ success: true, user: updatedUser });
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error("[/api/users/update] Unexpected error:", err);
     return NextResponse.json(
-      { error: err.message ?? "Internal server error" },
+      { error: getErrorMessage(err) },
       { status: 500 }
     );
   }

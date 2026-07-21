@@ -6,6 +6,7 @@ import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { toast } from "sonner";
+import { getErrorMessage } from "@/lib/utils/error";
 import {
   Home,
   Package,
@@ -76,9 +77,9 @@ export default function OwnerLayoutClient({
       if (error) throw error;
       toast.success("Berhasil keluar.");
       router.push("/auth/login");
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Logout error:", err);
-      toast.error("Gagal keluar dari sesi.");
+      toast.error("Gagal keluar dari sesi: " + getErrorMessage(err));
     }
   };
 

@@ -1,6 +1,7 @@
 import { createClient }      from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { NextRequest, NextResponse } from "next/server";
+import { getErrorMessage } from "@/lib/utils/error";
 
 export const dynamic = 'force-dynamic';
 
@@ -60,15 +61,30 @@ export async function GET(request: NextRequest) {
     }
 
     // 4. Map emails and role names
-    const mappedUsers = (publicUsers as any[]).map((pu) => {
+    interface UserRoleRelation {
+      role_id: number;
+      roles: {
+        name: string;
+      } | null;
+    }
+
+    interface PublicUserWithRoles {
+      id: string;
+      display_name: string;
+      phone: string | null;
+      created_at: string;
+      user_roles: UserRoleRelation[] | UserRoleRelation | null;
+    }
+
+    const mappedUsers = (publicUsers as unknown as PublicUserWithRoles[]).map((pu) => {
       const au = authUsers.find((u) => u.id === pu.id);
       
-      const rolesArray = pu.user_roles as any;
-      let roleName = null;
+      const rolesArray = pu.user_roles;
+      let roleName: string | null = null;
       if (Array.isArray(rolesArray) && rolesArray.length > 0) {
         roleName = rolesArray[0]?.roles?.name || null;
       } else if (rolesArray && typeof rolesArray === 'object') {
-        roleName = (rolesArray as any).roles?.name || null;
+        roleName = (rolesArray as UserRoleRelation).roles?.name || null;
       }
 
       return {
@@ -82,10 +98,10 @@ export async function GET(request: NextRequest) {
     });
 
     return NextResponse.json({ success: true, users: mappedUsers });
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error("[/api/users] Unexpected error:", err);
     return NextResponse.json(
-      { error: err.message ?? "Internal server error" },
+      { error: getErrorMessage(err) },
       { status: 500 }
     );
   }

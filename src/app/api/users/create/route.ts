@@ -1,6 +1,7 @@
 import { createClient }      from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { NextRequest, NextResponse } from "next/server";
+import { getErrorMessage } from "@/lib/utils/error";
 
 /**
  * POST /api/users/create
@@ -35,6 +36,11 @@ export async function POST(request: NextRequest) {
     };
 
     if (!email?.trim())         return NextResponse.json({ error: "Email wajib diisi." },           { status: 400 });
+    
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email.trim())) {
+      return NextResponse.json({ error: "Format email tidak valid." }, { status: 400 });
+    }
     if (!password || password.length < 6)
                                 return NextResponse.json({ error: "Password minimal 6 karakter." }, { status: 400 });
     if (!display_name?.trim())  return NextResponse.json({ error: "Nama wajib diisi." },            { status: 400 });
@@ -59,7 +65,7 @@ export async function POST(request: NextRequest) {
     const newUserId = newAuthUser.user.id;
 
     // 4. INSERT into public.users
-    const { error: profileError } = await (admin.from("users") as any)
+    const { error: profileError } = await admin.from("users")
       .insert({
         id:           newUserId,
         display_name: display_name.trim(),
@@ -76,9 +82,9 @@ export async function POST(request: NextRequest) {
     }
 
     // 5. Lookup role_id
-    const { data: roleRow, error: roleErr } = await (admin.from("roles") as any)
+    const { data: roleRow, error: roleErr } = await admin.from("roles")
       .select("id")
-      .eq("name", role)
+      .eq("name", role as "cashier" | "owner")
       .single();
 
     if (roleErr || !roleRow) {
@@ -87,7 +93,7 @@ export async function POST(request: NextRequest) {
     }
 
     // 6. INSERT into user_roles
-    const { error: userRoleError } = await (admin.from("user_roles") as any)
+    const { error: userRoleError } = await admin.from("user_roles")
       .insert({ user_id: newUserId, role_id: roleRow.id });
 
     if (userRoleError) {
@@ -107,10 +113,10 @@ export async function POST(request: NextRequest) {
         role,
       },
     });
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error("[/api/users/create] Unexpected error:", err);
     return NextResponse.json(
-      { error: err.message ?? "Internal server error" },
+      { error: getErrorMessage(err) },
       { status: 500 }
     );
   }

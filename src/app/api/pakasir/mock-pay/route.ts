@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { getErrorMessage } from "@/lib/utils/error";
 
 /**
  * POST /api/pakasir/mock-pay
@@ -72,10 +73,10 @@ export async function POST(request: NextRequest) {
         "Payment simulation triggered. Pakasir will send webhook to your server.",
       detail: data,
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("[Mock Pay] Unexpected error:", error);
     return NextResponse.json(
-      { error: error.message ?? "Internal server error" },
+      { error: getErrorMessage(error) },
       { status: 500 }
     );
   }

@@ -1,17 +1,9 @@
 import { createClient } from "@/lib/supabase/server";
 import { NextRequest, NextResponse } from "next/server";
+import { getErrorMessage } from "@/lib/utils/error";
 
 /**
  * GET /api/pakasir/status/:trx_id
- *
- * Pakasir API Docs: https://pakasir.com/p/docs (Section E)
- *
- * Calls: GET https://app.pakasir.com/api/transactiondetail
- *   ?project={slug}&amount={amount}&order_id={order_id}&api_key={key}
- *
- * Pakasir status values: "completed" | "pending" | "expired"
- *
- * Note: trx_id here is the order_id we sent to Pakasir (pakasir_trx_id column in DB).
  */
 export async function GET(
   request: NextRequest,
@@ -35,6 +27,14 @@ export async function GET(
     if (!trx_id) {
       return NextResponse.json(
         { error: "Transaction ID is required" },
+        { status: 400 }
+      );
+    }
+
+    const trxIdRegex = /^WP2-\d+-[A-Z0-9]+$/;
+    if (!trxIdRegex.test(trx_id)) {
+      return NextResponse.json(
+        { error: "Format Transaction ID tidak valid." },
         { status: 400 }
       );
     }
@@ -137,10 +137,10 @@ export async function GET(
     }
 
     return NextResponse.json({ status: systemStatus, trx_id });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("[Pakasir Status] Unexpected error:", error);
     return NextResponse.json(
-      { error: error.message ?? "Internal server error" },
+      { error: getErrorMessage(error) },
       { status: 500 }
     );
   }

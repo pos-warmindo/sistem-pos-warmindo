@@ -17,7 +17,7 @@ export function createAdminClient() {
     throw new Error("Missing NEXT_PUBLIC_SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY");
   }
 
-  return createClient<Database>(url, key, {
+  return createClient(url, key, {
     auth: {
       autoRefreshToken: false,
       persistSession:   false,

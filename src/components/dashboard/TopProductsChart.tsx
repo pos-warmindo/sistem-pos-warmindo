@@ -9,7 +9,17 @@ export type TopProduct = { name: string; qty: number };
 
 interface Props { data: TopProduct[] }
 
-function CustomTooltip({ active, payload }: any) {
+interface CustomTooltipProps {
+  active?: boolean;
+  payload?: {
+    value: number;
+    payload: {
+      name: string;
+    };
+  }[];
+}
+
+function CustomTooltip({ active, payload }: CustomTooltipProps) {
   if (!active || !payload?.length) return null;
   return (
     <div className="rounded-xl border border-slate-200 bg-white px-4 py-3 shadow-lg text-sm">

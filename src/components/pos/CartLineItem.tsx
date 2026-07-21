@@ -1,5 +1,6 @@
 "use client";
 
+import { memo } from "react";
 import { useCart, CartItem } from "@/lib/hooks/useCart";
 import { formatRupiah } from "@/lib/utils/format";
 import { Trash2, Plus, Minus } from "@/lib/icons";
@@ -9,7 +10,7 @@ interface CartLineItemProps {
   item: CartItem;
 }
 
-export default function CartLineItem({ item }: CartLineItemProps) {
+const CartLineItem = memo(function CartLineItem({ item }: CartLineItemProps) {
   const { updateQuantity, setQuantity, removeItem } = useCart();
 
   const handleMinus = () => {
@@ -106,4 +107,6 @@ export default function CartLineItem({ item }: CartLineItemProps) {
       </div>
     </div>
   );
-}
+});
+
+export default CartLineItem;

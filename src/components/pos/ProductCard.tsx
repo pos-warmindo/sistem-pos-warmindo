@@ -1,5 +1,6 @@
 "use client";
 
+import { memo } from "react";
 import { Product } from "@/types/database";
 import { formatRupiah } from "@/lib/utils/format";
 import { Badge } from "@/components/ui/badge";
@@ -12,7 +13,7 @@ interface ProductCardProps {
   onSelect: (product: Product) => void;
 }
 
-export default function ProductCard({
+export default memo(function ProductCard({
   product,
   isAvailable = true,
   onSelect,
@@ -86,4 +87,4 @@ export default function ProductCard({
       </div>
     </div>
   );
-}
+});

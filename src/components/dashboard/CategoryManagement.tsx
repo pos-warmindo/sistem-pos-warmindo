@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { toast } from "sonner";
+import { getErrorMessage } from "@/lib/utils/error";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -135,12 +136,13 @@ export default function CategoryManagement() {
 
       setDialogOpen(false);
       await fetchCategories();
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("[CategoryManagement] Save error:", err);
-      if (err.code === "23505") {
+      const isUniqueViolation = typeof err === "object" && err !== null && "code" in err && (err as { code: string }).code === "23505";
+      if (isUniqueViolation) {
         toast.error("Nama kategori sudah digunakan. Gunakan nama lain.");
       } else {
-        toast.error("Gagal menyimpan: " + err.message);
+        toast.error("Gagal menyimpan: " + getErrorMessage(err));
       }
     } finally {
       setIsSaving(false);
@@ -161,9 +163,9 @@ export default function CategoryManagement() {
       toast.success(`Kategori "${deletingCategory.name}" dihapus.`);
       setDeleteDialogOpen(false);
       await fetchCategories();
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("[CategoryManagement] Delete error:", err);
-      toast.error("Gagal menghapus: " + err.message);
+      toast.error("Gagal menghapus: " + getErrorMessage(err));
     } finally {
       setIsDeleting(false);
     }

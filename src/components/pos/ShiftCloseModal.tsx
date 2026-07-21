@@ -15,6 +15,7 @@ import { Separator } from "@/components/ui/separator";
 import { Banknote, AlertTriangle, CheckCircle } from "@/lib/icons";
 import { formatRupiah } from "@/lib/utils/format";
 import { Shift } from "@/lib/hooks/useShift";
+import { getErrorMessage } from "@/lib/utils/error";
 
 interface ShiftCloseModalProps {
   isOpen: boolean;
@@ -60,8 +61,8 @@ export default function ShiftCloseModal({
     try {
       await onCloseShift(cashCounted, notes.trim() || null);
       onOpenChange(false);
-    } catch (err: any) {
-      setError(err.message || "Gagal menutup shift.");
+    } catch (err: unknown) {
+      setError(getErrorMessage(err));
     } finally {
       setIsSubmitting(false);
     }

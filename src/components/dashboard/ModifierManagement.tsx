@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { toast } from "sonner";
+import { getErrorMessage } from "@/lib/utils/error";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -84,8 +85,14 @@ export default function ModifierManagement() {
       .select("id, name, image_url, is_active, categories(name)")
       .order("name");
 
-    const filtered = (data ?? [])
-      .map((p: any) => ({
+    const filtered = ((data as unknown as {
+      id: string;
+      name: string;
+      image_url: string | null;
+      is_active: boolean;
+      categories: { name: string } | null;
+    }[]) ?? [])
+      .map((p) => ({
         id: p.id,
         name: p.name,
         image_url: p.image_url,
@@ -221,9 +228,9 @@ export default function ModifierManagement() {
       setEditingModifier(null);
       setForm(EMPTY_FORM);
       await fetchModifiers();
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("[ModifierManagement] Save error:", err);
-      toast.error("Gagal menyimpan: " + err.message);
+      toast.error("Gagal menyimpan: " + getErrorMessage(err));
     } finally {
       setIsSaving(false);
     }
@@ -242,9 +249,9 @@ export default function ModifierManagement() {
       toast.success(`Modifier "${deletingModifier.modifier_name}" dihapus.`);
       setDeleteDialogOpen(false);
       await fetchModifiers();
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("[ModifierManagement] Delete error:", err);
-      toast.error("Gagal menghapus: " + err.message);
+      toast.error("Gagal menghapus: " + getErrorMessage(err));
     } finally {
       setIsDeleting(false);
     }

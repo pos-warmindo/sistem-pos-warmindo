@@ -1,4 +1,4 @@
-import React from "react";
+import React, { memo } from "react";
 import { cn } from "@/lib/utils";
 
 interface StatCardProps {
@@ -14,7 +14,7 @@ interface StatCardProps {
   className?: string;
 }
 
-export default function StatCard({
+export default memo(function StatCard({
   title,
   value,
   subtitle,
@@ -67,4 +67,4 @@ export default function StatCard({
       </div>
     </div>
   );
-}
+});

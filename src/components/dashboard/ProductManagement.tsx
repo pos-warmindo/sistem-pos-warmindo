@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { toast } from "sonner";
+import { getErrorMessage } from "@/lib/utils/error";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -189,9 +190,9 @@ export default function ProductManagement() {
 
       setForm((f) => ({ ...f, image_url: urlData.publicUrl }));
       toast.success("Foto berhasil diunggah.");
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("[ProductManagement] Upload error:", err);
-      toast.error("Gagal mengunggah foto: " + err.message);
+      toast.error("Gagal mengunggah foto: " + getErrorMessage(err));
     } finally {
       setIsUploading(false);
     }
@@ -243,9 +244,9 @@ export default function ProductManagement() {
 
       setDialogOpen(false);
       await fetchProducts();
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("[ProductManagement] Save error:", err);
-      toast.error("Gagal menyimpan: " + err.message);
+      toast.error("Gagal menyimpan: " + getErrorMessage(err));
     } finally {
       setIsSaving(false);
     }
@@ -270,8 +271,8 @@ export default function ProductManagement() {
       toast.success(
         `${p.name} ${!p.is_active ? "diaktifkan" : "dinonaktifkan"}.`
       );
-    } catch (err: any) {
-      toast.error("Gagal mengubah status: " + err.message);
+    } catch (err: unknown) {
+      toast.error("Gagal mengubah status: " + getErrorMessage(err));
     } finally {
       setTogglingId(null);
     }
@@ -290,9 +291,9 @@ export default function ProductManagement() {
       toast.success(`Produk "${deletingProduct.name}" berhasil dihapus permanen.`);
       setDeleteDialogOpen(false);
       await fetchProducts();
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("[ProductManagement] Delete error:", err);
-      toast.error("Gagal menghapus: " + err.message);
+      toast.error("Gagal menghapus: " + getErrorMessage(err));
     } finally {
       setIsDeleting(false);
     }

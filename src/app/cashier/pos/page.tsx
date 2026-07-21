@@ -1,13 +1,15 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import ShiftGate from "@/components/pos/ShiftGate";
 import CategoryTabBar from "@/components/pos/CategoryTabBar";
 import ProductGrid from "@/components/pos/ProductGrid";
-import ModifierSelectionModal from "@/components/pos/ModifierSelectionModal";
 import CartPanel from "@/components/pos/CartPanel";
 import CartSheet from "@/components/pos/CartSheet";
-import PaymentModal from "@/components/pos/PaymentModal";
+import dynamic from "next/dynamic";
+
+const ModifierSelectionModal = dynamic(() => import("@/components/pos/ModifierSelectionModal"), { ssr: false });
+const PaymentModal = dynamic(() => import("@/components/pos/PaymentModal"), { ssr: false });
 import {
   Product,
   ProductModifier,
@@ -40,6 +42,8 @@ export default function CashierPosPage() {
   const [searchQuery, setSearchQuery] = useState("");
 
   useEffect(() => {
+    const controller = new AbortController();
+    
     async function loadPOSData() {
       try {
         setIsLoadingData(true);
@@ -48,7 +52,8 @@ export default function CashierPosPage() {
           .from("categories")
           .select("*")
           .eq("is_active", true)
-          .order("sort_order", { ascending: true });
+          .order("sort_order", { ascending: true })
+          .abortSignal(controller.signal);
         
         if (catError) throw catError;
 
@@ -57,7 +62,8 @@ export default function CashierPosPage() {
           .from("products")
           .select("*")
           .eq("is_active", true)
-          .order("sort_order", { ascending: true });
+          .order("sort_order", { ascending: true })
+          .abortSignal(controller.signal);
         
         if (prodError) throw prodError;
 
@@ -66,7 +72,8 @@ export default function CashierPosPage() {
           .from("product_modifiers")
           .select("*")
           .eq("is_active", true)
-          .order("sort_order", { ascending: true });
+          .order("sort_order", { ascending: true })
+          .abortSignal(controller.signal);
         
         if (modError) throw modError;
 
@@ -74,6 +81,9 @@ export default function CashierPosPage() {
         setProducts(prodData || []);
         setModifiers(modData || []);
       } catch (error) {
+        if (error instanceof Error && error.name === "AbortError") {
+          return;
+        }
         console.error("Error loading POS data:", error);
         toast.error("Gagal memuat data menu.");
       } finally {
@@ -82,9 +92,13 @@ export default function CashierPosPage() {
     }
 
     loadPOSData();
+    
+    return () => {
+      controller.abort();
+    };
   }, [supabase]);
 
-  const handleSelectProduct = (product: Product) => {
+  const handleSelectProduct = useCallback((product: Product) => {
     if (!activeShift) {
       toast.error("Transaksi tidak diizinkan. Silakan buka shift terlebih dahulu.");
       return;
@@ -100,20 +114,24 @@ export default function CashierPosPage() {
       addItem(product, []);
       toast.success(`${product.name} ditambahkan ke keranjang`);
     }
-  };
+  }, [activeShift, modifiers, addItem]);
 
   // Construct availability map
-  const availabilityMap = products.reduce((acc, product) => {
-    acc[product.id] = isProductAvailable(product.id);
-    return acc;
-  }, {} as Record<string, boolean>);
+  const availabilityMap = useMemo(() => {
+    return products.reduce((acc, product) => {
+      acc[product.id] = isProductAvailable(product.id);
+      return acc;
+    }, {} as Record<string, boolean>);
+  }, [products, isProductAvailable]);
 
-  const filteredProducts = products.filter((product) => {
+  const filteredProducts = useMemo(() => {
     const queryWords = searchQuery.toLowerCase().trim().split(/\s+/);
-    return queryWords.every((word) =>
-      product.name.toLowerCase().includes(word)
-    );
-  });
+    return products.filter((product) => {
+      return queryWords.every((word) =>
+        product.name.toLowerCase().includes(word)
+      );
+    });
+  }, [products, searchQuery]);
 
   return (
     <ShiftGate>

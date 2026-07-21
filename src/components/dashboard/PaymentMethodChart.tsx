@@ -13,7 +13,19 @@ const COLORS: Record<string, string> = {
 };
 const FALLBACK_COLORS = ["#f97316", "#3b82f6", "#10b981", "#8b5cf6"];
 
-function CustomTooltip({ active, payload }: any) {
+interface CustomTooltipProps {
+  active?: boolean;
+  payload?: {
+    payload: {
+      method: string;
+      count: number;
+      total: number;
+      __total?: number;
+    };
+  }[];
+}
+
+function CustomTooltip({ active, payload }: CustomTooltipProps) {
   if (!active || !payload?.length) return null;
   const d = payload[0].payload;
   const total = payload[0].payload.__total ?? 0;

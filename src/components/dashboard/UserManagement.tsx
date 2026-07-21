@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { toast } from "sonner";
+import { getErrorMessage } from "@/lib/utils/error";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -68,26 +69,33 @@ export default function UserManagement() {
   }, [supabase]);
 
   // Load All Users list
-  const fetchUsers = async () => {
+  const fetchUsers = async (signal?: AbortSignal) => {
     setIsLoading(true);
     try {
-      const res = await fetch("/api/users");
+      const res = await fetch("/api/users", { signal });
       const data = await res.json();
       if (data.success) {
         setUsers(data.users || []);
       } else {
         toast.error("Gagal memuat pengguna: " + (data.error || "Terjadi kesalahan."));
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
+      if (error instanceof Error && error.name === "AbortError") {
+        return;
+      }
       console.error("[UserManagement] Fetch users error:", error);
-      toast.error("Gagal memuat daftar pengguna.");
+      toast.error("Gagal memuat daftar pengguna: " + getErrorMessage(error));
     } finally {
       setIsLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchUsers();
+    const controller = new AbortController();
+    fetchUsers(controller.signal);
+    return () => {
+      controller.abort();
+    };
   }, []);
 
   const openAddDialog = () => {
@@ -185,9 +193,9 @@ export default function UserManagement() {
           toast.error(data.error || "Gagal membuat pengguna.");
         }
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("[UserManagement] Save error:", err);
-      toast.error("Gagal menyimpan pengguna.");
+      toast.error("Gagal menyimpan pengguna: " + getErrorMessage(err));
     } finally {
       setIsSaving(false);
     }
@@ -212,9 +220,9 @@ export default function UserManagement() {
       } else {
         toast.error(data.error || "Gagal menghapus pengguna.");
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("[UserManagement] Delete error:", err);
-      toast.error("Gagal menghapus pengguna.");
+      toast.error("Gagal menghapus pengguna: " + getErrorMessage(err));
     } finally {
       setIsDeleting(false);
     }

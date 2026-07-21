@@ -21,7 +21,7 @@ export function ShiftProvider({ children }: { children: React.ReactNode }) {
   const [activeShift, setActiveShift] = useState<Shift | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  const fetchActiveShift = useCallback(async () => {
+  const fetchActiveShift = useCallback(async (isMountedRef?: { current: boolean }) => {
     setIsLoading(true);
     try {
       const {
@@ -30,7 +30,9 @@ export function ShiftProvider({ children }: { children: React.ReactNode }) {
       } = await supabase.auth.getUser();
 
       if (authError || !user) {
-        setActiveShift(null);
+        if (!isMountedRef || isMountedRef.current) {
+          setActiveShift(null);
+        }
         return;
       }
 
@@ -41,6 +43,10 @@ export function ShiftProvider({ children }: { children: React.ReactNode }) {
         .eq("status", "OPEN")
         .maybeSingle();
 
+      if (isMountedRef && !isMountedRef.current) {
+        return;
+      }
+
       if (error) {
         console.error("[useShift] Error fetching active shift:", error);
         setActiveShift(null);
@@ -49,9 +55,13 @@ export function ShiftProvider({ children }: { children: React.ReactNode }) {
       }
     } catch (err) {
       console.error("[useShift] Unexpected error:", err);
-      setActiveShift(null);
+      if (!isMountedRef || isMountedRef.current) {
+        setActiveShift(null);
+      }
     } finally {
-      setIsLoading(false);
+      if (!isMountedRef || isMountedRef.current) {
+        setIsLoading(false);
+      }
     }
   }, [supabase]);
 
@@ -127,7 +137,11 @@ export function ShiftProvider({ children }: { children: React.ReactNode }) {
   );
 
   useEffect(() => {
-    fetchActiveShift();
+    const isMounted = { current: true };
+    fetchActiveShift(isMounted);
+    return () => {
+      isMounted.current = false;
+    };
   }, [fetchActiveShift]);
 
   return (

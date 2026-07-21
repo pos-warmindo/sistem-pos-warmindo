@@ -1,5 +1,6 @@
 "use client";
 
+import { memo } from "react";
 import { Category } from "@/types/database";
 import { cn } from "@/lib/utils";
 
@@ -9,7 +10,7 @@ interface CategoryTabBarProps {
   onSelectCategory: (id: string | null) => void;
 }
 
-export default function CategoryTabBar({
+export default memo(function CategoryTabBar({
   categories,
   activeCategoryId,
   onSelectCategory,
@@ -55,4 +56,4 @@ export default function CategoryTabBar({
       </div>
     </div>
   );
-}
+});

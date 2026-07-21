@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { NextRequest, NextResponse } from "next/server";
+import { getErrorMessage } from "@/lib/utils/error";
 
 /**
  * Cron job to expire QRIS orders that have exceeded their 5-minute timeout.
@@ -82,10 +83,10 @@ export async function GET(request: NextRequest) {
       expired_count: expiredOrders.length,
       expired_order_ids: orderIds,
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("[Cron] Unexpected error:", error);
     return NextResponse.json(
-      { error: "Internal server error", details: error.message },
+      { error: "Internal server error", details: getErrorMessage(error) },
       { status: 500 }
     );
   }
