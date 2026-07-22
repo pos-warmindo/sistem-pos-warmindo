@@ -1,12 +1,12 @@
 import { createClient } from "@/lib/supabase/server";
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 
 /**
  * GET /auth/logout
  * Signs out the current user and redirects to login page.
  * Called from the logout button in AppNavbar.
  */
-export async function GET() {
+export async function GET(request: NextRequest) {
   const supabase = await createClient();
 
   // Get current user session
@@ -38,9 +38,7 @@ export async function GET() {
     }
   }
 
-  // 3. Clear auth session and redirect
+  // 3. Clear auth session and redirect dynamically using request's URL
   await supabase.auth.signOut();
-  return NextResponse.redirect(
-    new URL("/auth/login", process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000")
-  );
+  return NextResponse.redirect(new URL("/auth/login", request.url));
 }
