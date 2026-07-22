@@ -23,6 +23,7 @@ function DialogClose({ ...props }: DialogPrimitive.Close.Props) {
   return <DialogPrimitive.Close data-slot="dialog-close" {...props} />
 }
 
+// [KUSTOMISASI MODAL OVERLAY] Layar gelap di belakang modal popup (bg-black/10 & backdrop-blur)
 function DialogOverlay({
   className,
   ...props
@@ -39,6 +40,7 @@ function DialogOverlay({
   )
 }
 
+// [KUSTOMISASI KONTEN MODAL/DIALOG] Kotak popup modal. bg-popover = warna background modal
 function DialogContent({
   className,
   children,

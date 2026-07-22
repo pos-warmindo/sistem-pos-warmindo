@@ -118,14 +118,18 @@ export default function CashierPosPage() {
   return (
     <ShiftGate>
         <>
+          {/* [KUSTOMISASI LAYOUT UTAMA KASIR] bg-slate-50/20 = warna latar utama POS kasir */}
           <main className="flex-1 flex flex-col lg:flex-row h-[calc(100vh-4rem)] overflow-hidden bg-slate-50/20">
             {/* Left Column - Product catalog area */}
+            {/* [KUSTOMISASI AREA KATALOG] bg-slate-50/30 = warna latar area kiri (katalog produk) */}
             <div className="flex-1 flex flex-col h-full bg-slate-50/30 border-r border-border overflow-hidden min-w-0 w-full">
+              {/* [KUSTOMISASI HEADER KATALOG] bg-white = warna latar kotak pencarian */}
               <div className="bg-white px-4 pt-4 pb-1 border-b border-slate-100 flex flex-col gap-3 shrink-0">
                 <div className="relative">
                   <span className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-slate-400">
                     <Search className="size-4" />
                   </span>
+                  {/* [KUSTOMISASI INPUT PENCARIAN] */}
                   <Input
                     type="text"
                     placeholder="Cari menu makanan atau minuman..."
@@ -135,6 +139,7 @@ export default function CashierPosPage() {
                   />
                 </div>
               </div>
+              {/* [KUSTOMISASI KATEGORI TAB] */}
               <CategoryTabBar
                 categories={categories}
                 activeCategoryId={activeCategoryId}
@@ -144,6 +149,7 @@ export default function CashierPosPage() {
                 }}
               />
               <div className="flex-1 overflow-y-auto min-w-0 w-full pb-24 lg:pb-0">
+                {/* [KUSTOMISASI GRID PRODUK] */}
                 <ProductGrid
                   products={filteredProducts}
                   activeCategoryId={activeCategoryId}
@@ -155,10 +161,12 @@ export default function CashierPosPage() {
             </div>
 
             {/* Right Column - Cart Panel */}
+            {/* [KUSTOMISASI PANEL KERANJANG] Mengubah tampilan keranjang di sebelah kanan */}
             <CartPanel />
           </main>
 
           {/* Mobile Bottom Sheet Cart */}
+          {/* [KUSTOMISASI KERANJANG MOBILE] */}
           <CartSheet />
 
           {/* Modifier Selection Modal */}

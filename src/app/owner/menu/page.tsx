@@ -5,8 +5,10 @@ import ModifierManagement from "@/components/dashboard/ModifierManagement";
 
 export default function MenuPage() {
   return (
+    // [KUSTOMISASI KONTAINER HALAMAN KELOLA MENU OWNER]
     <main className="p-4 md:p-6 w-full max-w-full overflow-x-hidden">
       <div className="mb-6">
+        {/* [KUSTOMISASI JUDUL HALAMAN KELOLA MENU] */}
         <h1 className="text-2xl font-bold text-heading">Kelola Menu</h1>
         <p className="text-sm text-muted-foreground mt-1">
           Atur produk, kategori, serta varian/topping tambahan yang tersedia di POS.
@@ -14,6 +16,7 @@ export default function MenuPage() {
       </div>
 
       <Tabs defaultValue="produk" className="w-full">
+        {/* [KUSTOMISASI TAB LIST (PRODUK / VARIAN / KATEGORI)] */}
         <TabsList variant="line" className="w-full justify-start md:justify-center border-b border-slate-200/60 pb-0 rounded-none h-auto gap-8 px-2 bg-transparent mb-6">
           <TabsTrigger
             value="produk"

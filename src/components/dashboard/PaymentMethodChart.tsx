@@ -7,12 +7,15 @@ export type PaymentMethodData = { method: string; count: number; total: number }
 
 interface Props { data: PaymentMethodData[] }
 
+// [KUSTOMISASI WARNA GRAFIK PEMBAYARAN]
+// Anda bisa mengubah kode hex warna di sini untuk metode pembayaran TUNAI & QRIS:
 const COLORS: Record<string, string> = {
-  TUNAI: "#f97316",
-  QRIS:  "#3b82f6",
+  TUNAI: "#f97316", // [TUNAI] Warna Orange
+  QRIS:  "#3b82f6", // [QRIS] Warna Biru
 };
 const FALLBACK_COLORS = ["#f97316", "#3b82f6", "#10b981", "#8b5cf6"];
 
+// [KUSTOMISASI TOOLTIP GRAFIK] Tampilan pop-up kecil saat kursor mengarah ke grafik
 function CustomTooltip({ active, payload }: any) {
   if (!active || !payload?.length) return null;
   const d = payload[0].payload;

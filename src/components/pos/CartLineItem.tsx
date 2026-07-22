@@ -30,19 +30,23 @@ export default function CartLineItem({ item }: CartLineItemProps) {
     .join(", ");
 
   return (
+    // [KUSTOMISASI ITEM KERANJANG] border-b = garis bawah pemisah antar item
     <div className="flex items-start justify-between py-4 border-b border-slate-100 last:border-0 gap-4">
       {/* Left section: Name and modifier tags */}
       <div className="flex-1 min-w-0">
+        {/* [KUSTOMISASI NAMA PRODUK ITEM KERANJANG] */}
         <h4 className="font-medium text-slate-900 truncate text-sm sm:text-base">
           {item.product.name}
         </h4>
         {modifierText && (
+          // [KUSTOMISASI TEKS VARIAN/TOPPING] text-slate-400 = warna teks varian
           <p className="text-xs sm:text-sm text-slate-400 mt-1 leading-relaxed">
             {modifierText}
           </p>
         )}
         
         {/* Quantity Controls (32px touch targets) */}
+        {/* [KUSTOMISASI TOMBOL JUMLAH (QUANTITY)] */}
         <div className="flex items-center gap-1.5 mt-3">
           <Button
             type="button"
@@ -55,6 +59,7 @@ export default function CartLineItem({ item }: CartLineItemProps) {
           >
             <Minus className="size-3.5" />
           </Button>
+          {/* [KUSTOMISASI INPUT JUMLAH] */}
           <input
             type="number"
             min="1"
@@ -90,9 +95,11 @@ export default function CartLineItem({ item }: CartLineItemProps) {
 
       {/* Right section: Price and remove button */}
       <div className="flex flex-col items-end gap-3 text-right">
+        {/* [KUSTOMISASI HARGA TOTAL ITEM] */}
         <span className="font-semibold text-slate-900 text-sm sm:text-base">
           {formatRupiah(item.lineTotal)}
         </span>
+        {/* [KUSTOMISASI TOMBOL HAPUS ITEM] */}
         <Button
           type="button"
           variant="ghost"

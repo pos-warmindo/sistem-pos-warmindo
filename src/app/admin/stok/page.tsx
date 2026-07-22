@@ -198,15 +198,18 @@ export default function StokPage() {
 
   // ── Render ─────────────────────────────────────────────────
   return (
+    // [KUSTOMISASI KONTAINER HALAMAN STOK]
     <main className="p-6 space-y-6">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
+          {/* [KUSTOMISASI JUDUL HALAMAN STOK] */}
           <h1 className="text-2xl font-bold text-heading">Kelola Stok Bahan Baku</h1>
           <p className="text-sm text-muted-foreground mt-1">
             Monitor stok dan lakukan restock bahan baku.
           </p>
         </div>
+        {/* [KUSTOMISASI TOMBOL TAMBAH BAHAN BAKU] */}
         <Button onClick={openAddDialog} className="bg-primary hover:bg-primary-hover text-white font-semibold rounded-xl gap-2 w-full sm:w-auto justify-center">
           <Plus className="size-4" /> Tambah Bahan Baku
         </Button>
@@ -215,6 +218,7 @@ export default function StokPage() {
       {/* Status summary cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         {/* Card Stok Habis */}
+        {/* [KUSTOMISASI KARTU STOK HABIS] */}
         <div className="rounded-xl border border-slate-100 bg-white p-4.5 flex items-center gap-4 shadow-sm shadow-slate-100/50">
           <div className="size-11 rounded-lg bg-rose-50 border border-rose-100 flex items-center justify-center shrink-0">
             <Package className="size-5 text-rose-600" />
@@ -226,6 +230,7 @@ export default function StokPage() {
         </div>
 
         {/* Card Stok Rendah */}
+        {/* [KUSTOMISASI KARTU STOK RENDAH] */}
         <div className="rounded-xl border border-slate-100 bg-white p-4.5 flex items-center gap-4 shadow-sm shadow-slate-100/50">
           <div className="size-11 rounded-lg bg-amber-50 border border-amber-100 flex items-center justify-center shrink-0">
             <AlertTriangle className="size-5 text-amber-600" />
@@ -237,6 +242,7 @@ export default function StokPage() {
         </div>
 
         {/* Card Stok Aman */}
+        {/* [KUSTOMISASI KARTU STOK AMAN] */}
         <div className="rounded-xl border border-slate-100 bg-white p-4.5 flex items-center gap-4 shadow-sm shadow-slate-100/50">
           <div className="size-11 rounded-lg bg-emerald-50 border border-emerald-100 flex items-center justify-center shrink-0">
             <CheckCircle className="size-5 text-emerald-600" />
@@ -249,6 +255,7 @@ export default function StokPage() {
       </div>
 
       {/* Table & Cards Container */}
+      {/* [KUSTOMISASI KONTAINER TABEL STOK] */}
       <div className="rounded-xl border border-slate-200 overflow-hidden bg-white">
         {isLoading ? (
           <div className="p-8 text-center text-sm text-slate-400">Memuat data stok...</div>

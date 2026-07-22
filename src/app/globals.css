@@ -146,31 +146,54 @@
   --radius-4xl: calc(var(--radius) * 2.6);
 }
 
+/* ==========================================================================
+   KONFIGURASI TEMA WARNA UTAMA APLIKASI (LIGHT MODE & DARK MODE)
+   ========================================================================== */
+
+/* ── TEMA TERANG (LIGHT MODE) ── */
 :root {
+  /* [KUSTOMISASI] Warna latar belakang utama halaman */
   --background: #f8fafc;
+  /* [KUSTOMISASI] Warna teks utama */
   --foreground: #0f172a;
+
+  /* [KUSTOMISASI] Warna background & teks untuk Card / Modal */
   --card: #ffffff;
   --card-foreground: #0f172a;
   --popover: #ffffff;
   --popover-foreground: #0f172a;
+
+  /* [KUSTOMISASI] Warna Utama Aplikasi (Orange Warmindo) & Teks di atas warna utama */
   --primary: #f97316;
   --primary-foreground: #ffffff;
+
+  /* [KUSTOMISASI] Warna Sekunder, Muted/Redup, dan Aksentuasi */
   --secondary: #f1f5f9;
   --secondary-foreground: #0f172a;
   --muted: #f1f5f9;
   --muted-foreground: #64748b;
   --accent: #f1f5f9;
   --accent-foreground: #0f172a;
+
+  /* [KUSTOMISASI] Warna Tombol Bahaya / Hapus (Merah) */
   --destructive: #ef4444;
+
+  /* [KUSTOMISASI] Warna Garis Pinggir (Border) & Input Field */
   --border: #e2e8f0;
   --input: #e2e8f0;
   --ring: #f97316;
+
+  /* [KUSTOMISASI] Warna Grafik / Diagram */
   --chart-1: #f97316;
   --chart-2: #f59e0b;
   --chart-3: #0ea5e9;
   --chart-4: #10b981;
   --chart-5: #8b5cf6;
+
+  /* [KUSTOMISASI] Tingkat Kelengkungan Sudut (Border Radius) */
   --radius: 0.5rem;
+
+  /* [KUSTOMISASI] Warna khusus Sidebar */
   --sidebar: #ffffff;
   --sidebar-foreground: #0f172a;
   --sidebar-primary: #f97316;
@@ -181,15 +204,22 @@
   --sidebar-ring: #f97316;
 }
 
+/* ── TEMA GELAP (DARK MODE) ── */
 .dark {
+  /* [KUSTOMISASI] Warna latar belakang utama mode gelap */
   --background: #0f172a;
   --foreground: #f8fafc;
+
+  /* [KUSTOMISASI] Warna Card & Modal mode gelap */
   --card: #1e293b;
   --card-foreground: #f8fafc;
   --popover: #1e293b;
   --popover-foreground: #f8fafc;
+
+  /* [KUSTOMISASI] Warna Utama mode gelap */
   --primary: #fb923c;
   --primary-foreground: #0f172a;
+
   --secondary: #334155;
   --secondary-foreground: #f8fafc;
   --muted: #334155;
@@ -205,6 +235,8 @@
   --chart-3: #38bdf8;
   --chart-4: #34d399;
   --chart-5: #a78bfa;
+
+  /* [KUSTOMISASI] Warna Sidebar mode gelap */
   --sidebar: #1e293b;
   --sidebar-foreground: #f8fafc;
   --sidebar-primary: #fb923c;

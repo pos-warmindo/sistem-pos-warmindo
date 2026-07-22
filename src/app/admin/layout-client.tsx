@@ -73,8 +73,10 @@ export default function AdminLayoutClient({
   ];
 
   return (
+    // [KUSTOMISASI LAYOUT ADMIN] Latar belakang utama halaman admin
     <div className="min-h-screen flex bg-slate-50/50">
       {/* ── Sidebar Desktop ── */}
+      {/* [KUSTOMISASI SIDEBAR ADMIN] bg-white = background sidebar, md:w-60 = lebar sidebar */}
       <aside className="hidden md:flex md:w-60 md:flex-col md:fixed md:inset-y-0 border-r border-slate-200 bg-white shadow-sm z-20">
         {/* Logo */}
         <div className="flex h-16 items-center px-6 border-b border-slate-100">
@@ -82,6 +84,7 @@ export default function AdminLayoutClient({
             <div className="w-6 h-6 rounded-full overflow-hidden border border-slate-200 relative bg-white">
               <Image src="/logo.png" alt="WP2 Logo" fill sizes="32px" className="object-cover" />
             </div>
+            {/* [KUSTOMISASI JUDUL BRAND] text-primary = warna teks brand admin */}
             <span className="text-md font-bold text-primary">WP2 POS Admin</span>
           </Link>
         </div>
@@ -89,6 +92,7 @@ export default function AdminLayoutClient({
         {/* User Info */}
         <div className="p-4 border-b border-slate-50 bg-slate-50/30">
           <div className="flex items-center space-x-3 px-2 py-1.5">
+            {/* [KUSTOMISASI AVATAR USER] Warna avatar admin */}
             <div className="flex h-9 w-9 items-center justify-center rounded-full bg-orange-100 text-primary">
               <User className="h-5 w-5" />
             </div>
@@ -108,6 +112,7 @@ export default function AdminLayoutClient({
               <Link
                 key={item.name}
                 href={item.href}
+                /* [KUSTOMISASI ITEM MENU ADMIN] bg-primary = warna item menu saat dipilih */
                 className={cn(
                   "group flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-200",
                   isActive
@@ -131,6 +136,7 @@ export default function AdminLayoutClient({
 
         {/* Logout */}
         <div className="p-4 border-t border-slate-100">
+          {/* [KUSTOMISASI TOMBOL KELUAR] */}
           <button
             onClick={handleLogout}
             className="flex w-full items-center px-3 py-2.5 text-sm font-medium rounded-lg text-red-600 hover:bg-red-50 hover:text-red-700 transition-all duration-200"
@@ -144,6 +150,7 @@ export default function AdminLayoutClient({
       {/* ── Main Content ── */}
       <div className="flex flex-col flex-1 md:pl-60 pb-20 md:pb-0 min-h-screen">
         {/* Mobile Header */}
+        {/* [KUSTOMISASI HEADER MOBILE ADMIN] */}
         <header className="md:hidden flex h-16 items-center justify-between px-4 border-b border-slate-200 bg-white sticky top-0 z-10">
           <Link href="/admin/menu" className="flex items-center space-x-2">
             <div className="w-6 h-6 rounded-full overflow-hidden border border-slate-200 relative bg-white">
@@ -160,6 +167,7 @@ export default function AdminLayoutClient({
       </div>
 
       {/* ── Bottom Nav Mobile ── */}
+      {/* [KUSTOMISASI NAVIGASI BAWAH MOBILE ADMIN] */}
       <nav className="md:hidden fixed bottom-0 left-0 right-0 border-t border-slate-200 bg-white/95 backdrop-blur-md flex justify-around py-2 px-1 z-30 shadow-lg pb-safe">
         {navItems.map((item) => {
           const isActive =

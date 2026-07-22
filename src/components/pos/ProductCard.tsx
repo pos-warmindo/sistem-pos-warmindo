@@ -24,6 +24,7 @@ export default function ProductCard({
   };
 
   return (
+    // [KUSTOMISASI KARTU PRODUK] border = batas luar kartu, hover:shadow = efek saat di-hover
     <div
       role="button"
       tabIndex={isAvailable ? 0 : -1}
@@ -46,6 +47,7 @@ export default function ProductCard({
       {/* Stock out indicator badge */}
       {!isAvailable && (
         <div className="absolute top-4 right-4 z-10">
+          {/* [KUSTOMISASI INDIKATOR STOK HABIS] bg-slate-100 = warna background indikator */}
           <Badge
             variant="outline"
             className="flex items-center gap-1 bg-slate-100 border-slate-200 text-slate-600 font-bold px-2 py-0.5 text-[9px] tracking-wider rounded-md"
@@ -57,6 +59,7 @@ export default function ProductCard({
       )}
 
       {/* Product Image */}
+      {/* [KUSTOMISASI GAMBAR PRODUK] aspect-square = bentuk gambar persegi, rounded-lg = kelengkungan sudut */}
       <div className="relative w-full aspect-square rounded-lg overflow-hidden mb-3 bg-slate-50 border border-slate-100/80 flex items-center justify-center text-slate-400 shrink-0">
         {product.image_url ? (
           <img
@@ -72,12 +75,14 @@ export default function ProductCard({
       {/* Main product info */}
       <div className="flex-1 flex flex-col justify-between space-y-2">
         <div className="space-y-1">
+          {/* [KUSTOMISASI NAMA PRODUK DI KARTU] group-hover:text-primary = warna nama produk saat di-hover */}
           <h3 className="font-semibold text-slate-800 leading-tight group-hover:text-primary transition-colors text-xs sm:text-sm">
             {product.name}
           </h3>
         </div>
 
         {/* Pricing info */}
+        {/* [KUSTOMISASI HARGA PRODUK DI KARTU] text-slate-900 = warna teks harga */}
         <div className="flex items-center justify-between pt-1 border-t border-slate-50">
           <span className="font-bold text-slate-900 text-xs sm:text-sm">
             {formatRupiah(Number(product.base_price))}

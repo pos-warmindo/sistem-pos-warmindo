@@ -59,13 +59,16 @@ export default function ReceiptView({ order, onClose }: ReceiptViewProps) {
   const shortShiftId = order.shift_id ? order.shift_id.substring(0, 8) : "";
 
   return (
+    // [KUSTOMISASI KONTAINER UTAMA STRUK]
     <div className="flex flex-col items-center w-full space-y-4">
       {/* Simulation card wrapper - visible on screen, styled cleanly */}
+      {/* [KUSTOMISASI KERTAS STRUK] bg-white = warna kertas struk */}
       <div 
         id="receipt-container"
         className="w-[220px] mx-auto bg-white text-black p-4 font-mono text-[10px] leading-relaxed shadow-sm border border-slate-200 rounded-sm"
       >
         {/* Header Block */}
+        {/* [KUSTOMISASI HEADER STRUK (NAMA TOKO)] */}
         <div className="text-center space-y-0.5">
           <h1 className="text-sm font-extrabold tracking-wider uppercase">WARMINDO WP 2</h1>
           <p className="text-[8px] text-slate-600">Jl. Raya Purwokerto, Banyumas</p>
@@ -73,6 +76,7 @@ export default function ReceiptView({ order, onClose }: ReceiptViewProps) {
         </div>
 
         {/* Divider */}
+        {/* [KUSTOMISASI GARIS PEMISAH] */}
         <div className="border-t border-dashed border-slate-400 my-2" />
 
         {/* Meta Block */}
@@ -99,6 +103,7 @@ export default function ReceiptView({ order, onClose }: ReceiptViewProps) {
         <div className="border-t border-dashed border-slate-400 my-2" />
 
         {/* Items List */}
+        {/* [KUSTOMISASI DAFTAR ITEM PESANAN DI STRUK] */}
         <div className="space-y-2">
           {order.items.map((item, index) => (
             <div key={index} className="space-y-0.5">
@@ -131,6 +136,7 @@ export default function ReceiptView({ order, onClose }: ReceiptViewProps) {
         <div className="border-t border-dashed border-slate-400 my-2" />
 
         {/* Totals Section */}
+        {/* [KUSTOMISASI AREA TOTAL HARGA & PEMBAYARAN] */}
         <div className="space-y-0.5 text-[8px] text-slate-700">
           <div className="flex justify-between">
             <span>Subtotal:</span>
@@ -166,6 +172,7 @@ export default function ReceiptView({ order, onClose }: ReceiptViewProps) {
         <div className="border-t border-dashed border-slate-400 my-2" />
 
         {/* Footer Block */}
+        {/* [KUSTOMISASI FOOTER STRUK (TERIMA KASIH)] */}
         <div className="text-center mt-2 space-y-0.5">
           <p className="font-bold text-[8px]">TERIMA KASIH</p>
           <p className="text-[8px] text-slate-500">Silakan Datang Kembali!</p>
@@ -174,6 +181,7 @@ export default function ReceiptView({ order, onClose }: ReceiptViewProps) {
 
       <div className="flex flex-col gap-2 w-full max-w-[220px] print:hidden">
         {/* Reprint Action Button */}
+        {/* [KUSTOMISASI TOMBOL CETAK ULANG STRUK] */}
         <Button
           type="button"
           variant="ghost"

@@ -199,21 +199,25 @@ export default function StokPage() {
 
   // ── Render ─────────────────────────────────────────────────
   return (
+    // [KUSTOMISASI KONTAINER HALAMAN STOK OWNER]
     <main className="p-6 space-y-6">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
+          {/* [KUSTOMISASI JUDUL HALAMAN KELOLA STOK] */}
           <h1 className="text-2xl font-bold text-heading">Kelola Stok Bahan Baku</h1>
           <p className="text-sm text-muted-foreground mt-1">
             Monitor stok dan lakukan restock bahan baku.
           </p>
         </div>
+        {/* [KUSTOMISASI TOMBOL TAMBAH BAHAN BAKU] */}
         <Button onClick={openAddDialog} className="bg-primary hover:bg-primary-hover text-white font-semibold rounded-xl gap-2 w-full sm:w-auto justify-center">
           <Plus className="size-4" /> Tambah Bahan Baku
         </Button>
       </div>
 
       {/* Status summary cards */}
+      {/* [KUSTOMISASI KARTU RINGKASAN STATUS STOK] */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         {/* Card Stok Habis */}
         <div className="rounded-xl border border-slate-100 bg-white p-4.5 flex items-center gap-4 shadow-sm shadow-slate-100/50">
@@ -250,6 +254,7 @@ export default function StokPage() {
       </div>
 
       {/* Table & Cards Container */}
+      {/* [KUSTOMISASI KONTAINER TABEL DATA STOK] */}
       <div className="rounded-xl border border-slate-200 overflow-hidden bg-white">
         {isLoading ? (
           <div className="p-6 space-y-4">
@@ -316,6 +321,7 @@ export default function StokPage() {
         ) : (
           <>
             {/* ── Mobile Layout (Cards) ── */}
+            {/* [KUSTOMISASI DAFTAR STOK TAMPILAN MOBILE] */}
             <div className="md:hidden divide-y divide-slate-100">
               {materials.map((m) => {
                 const status = getStockStatus(m);
@@ -369,6 +375,7 @@ export default function StokPage() {
             </div>
 
             {/* ── Desktop Layout (Table) ── */}
+            {/* [KUSTOMISASI TABEL STOK TAMPILAN DESKTOP] */}
             <div className="hidden md:block overflow-x-auto">
               <table className="w-full text-sm">
                 <thead className="bg-slate-50 border-b border-slate-100">

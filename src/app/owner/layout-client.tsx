@@ -96,8 +96,10 @@ export default function OwnerLayoutClient({
   );
 
   return (
+    // [KUSTOMISASI LAYOUT OWNER] bg-slate-50/50 adalah warna latar belakang halaman owner
     <div className="min-h-screen flex bg-slate-50/50">
       {/* ── Sidebar Desktop ── */}
+      {/* [KUSTOMISASI SIDEBAR] bg-white = background sidebar, md:w-60 = lebar sidebar */}
       <aside className="hidden md:flex md:w-60 md:flex-col md:fixed md:inset-y-0 border-r border-slate-200 bg-white shadow-sm z-20">
         {/* Logo */}
         <div className="flex h-16 items-center px-6 border-b border-slate-100">
@@ -105,6 +107,7 @@ export default function OwnerLayoutClient({
             <div className="w-6 h-6 rounded-full overflow-hidden border border-slate-200 relative bg-white">
               <Image src="/logo.png" alt="WP2 Logo" fill sizes="32px" className="object-cover" />
             </div>
+            {/* [KUSTOMISASI JUDUL BRAND] text-primary = warna teks brand owner */}
             <span className="text-md font-bold text-primary">WP2 POS Owner</span>
           </Link>
         </div>
@@ -112,6 +115,7 @@ export default function OwnerLayoutClient({
         {/* User Info */}
         <div className="p-4 border-b border-slate-50 bg-slate-50/30">
           <div className="flex items-center space-x-3 px-2 py-1.5">
+            {/* [KUSTOMISASI AVATAR USER] bg-orange-100 & text-orange-600 */}
             <div className="flex h-9 w-9 items-center justify-center rounded-full bg-orange-100 text-orange-600">
               <User className="h-5 w-5" />
             </div>
@@ -131,6 +135,7 @@ export default function OwnerLayoutClient({
               <Link
                 key={item.name}
                 href={item.href}
+                /* [KUSTOMISASI ITEM MENU] bg-orange-500 = warna menu aktif saat dipilih */
                 className={cn(
                   "group flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-200",
                   isActive
@@ -154,6 +159,7 @@ export default function OwnerLayoutClient({
 
         {/* Logout */}
         <div className="p-4 border-t border-slate-100">
+          {/* [KUSTOMISASI TOMBOL KELUAR] text-red-600 = warna teks tombol keluar, hover:bg-red-50 = warna saat di-hover */}
           <button
             onClick={handleLogout}
             className="flex w-full items-center px-3 py-2.5 text-sm font-medium rounded-lg text-red-600 hover:bg-red-50 hover:text-red-700 transition-all duration-200"
@@ -167,6 +173,7 @@ export default function OwnerLayoutClient({
       {/* ── Main Content ── */}
       <div className="flex flex-col flex-1 md:pl-60 pb-20 md:pb-0 min-h-screen min-w-0">
         {/* Mobile Header */}
+        {/* [KUSTOMISASI HEADER MOBILE] Tampilan header khusus layar HP */}
         <header className="md:hidden flex h-16 items-center justify-between px-4 border-b border-slate-200 bg-white sticky top-0 z-10">
           <Link href="/owner/dashboard" className="flex items-center space-x-2">
             <div className="w-6 h-6 rounded-full overflow-hidden border border-slate-200 relative bg-white">
@@ -183,6 +190,7 @@ export default function OwnerLayoutClient({
       </div>
 
       {/* ── Bottom Nav Mobile ── */}
+      {/* [KUSTOMISASI NAVIGASI BAWAH MOBILE] Navbar melayang bawah pada layar HP */}
       <nav className="md:hidden fixed bottom-0 left-0 right-0 border-t border-slate-200 bg-white/95 backdrop-blur-md flex justify-around py-2 px-1 z-30 shadow-lg pb-safe">
         {navItems.map((item) => {
           const isActive =

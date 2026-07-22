@@ -135,9 +135,13 @@ export default function LoginPage() {
   }
 
   return (
+    /* [KUSTOMISASI HALAMAN LOGIN] Latar belakang utama halaman login */
     <main className="flex min-h-[calc(100vh-4rem)] items-center justify-center px-4 py-10">
+      {/* [KUSTOMISASI KARTU LOGIN] bg-card = background kartu login, rounded-2xl = sudut lengkung */}
       <section className="w-full max-w-md rounded-2xl border border-border bg-card p-6 shadow-sm">
+        {/* [KUSTOMISASI HEADER BRAND] Judul & Subjudul login */}
         <div className="mb-6 space-y-2 text-center">
+          {/* text-primary = warna teks brand WARMINDO WP 2 */}
           <p className="text-sm font-medium tracking-[0.25em] text-primary">
             WARMINDO WP 2
           </p>
@@ -172,6 +176,7 @@ export default function LoginPage() {
         )}
 
         <form className="space-y-4" onSubmit={handleSubmit}>
+          {/* [KUSTOMISASI FIELD EMAIL] */}
           <div className="space-y-2">
             <Label htmlFor="email">Email</Label>
             <Input
@@ -185,6 +190,7 @@ export default function LoginPage() {
             />
           </div>
 
+          {/* [KUSTOMISASI FIELD PASSWORD] */}
           <div className="space-y-2">
             <Label htmlFor="password">Password</Label>
             <Input
@@ -198,6 +204,7 @@ export default function LoginPage() {
             />
           </div>
 
+          {/* [KUSTOMISASI TOMBOL LOGIN] Tombol utama untuk masuk */}
           <Button type="submit" className="w-full" disabled={isLoading}>
             {isLoading ? "Memproses..." : "Masuk"}
           </Button>
