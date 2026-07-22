@@ -128,6 +128,7 @@ export function AppNavbar({
             </SheetTrigger>
 
             <SheetContent side="left" className="w-80 flex flex-col h-full">
+              {/* [KUSTOMISASI HEADER MOBILE SHEET] Logo & judul di menu drawer mobile */}
               <SheetHeader className="space-y-2 border-b border-border pb-4">
                 <SheetTitle className="flex items-center gap-2 text-left text-lg">
                   <div className="w-6 h-6 rounded-full overflow-hidden border border-slate-200 relative bg-white">
@@ -140,6 +141,7 @@ export function AppNavbar({
                 </SheetDescription>
               </SheetHeader>
 
+              {/* [KUSTOMISASI LINK NAVIGASI MOBILE] */}
               <nav className="flex flex-col gap-2 px-4 py-4 flex-1 overflow-y-auto" aria-label="Navigasi mobile">
                 {navigationItems.map((item) => {
                   const isActive = pathname === item.href
@@ -150,6 +152,7 @@ export function AppNavbar({
                       key={item.href}
                       href={item.href}
                       onClick={() => setIsMobileMenuOpen(false)}
+                      /* border-primary bg-primary/10 text-primary = warna item aktif */
                       className={cn(
                         "flex items-center gap-3 rounded-lg border px-3 py-2.5 text-sm font-medium transition-colors",
                         isActive

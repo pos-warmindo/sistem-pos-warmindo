@@ -552,12 +552,14 @@ export default function PaymentModal({ isOpen, onOpenChange }: PaymentModalProps
   // ── Render ────────────────────────────────────────────────────
   return (
     <Dialog open={isOpen} onOpenChange={handleOpenChange}>
+      {/* [KUSTOMISASI MODAL PEMBAYARAN] */}
       <DialogContent 
         className="sm:max-w-md max-h-[90vh] flex flex-col p-0 overflow-hidden"
         showCloseButton={!completedOrder}
       >
         {completedOrder ? (
           <div className="flex flex-col flex-1 overflow-hidden">
+            {/* [KUSTOMISASI HEADER TRANSAKSI BERHASIL] */}
             <DialogHeader className="p-6 pb-4 border-b border-border flex flex-col items-center justify-center text-center">
               <div className="size-12 rounded-lg bg-emerald-50 flex items-center justify-center mb-2 border border-emerald-200 animate-in fade-in-0 zoom-in-95 duration-300">
                 <CheckCircle className="size-6 text-emerald-600" />
@@ -570,10 +572,12 @@ export default function PaymentModal({ isOpen, onOpenChange }: PaymentModalProps
               </p>
             </DialogHeader>
 
+            {/* [KUSTOMISASI AREA STRUK DI MODAL] */}
             <div className="flex-1 overflow-y-auto p-6 bg-slate-50/50">
               <ReceiptView order={completedOrder} onClose={handleNewTransaction} />
             </div>
 
+            {/* [KUSTOMISASI FOOTER TRANSAKSI BERHASIL] */}
             <div className="p-6 border-t border-border bg-white print:hidden">
               <Button
                 onClick={handleNewTransaction}
@@ -585,6 +589,7 @@ export default function PaymentModal({ isOpen, onOpenChange }: PaymentModalProps
           </div>
         ) : (
           <>
+            {/* [KUSTOMISASI HEADER MODAL PEMBAYARAN] */}
             <DialogHeader className="p-6 pb-4 border-b border-border">
               <DialogTitle className="text-xl font-bold text-heading">
                 Pembayaran
@@ -592,6 +597,7 @@ export default function PaymentModal({ isOpen, onOpenChange }: PaymentModalProps
             </DialogHeader>
 
             {/* Total summary */}
+            {/* [KUSTOMISASI TOTAL TAGIHAN] bg-orange-50/20 = warna latar area total tagihan */}
             <div className="bg-orange-50/20 p-6 flex flex-col items-center justify-center text-center border-b border-orange-100/50">
               <span className="text-xs text-muted-foreground font-bold uppercase tracking-wider block mb-1">
                 Total Tagihan
@@ -607,6 +613,7 @@ export default function PaymentModal({ isOpen, onOpenChange }: PaymentModalProps
               className="flex-1 flex flex-col overflow-hidden"
             >
               <div className="px-6 pt-4 shrink-0">
+                {/* [KUSTOMISASI TAB METODE PEMBAYARAN (TUNAI/QRIS)] */}
                 <TabsList className="flex w-full bg-slate-100/80 p-1.5 rounded-xl">
                   <TabsTrigger
                     value="tunai"

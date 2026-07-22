@@ -27,14 +27,17 @@ export default function CartPanel() {
   };
 
   return (
+    // [KUSTOMISASI PANEL KERANJANG UTAMA] bg-white = warna latar keranjang
     <div className="hidden lg:flex w-full lg:w-[400px] shrink-0 flex-col h-full bg-white shadow-xl shadow-slate-100 z-10">
       {/* Cart Header */}
+      {/* [KUSTOMISASI HEADER KERANJANG] border-b = garis bawah pemisah header */}
       <div className="p-5 border-b border-border flex items-center justify-between">
         <div className="flex items-center gap-2">
           <ShoppingCart className="size-5 text-primary" />
           <h2 className="font-bold text-heading text-lg">Keranjang Belanja</h2>
         </div>
         {itemCount > 0 && (
+          // [KUSTOMISASI BADGE JUMLAH ITEM] bg-primary/10 = warna latar badge, text-primary = warna teks
           <span className="bg-primary/10 text-primary px-2.5 py-0.5 rounded-full text-xs font-bold">
             {itemCount} Menu
           </span>
@@ -44,6 +47,7 @@ export default function CartPanel() {
       {/* Cart items list */}
       <div className="flex-1 overflow-y-auto px-5 py-4">
         {cartItems.length === 0 ? (
+          // [KUSTOMISASI TAMPILAN KERANJANG KOSONG]
           <div className="h-full flex flex-col items-center justify-center text-center p-6 space-y-3">
             <div className="size-16 rounded-full bg-slate-50 flex items-center justify-center">
               <ShoppingCart className="size-8 text-muted" />
@@ -66,6 +70,7 @@ export default function CartPanel() {
 
       {/* Cart Footer / Checkout Summary */}
       {cartItems.length > 0 && (
+        // [KUSTOMISASI AREA RINGKASAN KERANJANG BAWAH] bg-slate-50/50 = warna latar area ringkasan
         <div className="p-5 border-t border-border bg-slate-50/50 space-y-4">
           <div className="space-y-1.5 text-sm font-semibold">
             <div className="flex items-center justify-between text-muted">
@@ -80,6 +85,7 @@ export default function CartPanel() {
           </div>
 
           <div className="grid grid-cols-2 gap-3 pt-1">
+            {/* [KUSTOMISASI TOMBOL BATAL SEMUA] */}
             <Button
               type="button"
               variant="outline"
@@ -88,6 +94,7 @@ export default function CartPanel() {
             >
               Batal Semua
             </Button>
+            {/* [KUSTOMISASI TOMBOL BAYAR SEKARANG] bg-primary = warna latar utama tombol */}
             <Button
               type="button"
               className="bg-primary hover:bg-primary-hover text-white font-semibold text-sm py-6 rounded-xl shadow-md shadow-primary/10"

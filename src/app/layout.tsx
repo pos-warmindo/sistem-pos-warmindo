@@ -29,11 +29,14 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="id" className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}>
+      {/* [KUSTOMISASI LAYOUT UTAMA] bg-background & text-foreground mengikuti variabel di globals.css */}
       <body className="min-h-full flex flex-col bg-background text-foreground">
         <ShiftProvider>
           <CartProvider>
+            {/* [KUSTOMISASI NAVBAR UTAMA] Navigation bar bagian atas */}
             <AppNavbar />
             {children}
+            {/* [KUSTOMISASI POSISI TOAST] Ubah position="top-right" ke "top-left", "bottom-right", "bottom-center", dll */}
             <Toaster richColors position="top-right" />
             <NetworkStatus />
           </CartProvider>

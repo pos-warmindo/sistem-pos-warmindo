@@ -7,8 +7,10 @@ export const metadata = {
 
 export default function UsersPage() {
   return (
+    // [KUSTOMISASI KONTAINER HALAMAN KELOLA USER OWNER]
     <main className="p-6">
       <div className="mb-6">
+        {/* [KUSTOMISASI JUDUL HALAMAN KELOLA USER] */}
         <h1 className="text-2xl font-bold text-heading">Kelola User</h1>
         <p className="text-sm text-muted-foreground mt-1">
           Buat akun baru dan atur hak akses pengguna.

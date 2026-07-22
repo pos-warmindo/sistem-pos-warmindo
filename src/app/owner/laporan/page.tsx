@@ -193,15 +193,18 @@ export default function LaporanPage() {
 
   // ── Render ─────────────────────────────────────────────────
   return (
+    // [KUSTOMISASI KONTAINER HALAMAN LAPORAN OWNER]
     <main className="p-6 space-y-6">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center gap-3 justify-between">
         <div>
+          {/* [KUSTOMISASI JUDUL HALAMAN LAPORAN] */}
           <h1 className="text-2xl font-bold text-heading">Laporan Penjualan</h1>
           <p className="text-sm text-muted-foreground mt-1">
             Analitik transaksi dan pendapatan per periode.
           </p>
         </div>
+        {/* [KUSTOMISASI TOMBOL EXPORT] */}
         <Button onClick={handleExport} disabled={isExporting || isLoading}
           variant="outline" className="rounded-xl gap-2 border-slate-300 font-semibold shrink-0">
           {isExporting
@@ -212,6 +215,7 @@ export default function LaporanPage() {
       </div>
 
       {/* Period filter */}
+      {/* [KUSTOMISASI FILTER PERIODE] */}
       <div className="flex items-center flex-wrap gap-2">
         {(Object.keys(PERIOD_LABELS) as PeriodKey[]).map((key) => (
           <button key={key} onClick={() => setPeriod(key)}
@@ -244,6 +248,7 @@ export default function LaporanPage() {
       ) : (
         <>
           {/* KPI cards */}
+          {/* [KUSTOMISASI KARTU KPI LAPORAN] */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {[
               { label: "Total Pendapatan", value: formatRupiah(kpi.totalRevenue), icon: DollarSign, color: "text-orange-500" },
@@ -262,12 +267,14 @@ export default function LaporanPage() {
           </div>
 
           {/* Revenue chart */}
+          {/* [KUSTOMISASI GRAFIK PENDAPATAN] */}
           <div className="rounded-xl border border-slate-200 bg-white p-5">
             <h2 className="text-sm font-bold text-slate-700 mb-4">Pendapatan Harian</h2>
             <RevenueChart data={dailyRevenue} />
           </div>
 
           {/* Payment method + top products */}
+          {/* [KUSTOMISASI BAGIAN METODE PEMBAYARAN & PRODUK TERLARIS] */}
           <div className="grid md:grid-cols-2 gap-4">
             <div className="rounded-xl border border-slate-200 bg-white p-5">
               <h2 className="text-sm font-bold text-slate-700 mb-2">Metode Pembayaran</h2>
@@ -280,6 +287,7 @@ export default function LaporanPage() {
           </div>
 
           {/* Transaction table */}
+          {/* [KUSTOMISASI TABEL RIWAYAT TRANSAKSI] */}
           <div className="rounded-xl border border-slate-200 bg-white p-5">
             <h2 className="text-sm font-bold text-slate-700 mb-4">
               Riwayat Transaksi ({range.from} s/d {range.to})

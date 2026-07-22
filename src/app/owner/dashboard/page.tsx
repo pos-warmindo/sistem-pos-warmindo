@@ -45,9 +45,11 @@ function ListCardSkeleton() {
 
 export default function OwnerDashboardPage() {
   return (
+    // [KUSTOMISASI KONTAINER DASHBOARD OWNER]
     <main className="p-4 md:p-8 space-y-6 max-w-7xl mx-auto">
       {/* Header Section */}
       <div>
+        {/* [KUSTOMISASI JUDUL DASHBOARD OWNER] */}
         <h1 className="text-2xl font-bold text-slate-900 tracking-tight md:text-3xl">
           Ringkasan Bisnis
         </h1>
@@ -57,6 +59,7 @@ export default function OwnerDashboardPage() {
       </div>
 
       {/* KPI Stats Grid */}
+      {/* [KUSTOMISASI GRID STATISTIK KPI] */}
       <section className="grid gap-4 sm:grid-cols-2">
         <Suspense fallback={<CardSkeleton />}>
           <DailyRevenueCard />
@@ -67,6 +70,7 @@ export default function OwnerDashboardPage() {
       </section>
 
       {/* Detailed Analysis Section */}
+      {/* [KUSTOMISASI BAGIAN ANALISIS DETAIL] */}
       <section className="grid gap-6 lg:grid-cols-3">
         <Suspense fallback={<ListCardSkeleton />}>
           <TopProductsCard />
