@@ -243,9 +243,9 @@ export default function PaymentModal({ isOpen, onOpenChange }: PaymentModalProps
       .on(
         "postgres_changes",
         {
-          event:  "UPDATE",
+          event: "UPDATE",
           schema: "public",
-          table:  "orders",
+          table: "orders",
           filter: `id=eq.${qrData.order_id}`,
         },
         (payload) => {
@@ -319,7 +319,7 @@ export default function PaymentModal({ isOpen, onOpenChange }: PaymentModalProps
     }, 10000);
 
     return () => stopAllTimers();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [qrData]); // Only re-run when a new QR is generated
 
   // ── Tunai helpers ─────────────────────────────────────────────
@@ -553,7 +553,7 @@ export default function PaymentModal({ isOpen, onOpenChange }: PaymentModalProps
   return (
     <Dialog open={isOpen} onOpenChange={handleOpenChange}>
       {/* [KUSTOMISASI MODAL PEMBAYARAN] */}
-      <DialogContent 
+      <DialogContent
         className="sm:max-w-md max-h-[90vh] flex flex-col p-0 overflow-hidden"
         showCloseButton={!completedOrder}
       >
@@ -744,11 +744,10 @@ export default function PaymentModal({ isOpen, onOpenChange }: PaymentModalProps
                       </div>
 
                       {/* Countdown */}
-                      <div className={`flex items-center justify-center gap-2 p-4 rounded-lg border ${
-                        qrisTimeLeft <= 60
-                          ? "bg-red-50 border-red-200"
-                          : "bg-amber-50 border-amber-200"
-                      }`}>
+                      <div className={`flex items-center justify-center gap-2 p-4 rounded-lg border ${qrisTimeLeft <= 60
+                        ? "bg-red-50 border-red-200"
+                        : "bg-amber-50 border-amber-200"
+                        }`}>
                         <Clock className={`size-5 ${qrisTimeLeft <= 60 ? "text-red-600" : "text-amber-600"}`} />
                         <span className={`text-sm font-bold ${qrisTimeLeft <= 60 ? "text-red-900" : "text-amber-900"}`}>
                           Berlaku: {formatTime(qrisTimeLeft)}

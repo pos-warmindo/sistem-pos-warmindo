@@ -32,7 +32,7 @@ import { cn } from "@/lib/utils"
 
 const navigationItems = [
   { href: "/cashier/pos", label: "POS", icon: ShoppingCart },
-  { href: "/owner/dashboard", label: "Dashboard", icon: TrendingUp },
+  //{ href: "/owner/dashboard", label: "Dashboard", icon: TrendingUp },
 ]
 
 type AppNavbarProps = {
