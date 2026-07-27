@@ -150,7 +150,7 @@ export default function UserManagement() {
             user_id: editingUser.id,
             display_name: form.display_name.trim(),
             phone: form.phone.trim() || undefined,
-            role: form.role,
+            ...(currentUserRole !== "admin" && { role: form.role }),
           }),
         });
 
@@ -495,10 +495,10 @@ export default function UserManagement() {
               </select>
               {currentUserRole === "admin" && (
                 <p className="text-[11px] text-amber-600 flex items-center gap-1">
-                  Admin tidak dapat mengubah hak akses user.
+                  Admin hanya diizinkan mengedit Nama Lengkap dan No. Telepon user.
                 </p>
               )}
-              {!!editingUser && !!currentUser && editingUser.id === currentUser.id && (
+              {currentUserRole !== "admin" && !!editingUser && !!currentUser && editingUser.id === currentUser.id && (
                 <p className="text-[11px] text-slate-400 flex items-center gap-1">
                   Anda tidak dapat mengubah hak akses akun Anda sendiri.
                 </p>
