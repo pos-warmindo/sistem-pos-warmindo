@@ -129,7 +129,7 @@ export default function PaymentModal({ isOpen, onOpenChange }: PaymentModalProps
     try {
       const { data: orderDb } = await supabase
         .from("orders")
-        .select("order_number, created_at")
+        .select("created_at")
         .eq("id", orderId)
         .single();
 
@@ -151,7 +151,7 @@ export default function PaymentModal({ isOpen, onOpenChange }: PaymentModalProps
       }));
 
       setCompletedOrder({
-        order_number: orderDb?.order_number || "QRIS",
+        order_number: orderId,
         payment_method: "QRIS",
         subtotal: subtotalRef.current,
         total_amount: totalRef.current,
@@ -363,7 +363,7 @@ export default function PaymentModal({ isOpen, onOpenChange }: PaymentModalProps
           status: "PENDING",
           payment_method: "TUNAI",
         })
-        .select()
+        .select("id, created_at")
         .single();
       if (orderError) throw orderError;
 
@@ -435,7 +435,7 @@ export default function PaymentModal({ isOpen, onOpenChange }: PaymentModalProps
 
       // 3. Set the completed order state
       setCompletedOrder({
-        order_number: orderData.order_number,
+        order_number: orderData.id,
         payment_method: "TUNAI",
         amount_paid: numericPaid,
         change_amount: changeAmount,
@@ -443,12 +443,11 @@ export default function PaymentModal({ isOpen, onOpenChange }: PaymentModalProps
         total_amount: total,
         cashier_name: cashierName,
         shift_id: activeShift.id,
-        created_at: new Date().toISOString(),
+        created_at: orderData.created_at,
         items: receiptItems,
       });
 
       toast.success("Transaksi Tunai Berhasil!");
-      await refreshShift();
       clearCart();
     } catch (error: any) {
       console.error("[Tunai] Transaction failed:", error);
