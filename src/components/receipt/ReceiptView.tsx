@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { formatRupiah, formatDate } from "@/lib/utils/format";
 import { Printer, X } from "@/lib/icons";
 import { Button } from "@/components/ui/button";
@@ -45,12 +45,7 @@ interface ReceiptViewProps {
 export default function ReceiptView({ order, onClose }: ReceiptViewProps) {
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
 
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      window.print();
-    }, 500);
-    return () => clearTimeout(timer);
-  }, []);
+  // Auto-print removed — printing is now triggered manually via "Cetak Struk" button
 
   const handlePrint = () => {
     window.print();

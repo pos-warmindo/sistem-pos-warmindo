@@ -198,12 +198,23 @@ export async function chatWithCopilot(
 
     const lowestStockText = rawMaterials?.slice(0, 5).map((s) => `${s.name}: ${s.current_stock} ${s.unit}`).join(", ") ?? "Belum ada data bahan baku";
 
-    // Shift aktif
-    const { data: activeShift } = await supabase
+    // Shift aktif — query dengan auth user untuk memastikan RLS pass
+    const { data: authData } = await supabase.auth.getUser();
+    const currentUserId = authData?.user?.id;
+
+    const { data: activeShift, error: shiftError } = await supabase
       .from("shifts")
-      .select("opened_at, modal_awal, total_cash_sales, total_qris_sales")
+      .select("id, opened_at, modal_awal, total_cash_sales, total_qris_sales, opened_by")
       .eq("status", "OPEN")
+      .order("opened_at", { ascending: false })
+      .limit(1)
       .maybeSingle();
+
+    if (shiftError) {
+      console.error("[AI Copilot] Shift query error:", shiftError);
+    }
+    console.log("[AI Copilot] Current user ID:", currentUserId);
+    console.log("[AI Copilot] Active shift:", activeShift);
 
     const shiftInfo = activeShift
       ? `Shift sedang berjalan sejak ${new Date(activeShift.opened_at).toLocaleTimeString("id-ID")}. Modal awal: ${formatRupiah(activeShift.modal_awal)}. Penjualan tunai: ${formatRupiah(activeShift.total_cash_sales)}, QRIS: ${formatRupiah(activeShift.total_qris_sales)}.`
