@@ -58,9 +58,9 @@ export default function ReceiptView({ order, onClose }: ReceiptViewProps) {
     <div className="flex flex-col items-center w-full space-y-4">
       {/* Simulation card wrapper - visible on screen, styled cleanly */}
       {/* [KUSTOMISASI KERTAS STRUK] bg-white = warna kertas struk */}
-      <div 
+      <div
         id="receipt-container"
-        className="w-[220px] mx-auto bg-white text-black p-4 font-mono text-[10px] leading-relaxed shadow-sm border border-slate-200 rounded-sm"
+        className="w-[220px] mx-auto bg-white text-black p-4 font-mono text-[10px] leading-relaxed shadow-sm border border-slate-200 rounded-sm print:shadow-none print:border-none print:font-bold"
       >
         {/* Header Block */}
         {/* [KUSTOMISASI HEADER STRUK (NAMA TOKO)] */}

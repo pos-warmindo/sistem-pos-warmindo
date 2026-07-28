@@ -102,6 +102,16 @@
     color: #000000 !important;
     overflow: visible !important;
   }
+
+  /* Force all text inside the receipt to be bold + solid black
+     so thermal printers produce sharp, legible output */
+  #receipt-container,
+  #receipt-container * {
+    color: #000000 !important;
+    font-weight: 700 !important;
+    -webkit-font-smoothing: none !important;
+    -moz-osx-font-smoothing: auto !important;
+  }
 }
 
 @theme inline {
