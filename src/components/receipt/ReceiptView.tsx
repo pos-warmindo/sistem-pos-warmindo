@@ -166,7 +166,7 @@ export default function ReceiptView({ order, onClose }: ReceiptViewProps) {
         {/* [KUSTOMISASI FOOTER STRUK (TERIMA KASIH)] */}
         <div className="text-center mt-2 space-y-0.5">
           <p className="font-bold text-[8px]">TERIMA KASIH</p>
-          <p className="text-[8px] text-slate-500">Silakan Datang Kembali!</p>
+          <p className="text-[8px] text-slate-500">Silahkan Datang Kembali!</p>
         </div>
       </div>
 
