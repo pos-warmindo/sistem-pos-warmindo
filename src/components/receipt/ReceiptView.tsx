@@ -85,10 +85,6 @@ export default function ReceiptView({ order, onClose }: ReceiptViewProps) {
             <span>{order.cashier_name}</span>
           </div>
           <div className="flex justify-between">
-            <span>Shift ID:</span>
-            <span>{shortShiftId}</span>
-          </div>
-          <div className="flex justify-between">
             <span>Waktu:</span>
             <span>{formatDate(order.created_at)}</span>
           </div>

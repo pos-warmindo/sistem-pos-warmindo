@@ -136,10 +136,19 @@ export default function PaymentModal({ isOpen, onOpenChange }: PaymentModalProps
         .single();
 
       const { data: authData } = await supabase.auth.getUser();
-      const cashierName =
-        authData.user?.user_metadata?.full_name ||
-        authData.user?.email ||
-        "Kasir";
+      const userId = authData.user?.id;
+
+      let cashierName = authData.user?.email || "Kasir";
+      if (userId) {
+        const { data: userData } = await supabase
+          .from("users")
+          .select("display_name")
+          .eq("id", userId)
+          .single();
+        if (userData?.display_name) {
+          cashierName = userData.display_name;
+        }
+      }
 
       const receiptItems: ReceiptItem[] = cartItemsRef.current.map((item) => ({
         product_name: item.product.name,
@@ -433,7 +442,13 @@ export default function PaymentModal({ isOpen, onOpenChange }: PaymentModalProps
       }));
 
       // 2. Fetch the cashier details
-      const cashierName = user.user_metadata?.full_name || user.email || "Kasir";
+      let cashierName = user.email || "Kasir";
+      const { data: userData } = await supabase
+        .from("users")
+        .select("display_name")
+        .eq("id", user.id)
+        .single();
+      if (userData?.display_name) cashierName = userData.display_name;
 
       // 3. Set the completed order state
       setCompletedOrder({
