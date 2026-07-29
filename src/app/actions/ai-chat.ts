@@ -127,6 +127,43 @@ export async function chatWithCopilot(
     const lastMonthCount   = lastMonthOrders?.length ?? 0;
     const lastMonthAvg     = lastMonthCount > 0 ? Math.round(lastMonthRevenue / lastMonthCount) : 0;
 
+    // Metode pembayaran hari ini
+    const todayPaymentMap: Record<string, number> = {};
+    todayOrders?.forEach((o) => {
+      const m = o.payment_method ?? "UNKNOWN";
+      todayPaymentMap[m] = (todayPaymentMap[m] ?? 0) + 1;
+    });
+    const todayPaymentMethod = Object.entries(todayPaymentMap)
+      .sort((a, b) => b[1] - a[1])
+      .map(([m, c]) => `${m}: ${c} transaksi`)
+      .join(", ") || "Belum ada transaksi hari ini";
+
+    // Produk terlaris hari ini — join order_items
+    const todayOrderIds = todayOrders?.map((o: any) => o.id).filter(Boolean) ?? [];
+    let todayTopProductsText = "Belum ada transaksi hari ini.";
+
+    if (todayOrderIds.length > 0) {
+      const { data: todayItems } = await supabase
+        .from("order_items")
+        .select("product_name, quantity")
+        .in("order_id", todayOrderIds);
+
+      const todayQtyMap: Record<string, number> = {};
+      todayItems?.forEach((item) => {
+        todayQtyMap[item.product_name] = (todayQtyMap[item.product_name] ?? 0) + item.quantity;
+      });
+
+      const sortedTodayProducts = Object.entries(todayQtyMap)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 5);
+
+      if (sortedTodayProducts.length > 0) {
+        todayTopProductsText = sortedTodayProducts
+          .map(([name, qty], i) => `${i + 1}. ${name} (${qty} penjualan)`)
+          .join(", ");
+      }
+    }
+
     // Metode pembayaran (7 hari)
     const paymentMethodMap: Record<string, number> = {};
     last7Orders?.forEach((o) => {
@@ -148,11 +185,6 @@ export async function chatWithCopilot(
         .select("product_name, quantity")
         .in("order_id", orderIds7);
 
-      // Temporary Logging
-      console.log("Date Range:", last7Range.fromTs, "s/d", last7Range.toTs);
-      console.log("Top Product Query Result:", items);
-      console.log("Rows:", items?.length ?? 0);
-
       const qtyMap: Record<string, number> = {};
       items?.forEach((item) => {
         qtyMap[item.product_name] = (qtyMap[item.product_name] ?? 0) + item.quantity;
@@ -167,10 +199,6 @@ export async function chatWithCopilot(
           .map(([name, qty], i) => `${i + 1}. ${name} (${qty} penjualan)`)
           .join("\n");
       }
-    } else {
-      console.log("Date Range:", last7Range.fromTs, "s/d", last7Range.toTs);
-      console.log("Top Product Query Result: No orders found");
-      console.log("Rows: 0");
     }
 
     // Jam transaksi paling ramai (hari ini)
@@ -333,11 +361,33 @@ Shift Terakhir Ditutup:
       timeZone: "Asia/Jakarta",
     });
 
+    // Kelompokkan pendapatan harian 7 hari terakhir (by WIB date)
+    const dailyRevenueMap: Record<string, number> = {};
+    // Inisialisasi 7 hari terakhir dengan 0
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date(now);
+      d.setDate(d.getDate() - i);
+      const dateKey = getWIBDateString(d);
+      dailyRevenueMap[dateKey] = 0;
+    }
+    last7Orders?.forEach((o) => {
+      const dateKey = getWIBDateString(new Date(o.created_at));
+      if (dailyRevenueMap[dateKey] !== undefined) {
+        dailyRevenueMap[dateKey] += o.total_amount;
+      }
+    });
+
+    const dailyRevenueDetails = Object.entries(dailyRevenueMap)
+      .map(([date, amount]) => `${date}: ${formatRupiah(amount)}`)
+      .join(", ");
+
+    const totalDaysWithData = Object.values(dailyRevenueMap).filter(val => val > 0).length;
+    const avgDailyRevenue = Math.round(last7Revenue / 7);
+
     // ── 3. System prompt dengan data aktual ───────────────────
     const systemInstruction = `
 Anda adalah AI Assistant Sistem POS Warmindo WP 2.
 Jawab berdasarkan data yang diberikan. Jangan mengarang angka yang tidak ada di data.
-Anda BOLEH membuat prediksi dan analisis tren berdasarkan data penjualan yang tersedia (misalnya rata-rata 7 hari untuk memperkirakan pendapatan besok).
 
 Waktu Sekarang: ${nowStr}
 
@@ -350,12 +400,18 @@ ${shiftContext}
 DATA PENJUALAN UMUM
 ═══════════════════════════════════════
 Hari Ini: ${formatRupiah(todayRevenue)} dari ${todayCount} transaksi
-7 Hari Terakhir: ${formatRupiah(last7Revenue)} dari ${last7Count} transaksi (avg ${formatRupiah(last7Avg)})
-Bulan Ini: ${formatRupiah(monthRevenue)} dari ${monthCount} transaksi (avg ${formatRupiah(monthAvg)})
-Bulan Lalu: ${formatRupiah(lastMonthRevenue)} dari ${lastMonthCount} transaksi (avg ${formatRupiah(lastMonthAvg)})
+Metode Pembayaran Hari Ini: ${todayPaymentMethod}
+Produk Terlaris Hari Ini: ${todayTopProductsText}
+Jam Tersibuk Hari Ini: ${busiestHour}
+
+7 Hari Terakhir: ${formatRupiah(last7Revenue)} dari ${last7Count} transaksi
+Rincian Pendapatan Harian (7 Hari Terakhir): ${dailyRevenueDetails}
+Rata-rata Pendapatan HARIAN (Total 7 Hari ÷ 7 Hari): ${formatRupiah(avgDailyRevenue)} per hari
 Metode Pembayaran (7 hari): ${topPaymentMethod}
 Produk Terlaris (7 hari): ${topProductsText}
-Jam Tersibuk Hari Ini: ${busiestHour}
+
+Bulan Ini: ${formatRupiah(monthRevenue)} dari ${monthCount} transaksi
+Bulan Lalu: ${formatRupiah(lastMonthRevenue)} dari ${lastMonthCount} transaksi
 
 ═══════════════════════════════════════
 STOK BAHAN BAKU
@@ -364,21 +420,45 @@ Stok Kritis: ${criticalText}
 5 Stok Terendah: ${lowestStockText}
 
 ═══════════════════════════════════════
-ATURAN WAJIB
+ATURAN WAJIB UNTUK PREDIKSI PENDAPATAN BESOK
+═══════════════════════════════════════
+Saat pengguna meminta prediksi pendapatan besok:
+1. Analisis tren dari data rincian pendapatan harian 7 hari terakhir (${dailyRevenueDetails}):
+   - Naik: jika penjualan harian cenderung terus meningkat dari hari ke hari.
+   - Turun: jika penjualan harian cenderung terus menurun dari hari ke hari.
+   - Stabil / Belum Jelas / Data Terbatas: jika penjualan harian naik-turun berubah-ubah tanpa arah pasti, bernilai sama, atau data belum mencukupi.
+2. Penentuan Nilai Prediksi:
+   - Jika tren NAIK atau TURUN: sesuaikan angka prediksi dari pendapatan harian terakhir sesuai arah tren.
+   - Jika tren STABIL, BELUM JELAS, atau DATA TERBATAS: gunakan angka Rata-rata Pendapatan HARIAN (${formatRupiah(avgDailyRevenue)}).
+3. BAHASA DAN KATA-KATA DALAM ALASAN (SANGAT IMPORTANT):
+   - DILARANG menggunakan kata "fluktuatif", "volatilitas", atau istilah teknis/rumit lainnya! Gunakan kalimat yang sangat sederhana, jelas, dan mudah dipahami oleh pemilik warung/kasir.
+   - Contoh alasan jika tren tidak jelas/stabil: "Prediksi didasarkan pada rata-rata harian 7 hari terakhir karena tren penjualan harian masih berubah-ubah dan belum menunjukkan kenaikan atau penurunan yang konsisten."
+   - Contoh alasan jika data sedikit/kosong: "Prediksi menggunakan rata-rata pendapatan harian 7 hari terakhir karena data penjualan harian belum cukup untuk menentukan pola tren."
+   - Contoh alasan jika tren naik: "Prediksi disesuaikan meningkat mengikuti tren kenaikan penjualan harian selama 7 hari terakhir."
+4. DILARANG KERAS:
+   - DILARANG menggunakan rata-rata per transaksi (total pendapatan ÷ jumlah transaksi) sebagai prediksi pendapatan harian!
+   - DILARANG membuat data atau asumsi di luar data harian yang tersedia.
+5. FORMAT OUTPUT WAJIB (Gunakan persis format berikut jika ditanya prediksi pendapatan besok):
+   Prediksi pendapatan besok: Rp {nominal}
+   Alasan: {maksimal 2 kalimat dengan bahasa yang sangat sederhana dan jelas}
+
+═══════════════════════════════════════
+ATURAN WAJIB LAINNYA
 ═══════════════════════════════════════
 1. Modal awal adalah cash float (saldo kas awal untuk menyediakan kembalian). BUKAN biaya, BUKAN pengurang pendapatan.
-2. "Profit" dan "analisis profit" berarti analisis pendapatan (omzet) berdasarkan data shift dan penjualan. Jawab langsung dengan data yang tersedia tanpa disclaimer apapun.
-3. Jika shift AKTIF: berikan analisis pendapatan shift yang sedang berjalan (total pendapatan, jumlah transaksi, rata-rata transaksi, produk terlaris, metode pembayaran).
-4. Jika shift DITUTUP: berikan ringkasan akhir shift terakhir (total pendapatan, jumlah transaksi, rata-rata transaksi, produk terlaris, metode pembayaran, selisih kas).
-5. Jika tidak ada data shift → jawab "Belum ada data yang dapat dianalisis".
+2. "Profit", "keuntungan", dan "analisis profit" berarti analisis total pendapatan (omzet) berdasarkan data penjualan aktual. Jawab langsung menggunakan data Penjualan Hari Ini (${formatRupiah(todayRevenue)}) dan/atau data shift. Jangan pernah menjawab Rp 0 jika ada data Penjualan Hari Ini atau Penjualan 7 Hari Terakhir!
+3. Saat memberikan Analisis Profit atau Ringkasan Penjualan Hari Ini, WAJIB sebutkan:
+   - Total pendapatan hari ini (${formatRupiah(todayRevenue)}) & jumlah transaksi.
+   - Produk Terlaris Hari Ini (${topProductsText}).
+   - Metode Pembayaran Hari Ini (${todayPaymentMethod}).
+   - Status Shift & Waktu Buka Shift dalam WIB.
+4. Jika ditanya tentang shift atau analisis profit:
+   - Selalu sebutkan status shift (AKTIF atau DITUTUP).
+   - Selalu cantumkan waktu buka shift (dan tutup shift jika sudah ditutup) dalam format waktu WIB (misal: "Shift aktif sejak pukul 08.30 WIB" atau "Shift terakhir dibuka tanggal DD MMMM YYYY pukul HH.MM WIB").
+   - Jika pendapatan shift beda dari pendapatan hari ini, jelaskan secara transparan (contoh: "Pendapatan hari ini total Rp X, dengan rincian shift aktif yang dibuka jam HH:MM WIB sebesar Rp Y").
 6. Fokus pada: pendapatan (omzet), jumlah transaksi, rata-rata transaksi, produk terlaris, metode pembayaran, stok bahan baku, operasional shift, prediksi/tren penjualan, dan saran operasional.
 7. Jawab HANYA tentang penjualan, stok, produk, shift, dan operasional Warmindo WP 2.
 8. Jika ditanya di luar topik, tolak sopan: "Maaf, saya hanya dapat membantu seputar operasional Warmindo WP 2."
-
-FORMAT JAWABAN:
-- Shift Aktif → gunakan format: Analisis Penjualan (Sementara)
-- Shift Ditutup → gunakan format: Ringkasan Akhir Shift
-- Bahasa Indonesia, profesional dan ringkas.
 `;
 
     // ── 4. Format chat history & panggil Groq ──────────────────
