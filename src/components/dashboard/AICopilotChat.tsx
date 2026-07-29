@@ -30,6 +30,7 @@ interface Message {
 }
 
 // ─── Constants ───────────────────────────────────────────────────────────────
+// Daftar prompt pintasan yang langsung dikirim saat tombol diklik
 const PRIMARY_ACTIONS = [
   {
     icon: TrendingUp,
@@ -53,6 +54,7 @@ const PRIMARY_ACTIONS = [
   },
 ];
 
+// Pertanyaan cepat yang muncul di area chat sebagai saran topik umum
 const SUGGESTED_QUESTIONS = [
   { label: "Pendapatan Hari Ini", prompt: "Berapa total pendapatan hari ini dan dari berapa transaksi?" },
   { label: "Produk Terlaris", prompt: "Apa saja produk terlaris dalam 7 hari terakhir?" },
@@ -167,10 +169,11 @@ function TypingIndicator() {
 // ─── Main Component ──────────────────────────────────────────────────────────
 export function AICopilotChat() {
   const [isOpen, setIsOpen] = useState(false);
-  // Start with empty state as requested so the Welcome Section shows first
+  // Dimulai dari array kosong agar layar selamat datang (Welcome Section) ditampilkan saat pertama buka
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  // Ref untuk elemen kosong di akhir daftar pesan, digunakan untuk auto-scroll
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   // Auto-scroll to bottom when messages change
@@ -179,6 +182,8 @@ export function AICopilotChat() {
   }, [messages, isLoading]);
 
 
+  // Fungsi utama pengiriman pesan: menambah pesan user ke riwayat,
+  // memanggil server action chatWithCopilot, lalu menambahkan balasan AI ke state.
   const handleSendMessage = async (messageText: string) => {
     if (!messageText.trim() || isLoading) return;
 
@@ -200,8 +205,7 @@ export function AICopilotChat() {
           { role: "model", text: `[Error]: ${result.error}` },
         ]);
       } else {
-        // Selalu tampilkan balasan; jika kosong beri fallback agar tidak
-        // ada pesan yang hilang tanpa jejak.
+        // Jika AI mengembalikan teks kosong, tampilkan pesan fallback agar chat tidak terlihat kosong
         setMessages((prev) => [
           ...prev,
           {
@@ -225,10 +229,12 @@ export function AICopilotChat() {
     }
   };
 
+  // Mengirim pesan dari nilai input saat ini
   const handleSend = async () => {
     await handleSendMessage(input);
   };
 
+  // Mengirim pesan dengan tombol Enter (tanpa Shift) agar pengalaman seperti chat pada umumnya
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();

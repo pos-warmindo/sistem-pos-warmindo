@@ -5,7 +5,7 @@ import { getRole } from "@/lib/auth/getRole";
 import { createClient } from "@/lib/supabase/server";
 import { formatRupiah } from "@/lib/utils/format";
 
-// ── Helper: format date to WIB ISO string ──────────────────────
+// Mengubah objek Date menjadi string tanggal format YYYY-MM-DD dalam zona waktu WIB
 function getWIBDateString(date: Date): string {
   const formatter = new Intl.DateTimeFormat("en-CA", {
     timeZone: "Asia/Jakarta",
@@ -16,6 +16,8 @@ function getWIBDateString(date: Date): string {
   return formatter.format(date);
 }
 
+// Menghitung rentang waktu dari N hari lalu hingga M hari lalu dalam WIB,
+// menghasilkan timestamp ISO dengan offset +07:00 untuk filter query Supabase
 function getWIBRange(offsetDaysStart: number, offsetDaysEnd = 0): { fromTs: string; toTs: string } {
   const now = new Date();
   
@@ -34,6 +36,9 @@ function getWIBRange(offsetDaysStart: number, offsetDaysEnd = 0): { fromTs: stri
   };
 }
 
+// Menghitung rentang waktu satu bulan penuh dalam WIB.
+// offsetMonth=0 berarti bulan ini (sampai hari ini), offsetMonth=1 berarti bulan lalu (tanggal 1 s.d. akhir bulan).
+// Penanganan lintas tahun dilakukan dengan memeriksa apakah hasil pengurangan bulan bernilai negatif.
 function getWIBMonthRange(offsetMonth = 0): { fromTs: string; toTs: string } {
   const now = new Date();
   
@@ -47,8 +52,10 @@ function getWIBMonthRange(offsetMonth = 0): { fromTs: string; toTs: string } {
   
   let toDateStr: string;
   if (offsetMonth === 0) {
+    // Bulan berjalan: batas atas adalah hari ini
     toDateStr = getWIBDateString(now);
   } else {
+    // Bulan sebelumnya: hitung hari terakhir bulan tersebut
     const lastDay = new Date(targetYear, targetMonth + 1, 0).getDate();
     toDateStr = `${targetYear}-${String(targetMonth + 1).padStart(2, "0")}-${String(lastDay).padStart(2, "0")}`;
   }
@@ -127,7 +134,7 @@ export async function chatWithCopilot(
     const lastMonthCount   = lastMonthOrders?.length ?? 0;
     const lastMonthAvg     = lastMonthCount > 0 ? Math.round(lastMonthRevenue / lastMonthCount) : 0;
 
-    // Metode pembayaran hari ini
+    // Menghitung frekuensi setiap metode pembayaran hari ini, lalu diurutkan dari yang terbanyak
     const todayPaymentMap: Record<string, number> = {};
     todayOrders?.forEach((o) => {
       const m = o.payment_method ?? "UNKNOWN";
@@ -201,7 +208,7 @@ export async function chatWithCopilot(
       }
     }
 
-    // Jam transaksi paling ramai (hari ini)
+    // Mengelompokkan transaksi hari ini berdasarkan jam untuk menemukan jam paling ramai
     const hourMap: Record<number, number> = {};
     todayOrders?.forEach((o) => {
       const hour = new Date(o.created_at).getHours();
@@ -361,9 +368,10 @@ Shift Terakhir Ditutup:
       timeZone: "Asia/Jakarta",
     });
 
-    // Kelompokkan pendapatan harian 7 hari terakhir (by WIB date)
+    // Menyiapkan peta pendapatan harian 7 hari terakhir.
+    // Diinisialisasi dengan nilai 0 terlebih dahulu agar hari tanpa transaksi tetap muncul sebagai Rp 0,
+    // bukan hilang dari data — penting untuk analisis tren yang akurat.
     const dailyRevenueMap: Record<string, number> = {};
-    // Inisialisasi 7 hari terakhir dengan 0
     for (let i = 6; i >= 0; i--) {
       const d = new Date(now);
       d.setDate(d.getDate() - i);
@@ -381,7 +389,9 @@ Shift Terakhir Ditutup:
       .map(([date, amount]) => `${date}: ${formatRupiah(amount)}`)
       .join(", ");
 
+    // totalDaysWithData dipakai AI untuk mendeteksi apakah data cukup untuk analisis tren
     const totalDaysWithData = Object.values(dailyRevenueMap).filter(val => val > 0).length;
+    // Rata-rata selalu dibagi 7 (bukan hanya hari yang ada data) agar konsisten sebagai rata-rata harian
     const avgDailyRevenue = Math.round(last7Revenue / 7);
 
     // ── 3. System prompt dengan data aktual ───────────────────
@@ -462,16 +472,16 @@ ATURAN WAJIB LAINNYA
 `;
 
     // ── 4. Format chat history & panggil Groq ──────────────────
-    // Pastikan dimulai dari user, lalu petakan role "model" -> "assistant"
+    // Groq API mengharuskan percakapan dimulai dari pesan "user".
+    // Filter ini membuang pesan "model" di awal (yang tidak punya konteks user sebelumnya),
+    // lalu memetakan role "model" -> "assistant" sesuai format API Groq.
     const filteredHistory = chatHistory.filter((msg, idx) => {
-      // Selalu include user messages
       if (msg.role === "user") return true;
-      // Include model messages hanya jika ada user message sebelumnya
+      // Pesan model hanya valid jika sudah ada pesan user sebelumnya
       const prevUserIdx = chatHistory.slice(0, idx).findLastIndex((m) => m.role === "user");
       return prevUserIdx !== -1;
     });
 
-    // Pastikan dimulai dari user
     const firstUserIdx = filteredHistory.findIndex((m) => m.role === "user");
     const conversation = (firstUserIdx >= 0 ? filteredHistory.slice(firstUserIdx) : filteredHistory)
       .map((msg) => ({
@@ -495,8 +505,9 @@ ATURAN WAJIB LAINNYA
 
     const replyText = response.choices[0]?.message?.content?.trim() ?? "";
 
-    // Groq sesekali mengembalikan konten kosong untuk prompt singkat/ambigu.
-    // Jangan kirim string kosong sebagai "sukses" — beri fallback yang jelas.
+    // Groq terkadang mengembalikan konten kosong untuk prompt yang terlalu singkat atau ambigu.
+    // Daripada mengirim string kosong yang terlihat seperti sukses, kembalikan pesan fallback
+    // agar pengguna tahu perlu memperjelas pertanyaannya.
     if (!replyText) {
       return {
         success: true,

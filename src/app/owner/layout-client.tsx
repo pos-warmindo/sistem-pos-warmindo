@@ -46,6 +46,7 @@ export default function OwnerLayoutClient({
   const [userRole, setUserRole] = useState<string>("");
 
   useEffect(() => {
+    // Mengambil nama tampilan dan email pengguna dari Supabase Auth & tabel users
     async function getOwnerProfile() {
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
@@ -56,13 +57,14 @@ export default function OwnerLayoutClient({
           .eq("id", user.id)
           .maybeSingle();
 
+        // Gunakan display_name jika ada, fallback ke bagian depan email
         if (profile?.display_name) {
           setOwnerName(profile.display_name);
         } else if (user.email) {
           setOwnerName(user.email.split("@")[0]);
         }
 
-        // Fetch role for conditional nav
+        // Fetch role untuk menentukan menu navigasi yang ditampilkan
         const { data: roleData } = await supabase.rpc("get_my_role");
         if (roleData) setUserRole(roleData as string);
       }
@@ -82,7 +84,8 @@ export default function OwnerLayoutClient({
     }
   };
 
-  // owner: semua nav | admin: hanya menu/stok/users
+  // Menentukan item navigasi yang ditampilkan:
+  // owner melihat semua menu, admin hanya melihat menu yang ownerOnly=false
   const allNavItems: NavigationItem[] = [
     { name: "Beranda", href: "/owner/dashboard", icon: Home, ownerOnly: true },
     { name: "Menu", href: "/owner/menu", icon: UtensilsCrossed, ownerOnly: false },
@@ -112,7 +115,7 @@ export default function OwnerLayoutClient({
           </Link>
         </div>
 
-        {/* User Info */}
+        {/* Menampilkan nama dan email pengguna yang sedang login di bagian atas sidebar */}
         <div className="p-4 border-b border-slate-50 bg-slate-50/30">
           <div className="flex items-center space-x-3 px-2 py-1.5">
             {/* [KUSTOMISASI AVATAR USER] bg-orange-100 & text-orange-600 */}
@@ -126,7 +129,7 @@ export default function OwnerLayoutClient({
           </div>
         </div>
 
-        {/* Nav Links */}
+        {/* Daftar menu navigasi; isActive dihitung berdasarkan URL saat ini */}
         <nav className="flex-1 space-y-1 px-4 py-4">
           {navItems.map((item) => {
             const isActive =
@@ -220,7 +223,7 @@ export default function OwnerLayoutClient({
         </button>
       </nav>
 
-      {/* ── AI Copilot Chatbot ── */}
+      {/* AI Copilot hanya ditampilkan untuk role owner, bukan admin */}
       {userRole === "owner" && <AICopilotChat />}
     </div>
   );
