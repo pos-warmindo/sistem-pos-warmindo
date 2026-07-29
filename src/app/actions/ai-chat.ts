@@ -83,7 +83,7 @@ export async function chatWithCopilot(
     // Pendapatan hari ini
     const { data: todayOrders } = await supabase
       .from("orders")
-      .select("total_amount, payment_method, created_at")
+      .select("id, total_amount, payment_method, created_at, shift_id")
       .eq("status", "PAID")
       .gte("created_at", todayRange.fromTs)
       .lte("created_at", todayRange.toTs);
@@ -198,25 +198,132 @@ export async function chatWithCopilot(
 
     const lowestStockText = rawMaterials?.slice(0, 5).map((s) => `${s.name}: ${s.current_stock} ${s.unit}`).join(", ") ?? "Belum ada data bahan baku";
 
-    // Shift aktif
-    const { data: activeShift } = await supabase
+    // Shift aktif — query dengan auth user untuk memastikan RLS pass
+    const { data: authData } = await supabase.auth.getUser();
+    const currentUserId = authData?.user?.id;
+
+    const { data: activeShift, error: shiftError } = await supabase
       .from("shifts")
-      .select("opened_at, modal_awal, total_cash_sales, total_qris_sales")
+      .select("id, opened_at, modal_awal, total_cash_sales, total_qris_sales, opened_by")
       .eq("status", "OPEN")
+      .order("opened_at", { ascending: false })
+      .limit(1)
       .maybeSingle();
 
-    const shiftInfo = activeShift
-      ? `Shift sedang berjalan sejak ${new Date(activeShift.opened_at).toLocaleTimeString("id-ID")}. Modal awal: ${formatRupiah(activeShift.modal_awal)}. Penjualan tunai: ${formatRupiah(activeShift.total_cash_sales)}, QRIS: ${formatRupiah(activeShift.total_qris_sales)}.`
-      : "Tidak ada shift yang sedang berjalan saat ini.";
+    if (shiftError) {
+      console.error("[AI Copilot] Shift query error:", shiftError);
+    }
 
-    // Estimasi profit shift berjalan (berbasis modal awal): total penjualan shift − modal awal
-    let profitInfo: string;
+    // Query order langsung berdasarkan shift_id (tidak terbatas hari ini)
+    let activeShiftOrders: any[] = [];
+    if (activeShift) {
+      const { data: shiftOrds } = await supabase
+        .from("orders")
+        .select("id, total_amount, payment_method")
+        .eq("shift_id", activeShift.id)
+        .eq("status", "PAID");
+      activeShiftOrders = shiftOrds ?? [];
+    }
+
+    // Shift terakhir yang ditutup (fallback jika tidak ada shift aktif)
+    let lastClosedShift: any = null;
+    let lastClosedShiftOrders: any[] = [];
+    if (!activeShift) {
+      const { data: closedShift } = await supabase
+        .from("shifts")
+        .select("id, opened_at, closed_at, modal_awal, total_cash_sales, total_qris_sales, cash_counted, cash_variance, expected_cash")
+        .eq("status", "CLOSED")
+        .order("closed_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (closedShift) {
+        lastClosedShift = closedShift;
+        // Ambil order dalam shift terakhir untuk produk terlaris & metode bayar
+        const { data: shiftOrders } = await supabase
+          .from("orders")
+          .select("id, total_amount, payment_method")
+          .eq("shift_id", closedShift.id)
+          .eq("status", "PAID");
+        lastClosedShiftOrders = shiftOrders ?? [];
+      }
+    }
+
+    // Produk terlaris shift aktif atau shift terakhir
+    const shiftOrderIds = activeShift
+      ? [] // untuk shift aktif, kita ambil dari orders hari ini yang sudah di-query
+      : lastClosedShiftOrders.map((o) => o.id);
+
+    let shiftTopProductsText = "Belum ada transaksi";
+    const shiftOrderIdsToQuery = activeShift
+      ? activeShiftOrders.map((o) => o.id)
+      : shiftOrderIds;
+
+    if (shiftOrderIdsToQuery.length > 0) {
+      const { data: shiftItems } = await supabase
+        .from("order_items")
+        .select("product_name, quantity")
+        .in("order_id", shiftOrderIdsToQuery);
+
+      const shiftQtyMap: Record<string, number> = {};
+      shiftItems?.forEach((item) => {
+        shiftQtyMap[item.product_name] = (shiftQtyMap[item.product_name] ?? 0) + item.quantity;
+      });
+      const shiftTopProds = Object.entries(shiftQtyMap).sort((a, b) => b[1] - a[1]).slice(0, 5);
+      if (shiftTopProds.length > 0) {
+        shiftTopProductsText = shiftTopProds.map(([n, q], i) => `${i + 1}. ${n} (${q})`).join(", ");
+      }
+    }
+
+    // Metode pembayaran shift aktif atau shift terakhir
+    const shiftPaymentOrders = activeShift ? activeShiftOrders : lastClosedShiftOrders;
+    const shiftPayMap: Record<string, number> = {};
+    (shiftPaymentOrders as any[]).forEach((o) => {
+      const m = o.payment_method ?? "UNKNOWN";
+      shiftPayMap[m] = (shiftPayMap[m] ?? 0) + 1;
+    });
+    const shiftPaymentText = Object.entries(shiftPayMap)
+      .sort((a, b) => b[1] - a[1])
+      .map(([m, c]) => `${m}: ${c} transaksi`)
+      .join(", ") || "Belum ada data";
+
+    // ── Build shift context string ─────────────────────────────
+    let shiftContext: string;
+
     if (activeShift) {
       const shiftSales = (activeShift.total_cash_sales ?? 0) + (activeShift.total_qris_sales ?? 0);
-      const shiftProfit = shiftSales - (activeShift.modal_awal ?? 0);
-      profitInfo = `Total penjualan shift berjalan: ${formatRupiah(shiftSales)} (tunai + QRIS). Modal awal: ${formatRupiah(activeShift.modal_awal ?? 0)}. Estimasi profit (penjualan − modal awal): ${formatRupiah(shiftProfit)}.`;
+      const shiftOrderCount = activeShiftOrders.length;
+      const shiftAvg = shiftOrderCount > 0 ? Math.round(shiftSales / shiftOrderCount) : 0;
+
+      shiftContext = `
+STATUS SHIFT: AKTIF (sedang berjalan)
+Dibuka: ${new Date(activeShift.opened_at).toLocaleString("id-ID", { timeZone: "Asia/Jakarta" })}
+Modal Awal: ${formatRupiah(activeShift.modal_awal)} (cash float/saldo kas awal untuk kembalian)
+Total Pendapatan Shift: ${formatRupiah(shiftSales)} (Tunai: ${formatRupiah(activeShift.total_cash_sales)}, QRIS: ${formatRupiah(activeShift.total_qris_sales)})
+Jumlah Transaksi: ${shiftOrderCount}
+Rata-rata Transaksi: ${formatRupiah(shiftAvg)}
+Produk Terlaris Shift: ${shiftTopProductsText}
+Metode Pembayaran Shift: ${shiftPaymentText}`;
+    } else if (lastClosedShift) {
+      const closedSales = (lastClosedShift.total_cash_sales ?? 0) + (lastClosedShift.total_qris_sales ?? 0);
+      const closedCount = lastClosedShiftOrders.length;
+      const closedAvg = closedCount > 0 ? Math.round(closedSales / closedCount) : 0;
+
+      shiftContext = `
+STATUS SHIFT: TIDAK ADA SHIFT AKTIF
+Shift Terakhir Ditutup:
+  Dibuka: ${new Date(lastClosedShift.opened_at).toLocaleString("id-ID", { timeZone: "Asia/Jakarta" })}
+  Ditutup: ${new Date(lastClosedShift.closed_at).toLocaleString("id-ID", { timeZone: "Asia/Jakarta" })}
+  Modal Awal: ${formatRupiah(lastClosedShift.modal_awal)} (cash float untuk kembalian)
+  Total Pendapatan: ${formatRupiah(closedSales)} (Tunai: ${formatRupiah(lastClosedShift.total_cash_sales)}, QRIS: ${formatRupiah(lastClosedShift.total_qris_sales)})
+  Jumlah Transaksi: ${closedCount}
+  Rata-rata Transaksi: ${formatRupiah(closedAvg)}
+  Produk Terlaris: ${shiftTopProductsText}
+  Metode Pembayaran: ${shiftPaymentText}
+  Kas Dihitung: ${lastClosedShift.cash_counted ? formatRupiah(lastClosedShift.cash_counted) : "Tidak tersedia"}
+  Selisih Kas: ${lastClosedShift.cash_variance !== null ? formatRupiah(lastClosedShift.cash_variance) : "Tidak tersedia"}`;
     } else {
-      profitInfo = "Tidak ada shift berjalan, sehingga profit berbasis modal awal belum bisa dihitung.";
+      shiftContext = `STATUS SHIFT: Tidak ada data shift sama sekali. Belum ada data yang dapat dianalisis.`;
     }
 
     // Tanggal & waktu sekarang
@@ -228,48 +335,50 @@ export async function chatWithCopilot(
 
     // ── 3. System prompt dengan data aktual ───────────────────
     const systemInstruction = `
-Kamu adalah WP2 AI Business Insight Copilot, asisten analitik bisnis untuk "Warmindo WP 2 POS".
-Tugas utama: membantu owner/admin dengan analisis penjualan, stok, dan operasional berdasarkan DATA REAL-TIME berikut.
+Anda adalah AI Assistant Sistem POS Warmindo WP 2.
+Jawab berdasarkan data yang diberikan. Jangan mengarang angka yang tidak ada di data.
+Anda BOLEH membuat prediksi dan analisis tren berdasarkan data penjualan yang tersedia (misalnya rata-rata 7 hari untuk memperkirakan pendapatan besok).
 
-📅 Waktu Sekarang: ${nowStr}
+Waktu Sekarang: ${nowStr}
 
-📊 DATA BISNIS REAL-TIME:
+═══════════════════════════════════════
+DATA SHIFT (PRIORITAS UTAMA)
+═══════════════════════════════════════
+${shiftContext}
 
-─── PENDAPATAN ───
-• Hari ini: ${formatRupiah(todayRevenue)} dari ${todayCount} transaksi
-• 7 hari terakhir: ${formatRupiah(last7Revenue)} dari ${last7Count} transaksi (rata-rata ${formatRupiah(last7Avg)}/transaksi)
-• Bulan ini: ${formatRupiah(monthRevenue)} dari ${monthCount} transaksi (rata-rata ${formatRupiah(monthAvg)}/transaksi)
-• Bulan lalu: ${formatRupiah(lastMonthRevenue)} dari ${lastMonthCount} transaksi (rata-rata ${formatRupiah(lastMonthAvg)}/transaksi)
+═══════════════════════════════════════
+DATA PENJUALAN UMUM
+═══════════════════════════════════════
+Hari Ini: ${formatRupiah(todayRevenue)} dari ${todayCount} transaksi
+7 Hari Terakhir: ${formatRupiah(last7Revenue)} dari ${last7Count} transaksi (avg ${formatRupiah(last7Avg)})
+Bulan Ini: ${formatRupiah(monthRevenue)} dari ${monthCount} transaksi (avg ${formatRupiah(monthAvg)})
+Bulan Lalu: ${formatRupiah(lastMonthRevenue)} dari ${lastMonthCount} transaksi (avg ${formatRupiah(lastMonthAvg)})
+Metode Pembayaran (7 hari): ${topPaymentMethod}
+Produk Terlaris (7 hari): ${topProductsText}
+Jam Tersibuk Hari Ini: ${busiestHour}
 
-─── METODE PEMBAYARAN (7 hari) ───
-${topPaymentMethod}
+═══════════════════════════════════════
+STOK BAHAN BAKU
+═══════════════════════════════════════
+Stok Kritis: ${criticalText}
+5 Stok Terendah: ${lowestStockText}
 
-─── PRODUK TERLARIS (7 hari) ───
-${topProductsText}
+═══════════════════════════════════════
+ATURAN WAJIB
+═══════════════════════════════════════
+1. Modal awal adalah cash float (saldo kas awal untuk menyediakan kembalian). BUKAN biaya, BUKAN pengurang pendapatan.
+2. "Profit" dan "analisis profit" berarti analisis pendapatan (omzet) berdasarkan data shift dan penjualan. Jawab langsung dengan data yang tersedia tanpa disclaimer apapun.
+3. Jika shift AKTIF: berikan analisis pendapatan shift yang sedang berjalan (total pendapatan, jumlah transaksi, rata-rata transaksi, produk terlaris, metode pembayaran).
+4. Jika shift DITUTUP: berikan ringkasan akhir shift terakhir (total pendapatan, jumlah transaksi, rata-rata transaksi, produk terlaris, metode pembayaran, selisih kas).
+5. Jika tidak ada data shift → jawab "Belum ada data yang dapat dianalisis".
+6. Fokus pada: pendapatan (omzet), jumlah transaksi, rata-rata transaksi, produk terlaris, metode pembayaran, stok bahan baku, operasional shift, prediksi/tren penjualan, dan saran operasional.
+7. Jawab HANYA tentang penjualan, stok, produk, shift, dan operasional Warmindo WP 2.
+8. Jika ditanya di luar topik, tolak sopan: "Maaf, saya hanya dapat membantu seputar operasional Warmindo WP 2."
 
-─── JAM TERSIBUK (hari ini) ───
-${busiestHour}
-
-─── STOK BAHAN BAKU KRITIS ───
-${criticalText}
-
-─── 5 STOK BAHAN BAKU TERENDAH SAAT INI ───
-${lowestStockText}
-
-─── STATUS SHIFT ───
-${shiftInfo}
-
-─── ANALISIS PROFIT (BERBASIS MODAL AWAL) ───
-${profitInfo}
-
-INSTRUKSI:
-1. Jawab HANYA pertanyaan seputar penjualan, stok, produk, shift, dan operasional Warmindo WP 2.
-2. Jika ditanya di luar topik bisnis ini, tolak dengan sopan:
-   "Maaf, saya hanya dapat membantu seputar performa penjualan dan operasional Warmindo WP 2."
-3. Gunakan data di atas sebagai referensi utama. Jawab dengan ringkas, akurat, dan gunakan format Rupiah (Rp X.XXX) yang benar.
-4. Jika data tidak tersedia untuk periode tertentu, sampaikan dengan jelas.
-5. Untuk ANALISIS PROFIT: hitung berdasarkan modal awal shift yang sedang berjalan, dengan rumus Profit = Total Penjualan Shift − Modal Awal (lihat bagian "STATUS SHIFT"). Jika tidak ada shift yang berjalan, sampaikan bahwa analisis profit hanya tersedia saat ada shift aktif.
-6. Bahasa: Indonesia. Nada: profesional tapi ramah.
+FORMAT JAWABAN:
+- Shift Aktif → gunakan format: Analisis Penjualan (Sementara)
+- Shift Ditutup → gunakan format: Ringkasan Akhir Shift
+- Bahasa Indonesia, profesional dan ringkas.
 `;
 
     // ── 4. Format chat history & panggil Groq ──────────────────

@@ -22,7 +22,7 @@ import { useShift } from "@/lib/hooks/useShift";
 import { formatRupiah } from "@/lib/utils/format";
 import { createClient } from "@/lib/supabase/client";
 import { toast } from "sonner";
-import { Banknote, CreditCard, Clock, X, CheckCircle } from "@/lib/icons";
+import { Banknote, CreditCard, Clock, X, CheckCircle, Printer } from "@/lib/icons";
 import { QRCodeSVG } from "qrcode.react";
 import ReceiptView, { ReceiptOrder, ReceiptItem } from "@/components/receipt/ReceiptView";
 
@@ -44,6 +44,7 @@ export default function PaymentModal({ isOpen, onOpenChange }: PaymentModalProps
   const supabase = createClient();
 
   const [completedOrder, setCompletedOrder] = useState<ReceiptOrder | null>(null);
+  const [showReceipt, setShowReceipt] = useState(false);
 
   const cartItemsRef = useRef(cartItems);
   const subtotalRef = useRef(subtotal);
@@ -113,6 +114,7 @@ export default function PaymentModal({ isOpen, onOpenChange }: PaymentModalProps
       setQrisTimeLeft(300);
       qrDataRef.current = null;
       setCompletedOrder(null);
+      setShowReceipt(false);
     } else {
       stopAllTimers();
     }
@@ -129,15 +131,24 @@ export default function PaymentModal({ isOpen, onOpenChange }: PaymentModalProps
     try {
       const { data: orderDb } = await supabase
         .from("orders")
-        .select("order_number, created_at")
+        .select("created_at")
         .eq("id", orderId)
         .single();
 
       const { data: authData } = await supabase.auth.getUser();
-      const cashierName =
-        authData.user?.user_metadata?.full_name ||
-        authData.user?.email ||
-        "Kasir";
+      const userId = authData.user?.id;
+
+      let cashierName = authData.user?.email || "Kasir";
+      if (userId) {
+        const { data: userData } = await supabase
+          .from("users")
+          .select("display_name")
+          .eq("id", userId)
+          .single();
+        if (userData?.display_name) {
+          cashierName = userData.display_name;
+        }
+      }
 
       const receiptItems: ReceiptItem[] = cartItemsRef.current.map((item) => ({
         product_name: item.product.name,
@@ -151,7 +162,7 @@ export default function PaymentModal({ isOpen, onOpenChange }: PaymentModalProps
       }));
 
       setCompletedOrder({
-        order_number: orderDb?.order_number || "QRIS",
+        order_number: orderId,
         payment_method: "QRIS",
         subtotal: subtotalRef.current,
         total_amount: totalRef.current,
@@ -363,7 +374,7 @@ export default function PaymentModal({ isOpen, onOpenChange }: PaymentModalProps
           status: "PENDING",
           payment_method: "TUNAI",
         })
-        .select()
+        .select("id, created_at")
         .single();
       if (orderError) throw orderError;
 
@@ -431,11 +442,17 @@ export default function PaymentModal({ isOpen, onOpenChange }: PaymentModalProps
       }));
 
       // 2. Fetch the cashier details
-      const cashierName = user.user_metadata?.full_name || user.email || "Kasir";
+      let cashierName = user.email || "Kasir";
+      const { data: userData } = await supabase
+        .from("users")
+        .select("display_name")
+        .eq("id", user.id)
+        .single();
+      if (userData?.display_name) cashierName = userData.display_name;
 
       // 3. Set the completed order state
       setCompletedOrder({
-        order_number: orderData.order_number,
+        order_number: orderData.id,
         payment_method: "TUNAI",
         amount_paid: numericPaid,
         change_amount: changeAmount,
@@ -443,12 +460,11 @@ export default function PaymentModal({ isOpen, onOpenChange }: PaymentModalProps
         total_amount: total,
         cashier_name: cashierName,
         shift_id: activeShift.id,
-        created_at: new Date().toISOString(),
+        created_at: orderData.created_at,
         items: receiptItems,
       });
 
       toast.success("Transaksi Tunai Berhasil!");
-      await refreshShift();
       clearCart();
     } catch (error: any) {
       console.error("[Tunai] Transaction failed:", error);
@@ -546,6 +562,7 @@ export default function PaymentModal({ isOpen, onOpenChange }: PaymentModalProps
 
   const handleNewTransaction = () => {
     setCompletedOrder(null);
+    setShowReceipt(false);
     onOpenChange(false);
   };
 
@@ -568,24 +585,86 @@ export default function PaymentModal({ isOpen, onOpenChange }: PaymentModalProps
                 Transaksi Berhasil
               </DialogTitle>
               <p className="text-xs text-muted-foreground">
-                Struk pembayaran telah dicetak otomatis
+                {showReceipt ? "Struk pembayaran" : "Pembayaran telah dikonfirmasi"}
               </p>
             </DialogHeader>
 
-            {/* [KUSTOMISASI AREA STRUK DI MODAL] */}
-            <div className="flex-1 overflow-y-auto p-6 bg-slate-50/50">
-              <ReceiptView order={completedOrder} onClose={handleNewTransaction} />
-            </div>
+            {showReceipt ? (
+              /* ── Tampilan Struk ── */
+              <>
+                <div className="flex-1 overflow-y-auto p-6 bg-slate-50/50">
+                  <ReceiptView order={completedOrder} onClose={handleNewTransaction} />
+                </div>
 
-            {/* [KUSTOMISASI FOOTER TRANSAKSI BERHASIL] */}
-            <div className="p-6 border-t border-border bg-white print:hidden">
-              <Button
-                onClick={handleNewTransaction}
-                className="w-full bg-primary hover:bg-primary-hover text-white font-bold py-5 rounded-lg shadow-sm"
-              >
-                Transaksi Baru
-              </Button>
-            </div>
+                <div className="p-6 pt-3 border-t border-border bg-white print:hidden space-y-2">
+                  <Button
+                    onClick={() => setShowReceipt(false)}
+                    variant="outline"
+                    className="w-full font-bold py-5 rounded-lg border-slate-200 hover:bg-slate-50"
+                  >
+                    Kembali
+                  </Button>
+                </div>
+              </>
+            ) : (
+              /* ── Tampilan Ringkasan Sukses ── */
+              <>
+                <div className="flex-1 overflow-y-auto p-6">
+                  <div className="space-y-4">
+                    {/* Ringkasan Pembayaran */}
+                    <div className="bg-slate-50 rounded-xl p-5 space-y-3 border border-slate-100">
+                      <div className="flex items-center justify-between text-sm">
+                        <span className="text-muted-foreground">Metode Bayar</span>
+                        <span className="font-bold text-heading">{completedOrder.payment_method}</span>
+                      </div>
+                      <div className="flex items-center justify-between text-sm">
+                        <span className="text-muted-foreground">Total Belanja</span>
+                        <span className="font-bold text-heading">{formatRupiah(completedOrder.total_amount)}</span>
+                      </div>
+                      {completedOrder.payment_method === "TUNAI" && (
+                        <>
+                          <div className="flex items-center justify-between text-sm">
+                            <span className="text-muted-foreground">Dibayar</span>
+                            <span className="font-bold text-heading">{formatRupiah(completedOrder.amount_paid || 0)}</span>
+                          </div>
+                          <Separator className="bg-slate-200" />
+                          <div className="flex items-center justify-between text-base">
+                            <span className="font-bold text-heading">Kembalian</span>
+                            <span className="font-extrabold text-primary text-lg">{formatRupiah(completedOrder.change_amount || 0)}</span>
+                          </div>
+                        </>
+                      )}
+                    </div>
+
+                    {/* Jumlah item */}
+                    <div className="text-center text-xs text-muted-foreground">
+                      {completedOrder.items.length} item &middot; {completedOrder.items.reduce((sum, i) => sum + i.quantity, 0)} produk
+                    </div>
+                  </div>
+                </div>
+
+                {/* Footer dengan tombol aksi */}
+                <div className="p-6 pt-3 border-t border-border bg-white print:hidden space-y-2">
+                  <Button
+                    onClick={() => {
+                      setShowReceipt(true);
+                      setTimeout(() => window.print(), 300);
+                    }}
+                    variant="outline"
+                    className="w-full font-bold py-5 rounded-lg border-slate-200 hover:bg-slate-50 flex items-center justify-center gap-2"
+                  >
+                    <Printer className="size-5" />
+                    Cetak Struk
+                  </Button>
+                  <Button
+                    onClick={handleNewTransaction}
+                    className="w-full bg-primary hover:bg-primary-hover text-white font-bold py-5 rounded-lg shadow-sm"
+                  >
+                    Transaksi Baru
+                  </Button>
+                </div>
+              </>
+            )}
           </div>
         ) : (
           <>
