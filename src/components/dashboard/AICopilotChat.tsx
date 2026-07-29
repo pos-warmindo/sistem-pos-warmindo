@@ -43,8 +43,8 @@ const PRIMARY_ACTIONS = [
   },
   {
     icon: DollarSign,
-    label: "Ringkasan Laba",
-    prompt: "Berikan ringkasan laba kotor untuk hari ini.",
+    label: "Ringkasan Pendapatan",
+    prompt: "Berikan ringkasan total pendapatan hari ini beserta rincian metode pembayaran.",
   },
   {
     icon: Target,
@@ -59,7 +59,7 @@ const SUGGESTED_QUESTIONS = [
   { label: "Stok Menipis", prompt: "Bahan baku apa saja yang stoknya menipis atau kritis saat ini?" },
   { label: "Prediksi Besok", prompt: "Buatkan prediksi pendapatan besok berdasarkan tren penjualan 7 hari terakhir, dan sertakan alasannya secara ringkas." },
   { label: "Laporan Mingguan", prompt: "Buatkan ringkasan laporan penjualan 7 hari terakhir mencakup pendapatan, jumlah transaksi, dan metode pembayaran." },
-  { label: "Analisis Profit", prompt: "Berikan analisis profit shift yang sedang berjalan berdasarkan modal awal." },
+  { label: "Analisis Profit", prompt: "Berikan analisis profit saat ini." },
 ];
 
 // ─── Animation Variants ──────────────────────────────────────────────────────
@@ -310,7 +310,7 @@ export function AICopilotChat() {
                     </h2>
 
                     <p className="text-[12px] text-slate-500 text-center leading-[1.6] max-w-[320px] mb-8">
-                      Saya siap membantu menganalisis penjualan, stok, laba, pelanggan, dan performa bisnis Anda.
+                      Saya siap membantu menganalisis penjualan, stok, dan performa bisnis Anda.
                     </p>
 
                     {/* Suggested Questions */}
@@ -426,7 +426,7 @@ export function AICopilotChat() {
               }}
             >
               <Input
-                placeholder="Tanyakan penjualan, stok, laba..."
+                placeholder="Tanyakan penjualan, stok, shift..."
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={handleKeyDown}
