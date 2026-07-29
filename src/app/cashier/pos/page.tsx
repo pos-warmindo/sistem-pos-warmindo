@@ -52,10 +52,10 @@ export default function CashierPosPage() {
         
         if (catError) throw catError;
 
-        // Fetch products
+        // Fetch products (include category details & filter out products of inactive categories if category_id exists)
         const { data: prodData, error: prodError } = await supabase
           .from("products")
-          .select("*")
+          .select("*, categories(is_active, sort_order)")
           .eq("is_active", true)
           .order("sort_order", { ascending: true });
         
@@ -82,6 +82,29 @@ export default function CashierPosPage() {
     }
 
     loadPOSData();
+
+    // Subscribe to realtime updates for categories & products
+    const channel = supabase
+      .channel("pos-catalog-changes")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "categories" },
+        () => {
+          loadPOSData();
+        }
+      )
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "products" },
+        () => {
+          loadPOSData();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [supabase]);
 
   const handleSelectProduct = (product: Product) => {
@@ -152,6 +175,7 @@ export default function CashierPosPage() {
                 {/* [KUSTOMISASI GRID PRODUK] */}
                 <ProductGrid
                   products={filteredProducts}
+                  categories={categories}
                   activeCategoryId={activeCategoryId}
                   onSelectProduct={handleSelectProduct}
                   availabilityMap={availabilityMap}
