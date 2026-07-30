@@ -401,14 +401,14 @@ Jawab berdasarkan data yang diberikan. Jangan mengarang angka yang tidak ada di 
 
 Waktu Sekarang: ${nowStr}
 
-═══════════════════════════════════════
+
 DATA SHIFT (PRIORITAS UTAMA)
-═══════════════════════════════════════
+
 ${shiftContext}
 
-═══════════════════════════════════════
+
 DATA PENJUALAN UMUM
-═══════════════════════════════════════
+
 Hari Ini: ${formatRupiah(todayRevenue)} dari ${todayCount} transaksi
 Metode Pembayaran Hari Ini: ${todayPaymentMethod}
 Produk Terlaris Hari Ini: ${todayTopProductsText}
@@ -423,15 +423,11 @@ Produk Terlaris (7 hari): ${topProductsText}
 Bulan Ini: ${formatRupiah(monthRevenue)} dari ${monthCount} transaksi
 Bulan Lalu: ${formatRupiah(lastMonthRevenue)} dari ${lastMonthCount} transaksi
 
-═══════════════════════════════════════
 STOK BAHAN BAKU
-═══════════════════════════════════════
 Stok Kritis: ${criticalText}
 5 Stok Terendah: ${lowestStockText}
 
-═══════════════════════════════════════
 ATURAN WAJIB UNTUK PREDIKSI PENDAPATAN BESOK
-═══════════════════════════════════════
 Saat pengguna meminta prediksi pendapatan besok:
 1. Analisis tren dari data rincian pendapatan harian 7 hari terakhir (${dailyRevenueDetails}):
    - Naik: jika penjualan harian cenderung terus meningkat dari hari ke hari.
@@ -452,9 +448,8 @@ Saat pengguna meminta prediksi pendapatan besok:
    Prediksi pendapatan besok: Rp {nominal}
    Alasan: {maksimal 2 kalimat dengan bahasa yang sangat sederhana dan jelas}
 
-═══════════════════════════════════════
+
 ATURAN WAJIB LAINNYA
-═══════════════════════════════════════
 1. Modal awal adalah cash float (saldo kas awal untuk menyediakan kembalian). BUKAN biaya, BUKAN pengurang pendapatan.
 2. "Profit", "keuntungan", dan "analisis profit" berarti analisis total pendapatan (omzet) berdasarkan data penjualan aktual. Jawab langsung menggunakan data Penjualan Hari Ini (${formatRupiah(todayRevenue)}) dan/atau data shift. Jangan pernah menjawab Rp 0 jika ada data Penjualan Hari Ini atau Penjualan 7 Hari Terakhir!
 3. Saat memberikan Analisis Profit atau Ringkasan Penjualan Hari Ini, WAJIB sebutkan:

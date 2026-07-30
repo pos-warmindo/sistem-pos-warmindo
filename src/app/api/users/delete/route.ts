@@ -40,13 +40,44 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 4. Delete via admin (cascade removes public.users & user_roles via FK)
+    // 4. Delete via admin. We remove dependent rows first because the FKs to
+    //    auth.users may not be ON DELETE CASCADE — otherwise auth.admin.deleteUser
+    //    fails with a DB error (GoTrue returns an empty 500 body -> message "{}").
     const admin = createAdminClient();
-    const { error: deleteError } = await admin.auth.admin.deleteUser(user_id);
 
-    if (deleteError) {
+    // 4a. Remove role assignments (user_roles.user_id -> user).
+    const { error: rolesError } = await admin
+      .from("user_roles")
+      .delete()
+      .eq("user_id", user_id);
+    if (rolesError) {
+      console.error("[/api/users/delete] user_roles delete failed:", rolesError);
       return NextResponse.json(
-        { error: "Gagal menghapus user: " + deleteError.message },
+        { error: "Gagal menghapus role user: " + rolesError.message },
+        { status: 500 }
+      );
+    }
+
+    // 4b. Remove the public profile row (public.users.id -> auth.users.id).
+    const { error: profileError } = await admin
+      .from("users")
+      .delete()
+      .eq("id", user_id);
+    if (profileError) {
+      console.error("[/api/users/delete] public.users delete failed:", profileError);
+      return NextResponse.json(
+        { error: "Gagal menghapus profil user: " + profileError.message },
+        { status: 500 }
+      );
+    }
+
+    // 4c. Finally remove the auth user.
+    const { error: deleteError } = await admin.auth.admin.deleteUser(user_id);
+    if (deleteError) {
+      console.error("[/api/users/delete] auth deleteUser failed:", deleteError);
+      const detail = deleteError.message?.trim() ? deleteError.message : String(deleteError.status ?? "unknown error");
+      return NextResponse.json(
+        { error: "Gagal menghapus user: " + detail },
         { status: 500 }
       );
     }
